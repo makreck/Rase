@@ -1,0 +1,14 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default configuration with custom flags",
+            "generator": "Unix Makefiles",
+            "cacheVariables": {
+                "CMAKE_C_FLAGS": "-J 12"
+            }
+        }
+    ]
+}
