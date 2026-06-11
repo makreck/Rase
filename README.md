@@ -1,7 +1,7 @@
 # Rase
-Radio Sensor Project
+## A Radio Sensor Project
 
-Disclaimer of Liability
+### Disclaimer of Liability
 
 This project is licensed under the terms of the GNU General Public License, version 3 or later (the "License"). A copy of the license is included in the root directory of this repository, and can also be found at "https://www.gnu.org/licenses/gpl-3.0.en.html".
 
