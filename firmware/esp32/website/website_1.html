@@ -1,0 +1,431 @@
+<!-- ------------------------------------------------------------------------
+PROJECT:     "Rase" Radio Sensor Project,    ESP32-S3 Station Device Firmware
+COPYRIGHT:   (C)2025-2026 KKS-Elektronik,  M. Kreck, <makreck@googlemail.com>
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful,   but WITHOUT
+ANY WARRANTY, without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE, see the GNU General Public License for details.
+
+You should have received a copy of the  GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+------------------------------------------------------------------------- -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <style>
+        :root {
+            --bg-gradient-1: #0f0c29;
+            --bg-gradient-2: #302b63;
+            --bg-gradient-3: #24243e;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-color: #00d2ff;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, #020103, #232141, #03030c, #121141);
+            background-size: 400% 400%;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-weight: 300;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            /*text-transform: uppercase;*/
+            margin-bottom: 5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            color: #161494;
+            background: rgba(74, 222, 128, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-badge.disconnected {
+            color: #380c0c;
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.0rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .card-value {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .card-unit {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-item span {
+            display: block;
+            color: var(--text-secondary);
+        }
+
+        .stat-item strong {
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            margin-top: 15px;
+            width: 100%;
+            height: 80px;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #loader {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="device-title">Sensor Node</h1>
+            <div class="stat-value">
+                <span>Device serial number</span>
+                <span id="device-serial-number">00000000000000000000</span>
+            </div>
+            <div class="stat-value">
+                <span>Query time</span>
+                <span id="time-stamp">0000-00-00T00:00:00</span>
+            </div>
+            <div class="stat-value">
+                <span>RSSI</span>
+                <span id="rssi">-99 dBm</span>
+                <span> - </span>
+                <span>TX-Power</span>
+                <span id="tx_power">+10 dBm</span>
+            </div>
+
+            <span id="connection-status" class="status-badge">Connected</span>
+        </header>
+
+        <main id="dashboard-content" class="dashboard-grid">
+            <div id="loader">Initializing Dashboard...</div>
+        </main>
+    </div>
+
+    <script>
+        const API_ENDPOINT = '/api/sensors';
+        const UPDATE_INTERVAL = 10000;
+
+        const ICONS = {
+            default:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+            generic:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" ><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+            percent:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+            rel_humidity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>',
+            abs_humidity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> <path d="M7 14c-1.1 0-2-.9-2-2 0-1.1.9-2 2-2h.06a4 4 0 0 1 7.88 0H17c1.1 0 2 .9 2 2s-.9 2-2 2H7z" /> <path d="M12 16.5l-1.5 2.5h3l-1.5-2.5z" transform="scale(0.6) translate(7,4)"/></svg>',
+            air_pressure: '<svg width="24" height="24" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/> <line x1="12" y1="2" x2="12" y2="4" stroke="currentColor" stroke-width="1.5"/> <line x1="12" y1="16" x2="12" y2="18" stroke="currentColor" stroke-width="1.5"/> <line x1="10" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="10" y1="12" x2="12" y2="12" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="12" x2="12" y2="12" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="10" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <path d="M12 12 L12 6 L10 8 Z" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="12" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>',
+            temperature:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>',
+            dewpoint:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>',
+            wind:         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>',
+            voltage:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>',
+        };
+
+        function get_SvgIcon(key) {
+            if (key.includes('temperature'))  return ICONS.temperature;
+            if (key.includes('rel_humidity')) return ICONS.rel_humidity;
+            if (key.includes('abs_humidity')) return ICONS.abs_humidity;
+            if (key.includes('dewpoint'))     return ICONS.dewpoint;
+            if (key.includes('air_pressure')) return ICONS.air_pressure;
+            if (key.includes('percent'))      return ICONS.percent;
+            return ICONS.generic;
+        }
+
+        const dashboardContent   = document.getElementById('dashboard-content');
+        const loader             = document.getElementById('loader');
+        const deviceTitle        = document.getElementById('device-title');
+        const timeStamp          = document.getElementById('time-stamp');
+        const deviceSerialNumber = document.getElementById('device-serial-number');
+        const rssi               = document.getElementById('rssi');
+        const tx_power           = document.getElementById('tx_power');
+        const connectionStatus   = document.getElementById('connection-status');
+
+        function drawChart(canvas, historyData, color, bottom, top) {
+            if (!historyData || historyData.length < 2) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.offsetWidth;
+            const height = canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const pad = 5;
+            const chartW = width - (pad * 2);
+            const chartH = height - (pad * 2);
+
+            const mapX = (index) => (index / (historyData.length - 1)) * chartW + pad;
+            const mapY = (val) => height - pad - ((val - bottom) / (top - bottom)) * chartH;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 210, 255, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(mapX(0), mapY(historyData[0]));
+
+            for (let i = 1; i < historyData.length; i++) {
+                ctx.lineTo(mapX(i), mapY(historyData[i]));
+            }
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+
+            ctx.lineTo(mapX(historyData.length - 1), height);
+            ctx.lineTo(mapX(0), height);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function renderDashboard(data) {
+            dashboardContent.innerHTML = '';
+
+            deviceTitle.textContent        = data.sensor;
+            timeStamp.textContent          = data.timestamp;
+            deviceSerialNumber.textContent = data.device_serial_number;
+            rssi.textContent               = data.rssi;
+            tx_power.textContent           = data.tx_power;
+
+            data.nodes.forEach(channel => {
+                const key = Object.keys(channel)[0];
+                const iconSvg  = get_SvgIcon(key);
+
+                const channelData = channel[key];
+                const name     = channelData.name;
+                const shortcut = channelData.shortcut;
+                const unit     = channelData.unit;
+                const color    = channelData.color;
+                const bottom   = channelData.bottom;
+                const top      = channelData.top;
+                const value    = channelData.value;
+                const min      = channelData.min;
+                const max      = channelData.max;
+                const average  = channelData.average;
+                const flags    = channelData.flags;
+                const count    = channelData.count;
+                const history  = channelData.history !== undefined ? channelData.history : [];
+
+                const dot_num  = flags & 0x0f;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="icon-box">${iconSvg}</div>
+                        <div class="card-title">${name}</div>
+                    </div>
+                    <div class="card-value">
+                        ${value.toFixed(dot_num)}
+                        <span class="card-unit">${unit}</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <span>Min</span>
+                            <strong>${min.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Average</span>
+                            <strong>${average.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Max</span>
+                            <strong>${max.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Count</span>
+                            <strong>${count}</strong>
+                        </div>
+                    </div>
+                `;
+                dashboardContent.appendChild(card);
+
+                if (history.length > 1) {
+                    const canvas = card.querySelector('canvas');
+                    const bounds = {
+                        bottom: bottom !== null ? bottom : Math.min(...history),
+                        top: top !== null ? top : Math.max(...history)
+                    };
+                    const range = bounds.top - bounds.bottom;
+                    if (range === 0) {
+                        bounds.bottom = current - 1;
+                        bounds.top = current + 1;
+                    } else {
+                        bounds.bottom -= range * 0.1;
+                        bounds.top += range * 0.1;
+                    }
+                    drawChart(canvas, history, color, bounds.bottom, bounds.top);
+                }
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_ENDPOINT);
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                if (!data) throw new Error('Invalid data received');
+
+                renderDashboard(data);
+                connectionStatus.textContent = "Connected";
+                connectionStatus.style.backgroundColor = "#4caf50";
+                connectionStatus.style.color = "white";
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                connectionStatus.textContent = "Offline";
+                connectionStatus.style.backgroundColor = "#f44336";
+                connectionStatus.style.color = "white";
+
+                // Add error message to grid
+                dashboardContent.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; justify-content: center;">
+                        <p style="color: #f44336;">Connection Error. Retrying...</p>
+                    </div>
+                `;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, UPDATE_INTERVAL);
+
+    </script>
+</body>
+</html>
