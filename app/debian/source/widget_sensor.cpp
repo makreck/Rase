@@ -172,7 +172,7 @@ int SensorWidget::update_channel_list(void) {
         }
     }
 
-    for (int i = n; i < 6; i++) { // TODO: until channel max
+    for (int i = n; i < 6; i++) { // @todo: until channel max
         gtk_grid_attach(GTK_GRID(m.gtk.bar), gtk_label_new(" "), i, 0, 1, 1);
     }
 
@@ -203,7 +203,7 @@ bool SensorWidget::processMouseClicks(int _type, void* _holder) {
             
         }
     } else if ((m.event.flag.fLeftBtnDown == 1) && (m.event.flag.fDoubleClick == 1)) {
-        mustUpdate = true; // TODO: processParameterRequest(type, _holder);
+        mustUpdate = true; // @todo: processParameterRequest(type, _holder);
     }
 
     return (mustUpdate);

@@ -301,7 +301,6 @@ void* SensorBus::_scanner_thread(void* _object) {
     return (nullptr);
 }
 void SensorBus::scanner_thread(const char* _host_addr) {
-    // usleep((rand() & 0xff) * 1000);
     SensorConnection* sc = request_id(_host_addr, NETW_RESPONSE_TIMEOUT);
     if (sc != nullptr) {
         if (strstr(sc->get_pid()->identification, SUPPORTED_PRODUCT_TYPE) != nullptr) {

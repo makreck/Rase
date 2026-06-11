@@ -292,7 +292,7 @@ bool Application::_linRecEventCallback(LRFindResult* eventResult, LogWindow* log
     return (false);
 }
 bool Application::linRecEventCallback(LRFindResult* eventResult, LogWindow* logWindow) {
-// **** TODO: Handle line recorder events...
+// @todo: Handle line recorder events...
     return (true);
 }
 
