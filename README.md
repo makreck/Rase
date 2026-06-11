@@ -3,8 +3,7 @@ Radio Sensor Project
 
 Disclaimer of Liability
 
-This project is licensed under the terms of the GNU General Public License, version 3 or later (the "License"). A copy of the license is included in the root directory 
-of this repository, and can also be found at "https://www.gnu.org/licenses/gpl-3.0.en.html".
+This project is licensed under the terms of the GNU General Public License, version 3 or later (the "License"). A copy of the license is included in the root directory of this repository, and can also be found at "https://www.gnu.org/licenses/gpl-3.0.en.html".
 
 This project is provided "as is", as open-source software and hardware, and is intended for hobbyist and enthusiast use, without warranties of any kind, either express or implied. The authors and contributors disclaim all liability for any damages or losses arising from the use or inability to use this project, including but not limited to direct, indirect, incidental, special, or consequential damages.
 

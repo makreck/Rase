@@ -1,7 +1,7 @@
 /*
  * ==============================================================================
  *
- *  PROJECT:     "Rase" Radio Sensor Project,    Measuring and Config Application
+ *  PROJECT:     "Rase" Radio Sensor Project,      Preliminary Configuration Tool
  *  COPYRIGHT:   (C)2025-2026 KKS-Elektronik,  M. Kreck, <makreck@googlemail.com>
  *
  *  This program is free software: you can redistribute it and/or modify it under
