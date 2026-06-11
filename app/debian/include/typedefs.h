@@ -25,7 +25,7 @@
 #define TOWIDECHAR(quote)       __TOWIDECHAR(quote)   
 
 #define SIZEOFARRAY(a)          (sizeof(a) / sizeof((a)[0]))
-#define SAVE_DELETE(x)          { if (x != nullptr) { delete (x); x = nullptr; } }
+#define SAFE_DELETE(x)          { if (x != nullptr) { delete (x); x = nullptr; } }
 
 #define DEFAULT_FONT            "DejaVu Sans"
 #define INVALID_THREAD_HANDLE   (-1)
