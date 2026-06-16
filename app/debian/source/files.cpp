@@ -186,3 +186,8 @@ bool Files::read_data_from(int fd, int64_t position, void* data, size_t length, 
     }
     return (size == (ssize_t)length);
 }
+
+bool Files::flush_file_buffers(int fd) {
+    if (fd < 0) return (false);
+    return ((fsync(fd) < 0) ? false : true);
+}

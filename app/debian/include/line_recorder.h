@@ -45,7 +45,7 @@
 #define LR_SUPEND_TO_RESTART_DEF_S      (60.0)
 #define LR_ZOOM_RECT_MIN_SIZE           (16)
 
-#define LR_INIT_TIMESPAN                (3.0 / TC_MINUTES_PER_DAY)
+#define LR_INIT_TIMESPAN                (1.0 / TC_MINUTES_PER_DAY)
 
 enum class LRElementType {
     invalid = 0,

@@ -40,5 +40,5 @@ class Files {
         static bool delete_file(const char* file_path);
         static bool get_home_dir(char* _path_buffer, size_t _length);
         static bool get_home_dir(std::string& _path_buffer, const char* _folder = nullptr);
-
+        static bool flush_file_buffers(int fd);
 };

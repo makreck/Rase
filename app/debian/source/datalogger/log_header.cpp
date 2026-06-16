@@ -91,3 +91,28 @@ double LogHeader::get_update_timestamp(void) {
 double LogHeader::get_utc_offset_timecode(void) {
     return (Times::get_timecode_offset_from_utc_shift_byte(data.time_zone & 0xff));
 }
+
+bool LogHeader::must_update(uint64_t& update_timestamp) {
+    bool must_update = false;
+
+    uint64_t timestamp = Times::get_tick_count64();
+    if (update_timestamp == 0) {
+        update_timestamp = timestamp;
+        must_update = true;
+    }
+
+    int64_t offset = data.auto_update_threshold_ms;
+    int64_t delta = (int64_t)update_timestamp - (int64_t)timestamp;
+    if ((offset != 0) && (delta < 0)) {
+        update_timestamp += offset;
+        if ((data.modified == 1)) {
+            must_update = true;
+        }
+    }
+
+    if (data.header_update_count < 2) {
+        must_update = true;
+    }
+
+    return (must_update);    
+}

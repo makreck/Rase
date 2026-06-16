@@ -29,8 +29,8 @@ class LogHeader {
                 char      title_string[64];
                 uint32_t  magic_id;
                 uint32_t  file_version;
-                uint64_t  auto_update_threshold_ms;
-                uint64_t  header_update_count;
+                uint64_t   auto_update_threshold_ms;
+                uint64_t   header_update_count;
                 ProductID product_info;
                 
                 union {
@@ -73,6 +73,7 @@ class LogHeader {
         void clear_modified(void);
         bool is_modified(void);
         bool register_update(void);
+        bool must_update(uint64_t& update_timestamp);
         double get_creation_timestamp(void);
         double get_update_timestamp(void);
         double get_utc_offset_timecode(void);

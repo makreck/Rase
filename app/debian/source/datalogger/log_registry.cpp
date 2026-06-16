@@ -45,26 +45,6 @@ double LogRegistry::get_timecode_end(void) {
     return (timecode_end);
 }
 
-bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_put) {
-    bool result = true;
-
-    int64_t begin = first_log_position;
-    int64_t end = (_use_for_put) ? next_log_position : (next_log_position - sizeof (LogFrame));
-
-    if ((_file_position < begin) || (_file_position > end)) {
-        result = false;
-    }
-    _file_position = std::max(begin, std::min(end, _file_position));
-
-    int64_t offset = (_file_position - begin) % sizeof (LogFrame);
-    if (offset != 0) {
-        _file_position -= offset;
-        result = false;
-    }
-
-    return (result);
-}
-
 int64_t LogRegistry::get_file_position_for(double _timecode) {
     int i = find(_timecode);
     if (i < 0) {
@@ -117,11 +97,7 @@ int64_t LogRegistry::add(LogFrame* _frame) {
 }
 
 int LogRegistry::find(double _timecode) {
-    if ((count_of_records == 0) || (_timecode < timecode_begin)) {
-        return (-1);
-    }
-
-    if (index < 2) {
+    if ((count_of_records == 0) || (_timecode < timecode_begin) || (index < 2)) {
         return (0);
     }
 
@@ -143,4 +119,21 @@ int LogRegistry::find(double _timecode) {
     }
 
     return (i);
+}
+
+bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_put) {
+    bool result = true;
+
+    int64_t begin = first_log_position;
+    if (_file_position < begin) {
+        result = false;
+    }
+
+    int64_t offset = (_file_position - begin) % sizeof (LogFrame);
+    if (offset != 0) {
+        _file_position -= offset;
+        result = false;
+    }
+
+    return (result);
 }

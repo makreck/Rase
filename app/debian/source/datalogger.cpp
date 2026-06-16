@@ -62,8 +62,7 @@ void Datalogger::cleanup(void) {
     }
 
     if (m.logfile != nullptr) {
-        // @todo Still problems with "Scale" class, probably with virtual functions for MicroJson handler.
-        // delete (m.logfile); 
+        delete (m.logfile); 
     }
 
     if (m.fd != -1) {
@@ -143,23 +142,8 @@ bool Datalogger::add_measurement(std::vector<Scale*>* _channels) {
 }
 
 void Datalogger::check_for_update(void) {
-    if (m.auto_update_timestamp == 0) {
-        return;
-    }
-
     LogHeader* header = m.logfile->get_header();
-    uint64_t update_threshold_ms = header->get_auto_update_threshold_ms();
-
-    if (update_threshold_ms == 0) {
-        return;
-    }
-
-    uint64_t timestamp = Times::get_tick_count64();
-    if (timestamp >= m.auto_update_timestamp) {
-        m.auto_update_timestamp += update_threshold_ms;
-
-        if (header->is_modified()) {
-            m.logfile->put(m.fd);
-        }
+    if (header->must_update(m.auto_update_timestamp)) {
+        m.logfile->put(m.fd);
     }
 }

@@ -54,37 +54,6 @@ void Evaluator::cleanup(void) {
     pthread_mutex_destroy(&m.slot_mutex);
 }
 
-const char* Evaluator::get_path(void) {
-    return (m.path.c_str());
-}
-
-void Evaluator::set_window(LogWindow _window) {
-    m.window = _window;
-    m.ext_window = m.window;
-    m.ext_window.expand(0.5);
-
-    pthread_mutex_lock(&m.slot_mutex); {
-        m.logfile->get(m.fd);
-
-        if (m.evaluation_slot[m.active_slot] != nullptr) {
-            delete (m.evaluation_slot[m.active_slot]);
-            m.evaluation_slot[m.active_slot] = nullptr;
-        }
-
-        m.evaluation_slot[m.active_slot] = new EvaluationSlot(m.fd, m.logfile, &m.ext_window);
-
-        m.active_slot++;
-        if (m.active_slot >= SIZEOFARRAY(m.evaluation_slot)) {
-            m.active_slot = 0;
-        }
-    } pthread_mutex_unlock(&m.slot_mutex);
-
-// std::string twnd_begin = Times::format(InFormat::dateAndTime, m.ext_window.time.begin);
-// std::string twnd_end   = Times::format(InFormat::dateAndTime, m.ext_window.time.end);
-// printf("\nEvaluation window: %s to %s\n", twnd_begin.c_str(), twnd_end.c_str());
-// print_slot(m.active_slot, m.evaluation_slot[m.active_slot]); // ****
-}
-
 size_t Evaluator::create_curve_list(std::vector<PointF*>& _curve_list, RectEx& _rect, LogWindow _window, bool _vertical) {
     pthread_mutex_lock(&m.slot_mutex); {
 
@@ -130,6 +99,37 @@ size_t Evaluator::create_curve_list(std::vector<PointF*>& _curve_list, RectEx& _
     } pthread_mutex_unlock(&m.slot_mutex);
     
     return (_curve_list.size());
+}
+
+const char* Evaluator::get_path(void) {
+    return (m.path.c_str());
+}
+
+void Evaluator::set_window(LogWindow _window) {
+    m.window = _window;
+    m.ext_window = m.window;
+    m.ext_window.expand(0.5);
+
+    pthread_mutex_lock(&m.slot_mutex); {
+        m.logfile->get(m.fd);
+
+        if (m.evaluation_slot[m.active_slot] != nullptr) {
+            delete (m.evaluation_slot[m.active_slot]);
+            m.evaluation_slot[m.active_slot] = nullptr;
+        }
+
+        m.evaluation_slot[m.active_slot] = new EvaluationSlot(m.fd, m.logfile, &m.ext_window);
+
+        m.active_slot++;
+        if (m.active_slot >= SIZEOFARRAY(m.evaluation_slot)) {
+            m.active_slot = 0;
+        }
+    } pthread_mutex_unlock(&m.slot_mutex);
+
+std::string twnd_begin = Times::format(InFormat::dateAndTime, m.ext_window.time.begin);
+std::string twnd_end   = Times::format(InFormat::dateAndTime, m.ext_window.time.end);
+printf("\nEvaluation window: %s to %s\n", twnd_begin.c_str(), twnd_end.c_str());
+print_slot(m.active_slot, m.evaluation_slot[m.active_slot]); // ****
 }
 
 void Evaluator::delete_curve_list(std::vector<PointF*>& _curve_list) {

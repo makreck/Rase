@@ -106,12 +106,11 @@ class LogRegistry {
         ~LogRegistry() {
         }
 
-        void clear(void);
+        void    clear(void);
         int64_t get_file_position_for(double _timecode);
         int64_t add(LogFrame* _frame);
-        
         int64_t get_count_of_records(void);
-        double get_timecode_begin(void);
-        double get_timecode_end(void);
-        bool validate_file_position(int64_t& _file_position, bool _use_for_put = false);
+        double  get_timecode_begin(void);
+        double  get_timecode_end(void);
+        bool    validate_file_position(int64_t& _file_position, bool _use_for_put = false);
 };
