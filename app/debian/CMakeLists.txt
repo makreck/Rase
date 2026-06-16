@@ -18,7 +18,7 @@ configure_file(
     "${CMAKE_BINARY_DIR}/include/version.h"
 )
 
-file( GLOB APP_SOURCES source/*.cpp source/datalogger/*.cpp source/evaluator/*.cpp)
+file( GLOB APP_SOURCES source/*.cpp source/datalogger/*.cpp source/evaluator/*.cpp source/line_recorder/*.cpp)
 add_executable(rase ${APP_SOURCES} )
 
 INCLUDE_DIRECTORIES(
