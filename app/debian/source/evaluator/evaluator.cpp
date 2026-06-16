@@ -118,6 +118,7 @@ void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, LogWindow _window, bool
 
                     if (count > 0) {
                         EvalCurve* curve = new EvalCurve(count, channel_index, scale->get_color_ref(), scale->get_line_width());
+                        if (curve == nullptr) { continue; }
 
                         double t_begin = _window.time.get_begin();
                         double t_end   = _window.time.get_end();
@@ -130,11 +131,12 @@ void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, LogWindow _window, bool
                             float norm_value = scale->get_zoom_normalized(channel[i].get_value());
 
                             if (channel[i].is_used()) {
+                                double timecode = channel[i].get_timecode();
                                 if (_vertical) {
                                     curve->set(n++, ((norm_value - v_begin) * (double)_rect.width  / v_span) + (double)_rect.x,
-                                                    ((t_end - channel[i].get_timecode()) * (double)_rect.height / t_span) + (double)_rect.y);
+                                                    ((t_end - timecode) * (double)_rect.height / t_span) + (double)_rect.y);
                                 } else {
-                                    curve->set(n++, ((channel[i].get_timecode() - t_begin) * (double)_rect.width  / t_span) + (double)_rect.x,
+                                    curve->set(n++, ((timecode - t_begin) * (double)_rect.width  / t_span) + (double)_rect.x,
                                                     ((norm_value - v_begin) * (double)_rect.height / v_span) + (double)_rect.y);
                                 }
                             }

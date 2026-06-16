@@ -21,5 +21,6 @@
 
 #pragma once
 
+#define LOG_EVAL_CURVE_LEN_MIN (2)
 #define LOG_EVAL_CURVE_LEN_MAX (4096)
 

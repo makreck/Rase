@@ -26,10 +26,10 @@ void EvalCurve::init(size_t _length, int _index, ColorRef _color, float _line_wi
     color = _color;
     line_width = _line_width;
     if (_length > 0) {
+        length = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
         size_t size = sizeof(PointF) * length;
         data = (PointF *)malloc(size);
         memset(data, 0, size);
-        length = _length;
     }
 }
 

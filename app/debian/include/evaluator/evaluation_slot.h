@@ -27,7 +27,7 @@ class EvaluationSlot {
             int           fd;
             LogFile*      logfile;
             LogWindow     window;
-            EvalPt*       channel[LOG_SLOT_MAX]{ nullptr };
+            EvalPt*       channel[LOG_SLOT_MAX];
             pthread_t     thread_handle = INVALID_THREAD_HANDLE;
             volatile bool data_ready = false;
         } m;
