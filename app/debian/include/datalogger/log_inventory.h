@@ -44,13 +44,13 @@ class LogInventory {
         void clear(void);
 
         int add_slot(Scale* _channel_data);
-        const Scale* get_slot(int _index);
-        const Scale* get_slot(const char* _key);
+        Scale* get_slot(int _index);
+        Scale* get_slot(const char* _key);
         int find_slot(const char* key);
         int get_free_slot(void);
 
         size_t set_userdata(const void* _userdata, size_t _length);
         size_t get_userdata(void* _userdata, size_t _length);
-        const void* get_userdata(size_t* _length = nullptr);
+        void* get_userdata(size_t* _length = nullptr);
 
 };
