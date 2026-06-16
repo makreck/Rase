@@ -39,6 +39,22 @@ class PointF {
             y = givenY;
         }
 
+        void operator=(PointF& _source) {
+            x = _source.x;
+            y = _source.y;
+        }
+
+        void operator=(PointF* _source) {
+            if (_source != nullptr) {
+                x = _source->x;
+                y = _source->y;
+            }
+        }
+
+        bool operator==(PointF& _source) {
+            return ((x == _source.x) && (y == _source.y));
+        }
+
         void set(double _x, double _y) {
             x = (float)(_x);
             y = (float)(_y);
