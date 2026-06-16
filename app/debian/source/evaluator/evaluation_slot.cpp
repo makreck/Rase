@@ -113,7 +113,6 @@ void EvaluationSlot::perform_sync(void) {
         scan_position += sizeof (LogFrame);
 
         int slot_index = frame.get_slot();
-if (slot_index != 0) continue; // **** only 1 slot for testing ...
         EvalPt* channel = get_channel(slot_index, true);
         if (channel == nullptr) { continue; }
 

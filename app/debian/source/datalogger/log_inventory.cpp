@@ -76,7 +76,7 @@ int LogInventory::add_slot(Scale* _channel_data) {
     return (slot_index);
 }
 
-const Scale* LogInventory::get_slot(int _index) {
+Scale* LogInventory::get_slot(int _index) {
     if((_index < 0) || (_index >= LOG_SLOT_MAX)) {
         return (nullptr);
     }
@@ -86,7 +86,7 @@ const Scale* LogInventory::get_slot(int _index) {
     return (&slot[_index]);
 }
 
-const Scale* LogInventory::get_slot(const char* _key) {
+Scale* LogInventory::get_slot(const char* _key) {
     return (get_slot(find_slot(_key)));
 }
 
@@ -110,7 +110,7 @@ size_t LogInventory::get_userdata(void* _userdata, size_t _length) {
     return (userdata_length);
 }
 
-const void* LogInventory::get_userdata(size_t* _length) {
+void* LogInventory::get_userdata(size_t* _length) {
     if (_length != nullptr) {
         *_length = userdata_length;
     }
