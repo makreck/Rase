@@ -324,10 +324,10 @@ class Scale : public MicroJsonObject {
         void set_color(ColorRef color);
         ColorRef get_color_ref(void);
         const char* get_color_css(void);
-
+        float get_line_width(void);
+        void set_line_width(float _width);
         ScaleFormat* get_format(void);
 
         void set_userdata(void* _user_data);
         void* get_userdata(void);
-
 };

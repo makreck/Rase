@@ -183,7 +183,10 @@ void Scale::check(void) {
         step = std::min(_range / 3.0f, std::max(_range * 0.0001f, step));
     }
 
-    if (zoom_begin > zoom_end) {
+    if (zoom_begin == zoom_end) {
+        zoom_begin = bottom;
+        zoom_end = top;
+    } else if (zoom_begin > zoom_end) {
         float x = zoom_begin;
         zoom_begin = zoom_end;
         zoom_end = x;
@@ -218,6 +221,9 @@ float Scale::get_top(void) {
 }
 
 float Scale::get_range(void) {
+    if (top == bottom) {
+        check();
+    }
     return (top - bottom);
 }
 
@@ -279,6 +285,9 @@ float Scale::get_zoom_end(void) {
 }
 
 float Scale::get_zoom_range(void) {
+    if (zoom_begin == zoom_end) {
+        check();
+    }
     return (zoom_end - zoom_begin);
 }
 
@@ -354,6 +363,14 @@ void Scale::set_userdata(void *_user_data) {
     user_data = _user_data;
 }
 
-void *Scale::get_userdata(void) {
+void* Scale::get_userdata(void) {
     return (user_data);
+}
+
+float Scale::get_line_width(void) {
+    return (get_format()->get_line_width());
+}
+
+void Scale::set_line_width(float _width) {
+    get_format()->set_line_width(_width);
 }
