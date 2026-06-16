@@ -130,7 +130,7 @@ void LineRecorder::scroll_paper_by_dots(double _dotsToScroll) {
 }
 
 double LineRecorder::paper2now(void) {
-    double tc_moved       = m.window.time.approximate(Times::get_now(), m.update_speed_s * TC_SECOND);
+    double tc_moved       = m.window.time.approximate(top_of_paper(), m.update_speed_s * TC_SECOND);
     double tc_timeSpan    = m.window.time.get_span();
     double paperLength    = (double)m.rc.paper.height;
     double pixelsToScroll = tc_moved * paperLength / tc_timeSpan;
@@ -323,4 +323,8 @@ void LineRecorder::window_update(void) {
             evaluator->set_window(m.window);
         }
     }
+}
+
+double LineRecorder::top_of_paper(void) {
+    return (Times::get_now() - (m.window.time.get_span() * 0.05));
 }

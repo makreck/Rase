@@ -63,7 +63,7 @@ const char* Evaluator::get_path(void) {
 void Evaluator::set_window(LogWindow _window) {
     m.window = _window;
     m.ext_window = m.window;
-    m.ext_window.expand(0.5);
+    m.ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
 
     pthread_mutex_lock(&m.slot_mutex); {
         m.logfile->get(m.fd);

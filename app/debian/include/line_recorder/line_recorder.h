@@ -291,6 +291,7 @@ class LineRecorder {
         void process_zoom_rect(void);
         bool end_mouse_zoom(void);
 
+        double top_of_paper(void);
         double paper2now(void);
         double scroll_paper(double timeOffset);
         void update(void);
