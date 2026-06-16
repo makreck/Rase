@@ -21,37 +21,49 @@
 
 #pragma once
 
-class Evaluator {
+#include "datalogger/log_defs.h"
+#include "datalogger/log_frame.h"
+#include "datalogger/log_inventory.h"
+#include "datalogger/log_registry.h"
+#include "datalogger/log_header.h"
+#include "datalogger/log_range.h"
+#include "datalogger/log_window.h"
+#include "datalogger/log_file.h"
+
+class Datalogger {
     private:
         struct {
+            std::string folder;
+            std::string filename;
             std::string path;
+
             int fd = -1;
             LogFile* logfile = nullptr;
-            LogWindow window;
-            LogWindow ext_window;
-            
-            pthread_mutex_t slot_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-            int active_slot = 0;
-            EvaluationSlot* evaluation_slot[2]{ nullptr };
+            uint64_t auto_update_timestamp = 0;
         } m;
 
-        void init(const char* _path);
+        void init(const char* _folder_path, ProductID* _product_id, std::vector<Scale*>* _channels);
         void cleanup(void);
 
+        void update_inventory(std::vector<Scale*>* _channels);
+        void update_header(ProductID* _product_id);
+        void create_path(const char* _folder_path, ProductID* _product_id);
+        void open_file(ProductID* _product_id, std::vector<Scale*>* _channels);
+        void check_for_update(void);
+
     public:
-        Evaluator(const char* _path) {
-            init(_path);
+        Datalogger(const char* _folder_path, ProductID* _product_id = nullptr, std::vector<Scale*>* _channels = nullptr) {
+            init(_folder_path, _product_id, _channels);
         }
-        
-        ~Evaluator() {
+
+        ~Datalogger() {
             cleanup();
         }
 
-        const char* get_path(void);
-        void set_window(LogWindow _window);
-        size_t create_curve_list(std::vector<PointF*>& _curve_list, RectEx& _rect, LogWindow _window, bool _vertical);
-        void delete_curve_list(std::vector<PointF*>& _curve_list);
-        void print_slot(int n, EvaluationSlot* _slot);
-};
+        static void create_path(const char* _folder_path, ProductID* _product_id, std::string& _folder, std::string& _filename, std::string& _path);
 
+        bool add_measurement(std::vector<Scale*>* _channels);
+        const char* get_path(void);
+
+};
