@@ -120,8 +120,15 @@ void EvaluationSlot::perform_sync(void) {
         if (timecode < m.window.time.begin) { continue; }
         if (timecode > m.window.time.end)   { break;    }
 
-        int pt_index = (int)(((timecode - m.window.time.begin) * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()));
+        int pt_index = (int)(((timecode - m.window.time.begin) * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()) + 0.5);
         if ((pt_index < 0) || (pt_index >= LOG_EVAL_CURVE_LEN_MAX)) { continue; }
+    
+        if (pt_index > 0) {
+            channel[pt_index - 1].add_value(timecode, frame.get_value());
+        }
         channel[pt_index].add_value(timecode, frame.get_value());
+        if (pt_index < (LOG_EVAL_CURVE_LEN_MAX - 1)) {
+            channel[pt_index + 1].add_value(timecode, frame.get_value());
+        }
     }
 }
