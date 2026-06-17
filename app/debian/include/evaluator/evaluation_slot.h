@@ -27,7 +27,7 @@ class EvaluationSlot {
             int           fd;
             LogFile*      logfile;
             LogWindow     window;
-            EvalPt*       channel[LOG_SLOT_MAX];
+            EvalPt*       points[LOG_SLOT_MAX];
             pthread_t     thread_handle = INVALID_THREAD_HANDLE;
             volatile bool data_ready = false;
         } m;
@@ -48,8 +48,8 @@ class EvaluationSlot {
         }
 
         LogWindow* get_window(void);
-        EvalPt* create_channel(void);
-        EvalPt* get_channel(int index, bool auto_create);
+        EvalPt* create_points(void);
+        EvalPt* get_points(int index, bool auto_create);
         void perform_sync(void);
         void perform_async(void);
         bool is_data_ready(void);

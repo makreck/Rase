@@ -25,11 +25,12 @@ void EvaluationSlot::init(int _fd, LogFile *_logfile, LogWindow *_window) {
     m.fd = _fd;
     m.logfile = _logfile;
     m.window.set(_window);
-    memset(m.channel, 0, sizeof (m.channel));
+    memset(m.points, 0, sizeof (m.points));
 
 // *** for testing only...
-perform_sync();
-// perform_async();
+    // perform_sync();
+
+    perform_async();
 }
 
 void EvaluationSlot::cleanup() {
@@ -42,14 +43,14 @@ void EvaluationSlot::cleanup() {
     m.data_ready = false;
 
     for (int i = 0; i < LOG_SLOT_MAX; i++) {
-        if (m.channel[i] != nullptr) {
-            free(m.channel[i]);
-            m.channel[i] = nullptr;
+        if (m.points[i] != nullptr) {
+            free(m.points[i]);
+            m.points[i] = nullptr;
         }
     }
 }
 
-EvalPt* EvaluationSlot::create_channel(void) {
+EvalPt* EvaluationSlot::create_points(void) {
     size_t size = sizeof (EvalPt) * LOG_EVAL_CURVE_LEN_MAX;
     EvalPt* channel = (EvalPt*)malloc(size);
     if (channel != nullptr) {
@@ -64,20 +65,38 @@ EvalPt* EvaluationSlot::create_channel(void) {
     return (channel);
 }
 
-EvalPt* EvaluationSlot::get_channel(int _index, bool auto_create) {
+EvalPt* EvaluationSlot::get_points(int _index, bool auto_create) {
     if ((_index < 0) || (_index >= LOG_SLOT_MAX)) {
         return (nullptr);
     }
 
-    if ((m.channel[_index] == nullptr) && auto_create) {
-        m.channel[_index] = create_channel();
+    if ((m.points[_index] == nullptr) && auto_create) {
+        m.points[_index] = create_points();
     }
 
-    return (m.channel[_index]);
+    return (m.points[_index]);
 }
 
 LogWindow* EvaluationSlot::get_window(void) {
     return (&m.window);
+}
+
+bool EvaluationSlot::is_data_ready(void) {
+    if (m.data_ready) {
+        if (m.thread_handle != INVALID_THREAD_HANDLE) {
+            pthread_join(m.thread_handle, nullptr);
+            m.thread_handle = INVALID_THREAD_HANDLE;
+        }
+    }
+    return (m.data_ready);
+}
+
+bool EvaluationSlot::wait_for_data_ready(void) {
+    if (m.thread_handle != INVALID_THREAD_HANDLE) {
+        pthread_join(m.thread_handle, nullptr);
+        m.thread_handle = INVALID_THREAD_HANDLE;
+    }
+    return (m.data_ready);
 }
 
 void EvaluationSlot::perform_async(void) {
@@ -91,19 +110,6 @@ void* EvaluationSlot::_evaluation_thread(void *_object) {
 }
 void EvaluationSlot::evaluation_thread(void) {
     perform_sync();
-    m.data_ready = true;
-}
-
-bool EvaluationSlot::is_data_ready(void) {
-    return (m.data_ready);
-}
-
-bool EvaluationSlot::wait_for_data_ready(void) {
-    if (m.thread_handle != INVALID_THREAD_HANDLE) {
-        pthread_join(m.thread_handle, nullptr);
-        m.thread_handle = INVALID_THREAD_HANDLE;
-    }
-    return (m.data_ready);
 }
 
 void EvaluationSlot::perform_sync(void) {
@@ -113,8 +119,8 @@ void EvaluationSlot::perform_sync(void) {
         scan_position += sizeof (LogFrame);
 
         int slot_index = frame.get_slot();
-        EvalPt* channel = get_channel(slot_index, true);
-        if (channel == nullptr) { continue; }
+        EvalPt* points = get_points(slot_index, true);
+        if (points == nullptr) { continue; }
 
         double timecode = frame.get_timecode();
         if (timecode < m.window.time.begin) { continue; }
@@ -124,11 +130,12 @@ void EvaluationSlot::perform_sync(void) {
         if ((pt_index < 0) || (pt_index >= LOG_EVAL_CURVE_LEN_MAX)) { continue; }
     
         if (pt_index > 0) {
-            channel[pt_index - 1].add_value(timecode, frame.get_value());
+            points[pt_index - 1].add_value(timecode, frame.get_value());
         }
-        channel[pt_index].add_value(timecode, frame.get_value());
+        points[pt_index].add_value(timecode, frame.get_value());
         if (pt_index < (LOG_EVAL_CURVE_LEN_MAX - 1)) {
-            channel[pt_index + 1].add_value(timecode, frame.get_value());
+            points[pt_index + 1].add_value(timecode, frame.get_value());
         }
     }
+    m.data_ready = true;
 }

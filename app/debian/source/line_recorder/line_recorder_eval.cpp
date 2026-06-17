@@ -25,7 +25,7 @@ bool LineRecorder::enable_evaluation(const char* _path) {
     for (Evaluator*& evaluator : m.curves) {
         if (evaluator != nullptr) {
             if (strcmp(_path, evaluator->get_path()) == 0) {
-                // @todo: Set recording active ...
+                evaluator->resume();
                 return (true);
             }
         }
@@ -38,7 +38,7 @@ bool LineRecorder::disable_evaluation(const char* _path) {
     for (Evaluator*& evaluator : m.curves) {
         if (evaluator != nullptr) {
             if (strcmp(_path, evaluator->get_path()) == 0) {
-                // @todo: Set recording inactive ...
+                evaluator->sleep();
                 return (true);
             }
         }

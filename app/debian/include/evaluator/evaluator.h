@@ -55,6 +55,9 @@ class Evaluator {
             cleanup();
         }
 
+        void resume(void);
+        void sleep(void);
+
         void delete_curve_list(void);
         const char* get_path(void);
         void set_window(LogWindow _window);

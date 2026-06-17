@@ -27,10 +27,7 @@ void Evaluator::init(const char* _path) {
     m.logfile = new LogFile();
     
     pthread_mutex_init(&m.slot_mutex, nullptr);
-
-    if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
-        m.logfile->get(m.fd);
-    }
+    resume();
 }
 
 void Evaluator::cleanup(void) {
@@ -56,28 +53,55 @@ void Evaluator::cleanup(void) {
     pthread_mutex_destroy(&m.slot_mutex);
 }
 
+void Evaluator::resume(void) {
+    pthread_mutex_lock(&m.slot_mutex); {
+        if (m.fd == -1) {
+            if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
+                m.logfile->get(m.fd);
+                printf("---> Evaluator resumed: <%s>\n", m.path.c_str());
+            }
+        }
+    } pthread_mutex_unlock(&m.slot_mutex);
+}
+
+void Evaluator::sleep(void) {
+    pthread_mutex_lock(&m.slot_mutex); {
+        if (m.fd != -1) {
+            Files::close_file(m.fd);            
+            printf("---> Evaluator sleeping: <%s>\n", m.path.c_str());
+        }
+    } pthread_mutex_unlock(&m.slot_mutex);
+}
+
 const char* Evaluator::get_path(void) {
     return (m.path.c_str());
 }
 
 void Evaluator::set_window(LogWindow _window) {
-    m.window = _window;
-    m.ext_window = m.window;
-    m.ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
+    if (m.fd == -1) {
+        return;
+    }
 
     pthread_mutex_lock(&m.slot_mutex); {
-        m.logfile->get(m.fd);
+        m.window     = _window;
+        m.ext_window = m.window;
+        m.ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
 
         if (m.evaluation_slot[m.active_slot] != nullptr) {
-            delete (m.evaluation_slot[m.active_slot]);
-            m.evaluation_slot[m.active_slot] = nullptr;
+            if (m.evaluation_slot[m.active_slot]->is_data_ready()) {
+                delete (m.evaluation_slot[m.active_slot]);
+                m.evaluation_slot[m.active_slot] = nullptr;
+            }
         }
 
-        m.evaluation_slot[m.active_slot] = new EvaluationSlot(m.fd, m.logfile, &m.ext_window);
+        if (m.evaluation_slot[m.active_slot] == nullptr) {
+            m.logfile->get(m.fd);
+            m.evaluation_slot[m.active_slot] = new EvaluationSlot(m.fd, m.logfile, &m.ext_window);
 
-        m.active_slot++;
-        if (m.active_slot >= SIZEOFARRAY(m.evaluation_slot)) {
-            m.active_slot = 0;
+            m.active_slot++;
+            if (m.active_slot >= SIZEOFARRAY(m.evaluation_slot)) {
+                m.active_slot = 0;
+            }
         }
     } pthread_mutex_unlock(&m.slot_mutex);
 }
@@ -105,7 +129,7 @@ void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, LogWindow _window, bool
                 Scale* scale = m.logfile->get_inventory()->get_slot(channel_index);
                 if (scale == nullptr) continue;
 
-                EvalPt* channel = m.evaluation_slot[m.active_slot]->get_channel(channel_index, false);
+                EvalPt* channel = m.evaluation_slot[m.active_slot]->get_points(channel_index, false);
                 if (channel != nullptr) {
                     LogWindow slot_window(m.evaluation_slot[m.active_slot]->get_window());
 
