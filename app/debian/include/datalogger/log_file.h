@@ -41,7 +41,17 @@ class LogFile {
             }
 
             if (inventory != nullptr) {
-                // @todo: Still problems with delete().
+                // Since inventory consists of Scale objects which have virtual functions,
+                // this is causing a crash because the content was loaded from a file and
+                // the virtual functions were not restored correctly here.
+                // 
+                // @TODO: Split Scale object into a JsonScale and a Scale object. Scale
+                //        object must not have virtual functions. JSON import must use
+                //        a JasonScale object which after parsing the JSON data can be
+                //        imported into the Scale object. Then, the Scale objects may
+                //        be loaded from the file.
+                //
+                // Currently, this is causing a memory leaking !
                 // delete (inventory);
                 inventory = nullptr;
             }
