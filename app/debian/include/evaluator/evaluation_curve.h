@@ -21,24 +21,45 @@
 
 #pragma once
 
-class EvalCurve {
+class EvalCurvePt {
     public:
-        int      index      = 0;
-        ColorRef color      = C_RED;
-        float    line_width = 2.0f;
-        size_t   length     = 0;
-        PointF*  data       = nullptr;
+        PointF  pt;
+        union {
+            uint32_t flags;
+            struct {
+                uint32_t f_startpoint : 1;
+                uint32_t f_endpoint   : 1;
+                uint32_t f_reserved0  : 6;
+                uint32_t symbol       : 8;
+                uint32_t reserved2    : 8;
+                uint32_t reserved3    : 8;
+            };
+        };
+};
 
-        EvalCurve(size_t _length, int _index, ColorRef _color = C_RED, float _line_width = 2.0f) {
-            init(_length, _index, _color, _line_width);
+class EvalCurve {
+    private:
+        void draw_stopper(cairo_t *_cr, double y);
+
+    public:
+        int          index      = 0;
+        ColorRef     color      = C_RED;
+        float        line_width = 2.0f;
+        size_t       length     = 0;
+        EvalCurvePt* data       = nullptr;
+        RectEx       rc;
+
+        EvalCurve(size_t _length, int _index, ColorRef _color, float _line_width, RectEx& _rect) {
+            init(_length, _index, _color, _line_width, _rect);
         }
 
         ~EvalCurve() {
             cleanup();
         }
 
-        void init(size_t _length, int _index, ColorRef _color, float _line_width);
+        void init(size_t _length, int _index, ColorRef _color, float _line_width, RectEx& _rect);
         void cleanup(void);
         bool set(int _index, double _x, double _y);
+        bool set_property(int _index, uint8_t _symbol, bool _startpoint, bool _endpoint);
         void draw(cairo_t* _cr, bool _foreground_curve = false);
 };
