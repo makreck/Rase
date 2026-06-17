@@ -21,16 +21,20 @@
 
 #include "includes.h"
 
-void EvaluationSlot::init(int _fd, LogFile *_logfile, LogWindow *_window) {
+void EvaluationSlot::init(int _fd, LogFile* _logfile, LogWindow* _window) {
     m.fd = _fd;
     m.logfile = _logfile;
     m.window.set(_window);
     memset(m.points, 0, sizeof (m.points));
 
-// *** for testing only...
-    // perform_sync();
-
-    perform_async();
+    LogRegistry* reg = m.logfile->get_registry();
+    
+    if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
+        (reg->get_timecode_begin() <= m.window.time.get_end())) {
+        perform_async();
+    } else {
+        m.data_ready = true;
+    }
 }
 
 void EvaluationSlot::cleanup() {
