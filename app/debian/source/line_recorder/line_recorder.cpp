@@ -328,3 +328,28 @@ void LineRecorder::window_update(void) {
 double LineRecorder::top_of_paper(void) {
     return (Times::get_now() - (m.window.time.get_span() * 0.05));
 }
+
+bool LineRecorder::enable_evaluation(const char* _path) {
+    for (Evaluator*& evaluator : m.curves) {
+        if (evaluator != nullptr) {
+            if (strcmp(_path, evaluator->get_path()) == 0) {
+                evaluator->resume();
+                return (true);
+            }
+        }
+    }
+    m.curves.push_back(new Evaluator(_path));
+    return (true);
+}
+
+bool LineRecorder::disable_evaluation(const char* _path) {
+    for (Evaluator*& evaluator : m.curves) {
+        if (evaluator != nullptr) {
+            if (strcmp(_path, evaluator->get_path()) == 0) {
+                evaluator->sleep();
+                return (true);
+            }
+        }
+    }
+    return (false);
+}
