@@ -21,11 +21,15 @@
 
 #pragma once
 
-class EvaluationSlot {
+class Evaluator;
+
+class EvaluationTask {
     private:
         struct {
-            int           fd;
-            LogFile*      logfile;
+            Evaluator*    base = nullptr;
+            int           task_index = 0;
+            int           fd = -1;
+            LogFile*      logfile = nullptr;
             LogWindow     window;
             EvalPt*       points[LOG_SLOT_MAX];
             pthread_t     thread_handle = INVALID_THREAD_HANDLE;
@@ -35,24 +39,26 @@ class EvaluationSlot {
         static void* _evaluation_thread(void* _object);
         void evaluation_thread(void);
 
-        void init(int _fd, LogFile* _logfile, LogWindow* _window);
+        void init(Evaluator* _base, int _task_index, int _fd, LogWindow* _window);
         void cleanup(void);
+        void reset_points(EvalPt* _points);
 
     public:
-        EvaluationSlot(int _fd, LogFile* _logfile, LogWindow* _window) {
-            init(_fd, _logfile, _window);
+        EvaluationTask(Evaluator* _base, int _task_index, int _fd, LogWindow* _window) {
+            init(_base, _task_index, _fd, _window);
         }
 
-        ~EvaluationSlot() {
+        ~EvaluationTask() {
             cleanup();
         }
 
         LogWindow* get_window(void);
-        EvalPt* create_points(void);
-        EvalPt* get_points(int index, bool auto_create);
+        EvalPt* get_points(int _index, bool _auto_create);
         void perform_sync(void);
         void perform_async(void);
         bool is_data_ready(void);
         bool wait_for_data_ready(void);
+        Scale* get_scale(int _index);
+        void perform_for_window(LogWindow* _window);
 
 };

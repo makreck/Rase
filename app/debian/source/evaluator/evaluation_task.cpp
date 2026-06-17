@@ -21,71 +21,106 @@
 
 #include "includes.h"
 
-void EvaluationSlot::init(int _fd, LogFile* _logfile, LogWindow* _window) {
-    m.fd = _fd;
-    m.logfile = _logfile;
-    m.window.set(_window);
+void EvaluationTask::init(Evaluator* _base, int _task_index, int _fd, LogWindow* _window) {
+printf("2a \n"); // ****
     memset(m.points, 0, sizeof (m.points));
+    m.base          = _base;
+    m.task_index    = _task_index;
+    m.fd            = _fd;
+    m.thread_handle = INVALID_THREAD_HANDLE;
+    m.data_ready    = false;
 
-    LogRegistry* reg = m.logfile->get_registry();
-    
-    if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
-        (reg->get_timecode_begin() <= m.window.time.get_end())) {
-        perform_async();
-    } else {
-        m.data_ready = true;
-    }
+printf("2b \n"); // ****
+    m.logfile = new LogFile();
+printf("2c \n"); // ****
+    m.logfile->get(m.fd);
+
+    _base ->set_task_pointer(_task_index, this);
+
+printf("2d \n"); // ****
+    perform_for_window(_window);
 }
 
-void EvaluationSlot::cleanup() {
+void EvaluationTask::cleanup() {
+printf("6a \n"); // ****
     if (m.thread_handle != INVALID_THREAD_HANDLE) {
         pthread_cancel(m.thread_handle);
         pthread_join(m.thread_handle, nullptr);
         m.thread_handle = INVALID_THREAD_HANDLE;
+printf("6b \n"); // ****
     }
 
     m.data_ready = false;
 
+printf("6c \n"); // ****
     for (int i = 0; i < LOG_SLOT_MAX; i++) {
         if (m.points[i] != nullptr) {
             free(m.points[i]);
             m.points[i] = nullptr;
         }
     }
+
+printf("6e \n"); // ****
+    if (m.logfile != nullptr) {
+printf("6f \n"); // ****
+        delete (m.logfile);
+printf("6g \n"); // ****
+    }
 }
 
-EvalPt* EvaluationSlot::create_points(void) {
-    size_t size = sizeof (EvalPt) * LOG_EVAL_CURVE_LEN_MAX;
-    EvalPt* channel = (EvalPt*)malloc(size);
-    if (channel != nullptr) {
+void EvaluationTask::perform_for_window(LogWindow* _window) {
+printf("3a \n"); // ****
+    m.window.set(_window);
+
+    // m.logfile->get(m.fd);
+    LogRegistry* reg = m.logfile->get_registry();
+
+printf("3b \n"); // ****
+    if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
+        (reg->get_timecode_begin() <= m.window.time.get_end())) {
+        // perform_sync();
+printf("3c \n"); // ****
+        perform_async();
+    } else {
+        m.data_ready = true;
+        if (m.base != nullptr) {
+printf("3d \n"); // ****
+            m.base->set_active(m.task_index);
+printf("3e \n"); // ****
+        }
+    }
+}
+
+void EvaluationTask::reset_points(EvalPt* _points) {
+    if (_points != nullptr) {
         double time_begin = m.window.time.get_begin();
         double time_span  = m.window.time.get_span();
         double time_interval = time_span / (double)LOG_EVAL_CURVE_LEN_MAX;
         for (int i = 0; i < LOG_EVAL_CURVE_LEN_MAX; i++) {
             double time_center = ((double)i * time_span / (double)LOG_EVAL_CURVE_LEN_MAX) + time_begin;
-            channel[i].set_center(time_center, time_interval);
+            _points[i].set_center(time_center, time_interval);
         }
     }
-    return (channel);
 }
 
-EvalPt* EvaluationSlot::get_points(int _index, bool auto_create) {
+EvalPt* EvaluationTask::get_points(int _index, bool _auto_create) {
     if ((_index < 0) || (_index >= LOG_SLOT_MAX)) {
         return (nullptr);
     }
 
-    if ((m.points[_index] == nullptr) && auto_create) {
-        m.points[_index] = create_points();
+    if ((m.points[_index] == nullptr) && _auto_create) {
+        m.points[_index] = (EvalPt*)malloc(sizeof (EvalPt) * LOG_EVAL_CURVE_LEN_MAX);
+        reset_points(m.points[_index]);
     }
 
     return (m.points[_index]);
 }
 
-LogWindow* EvaluationSlot::get_window(void) {
+LogWindow* EvaluationTask::get_window(void) {
     return (&m.window);
 }
 
-bool EvaluationSlot::is_data_ready(void) {
+bool EvaluationTask::is_data_ready(void) {
     if (m.data_ready) {
         if (m.thread_handle != INVALID_THREAD_HANDLE) {
             pthread_join(m.thread_handle, nullptr);
@@ -95,7 +130,7 @@ bool EvaluationSlot::is_data_ready(void) {
     return (m.data_ready);
 }
 
-bool EvaluationSlot::wait_for_data_ready(void) {
+bool EvaluationTask::wait_for_data_ready(void) {
     if (m.thread_handle != INVALID_THREAD_HANDLE) {
         pthread_join(m.thread_handle, nullptr);
         m.thread_handle = INVALID_THREAD_HANDLE;
@@ -103,20 +138,43 @@ bool EvaluationSlot::wait_for_data_ready(void) {
     return (m.data_ready);
 }
 
-void EvaluationSlot::perform_async(void) {
-    m.data_ready = false;
-    pthread_create(&m.thread_handle, nullptr, EvaluationSlot::_evaluation_thread, this);
-}
-
-void* EvaluationSlot::_evaluation_thread(void *_object) {
-    (reinterpret_cast<EvaluationSlot *>(_object))->evaluation_thread();
+Scale* EvaluationTask::get_scale(int _index) {
+    if (m.logfile != nullptr) {
+        LogInventory* inventory = m.logfile->get_inventory();
+        if (inventory != nullptr) {
+            return (inventory->get_slot(_index));
+        }
+    }
     return (nullptr);
 }
-void EvaluationSlot::evaluation_thread(void) {
+
+void EvaluationTask::perform_async(void) {
+printf("8 "); // ****
+    m.data_ready = false;
+    pthread_create(&m.thread_handle, nullptr, EvaluationTask::_evaluation_thread, this);
+    usleep(1000);
+}
+
+void* EvaluationTask::_evaluation_thread(void *_object) {
+    (reinterpret_cast<EvaluationTask *>(_object))->evaluation_thread();
+    return (nullptr);
+}
+void EvaluationTask::evaluation_thread(void) {
+printf("9 "); // ****
+    m.thread_handle = pthread_self();
     perform_sync();
 }
 
-void EvaluationSlot::perform_sync(void) {
+void EvaluationTask::perform_sync(void) {
+printf("10 "); // ****
+
+    for (int i = 0; i < LOG_SLOT_MAX; i++) {
+        if (m.points[i] != nullptr) {
+            reset_points(m.points[i]);
+        }
+    }
+
+printf(" 11 "); // ****
     int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
     LogFrame frame;
     while (m.logfile->get_frame(m.fd, scan_position, &frame)) {
@@ -141,5 +199,12 @@ void EvaluationSlot::perform_sync(void) {
             points[pt_index + 1].add_value(timecode, frame.get_value());
         }
     }
+
+printf("12 "); // ****
     m.data_ready = true;
+
+    if (m.base != nullptr) {
+printf("13 "); // ****
+        m.base->set_active(m.task_index);
+    }
 }
