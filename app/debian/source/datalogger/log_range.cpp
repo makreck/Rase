@@ -147,3 +147,7 @@ bool LogRange::is_equal(LogRange* _given_range, double _threshold) {
 bool LogRange::is_in_window(double value) {
     return ((value >= begin) && (value <= end));
 }
+
+bool LogRange::is_overlapping(const LogRange* _source) {
+    return ((_source->begin <= end) || (_source->end >= begin));
+}

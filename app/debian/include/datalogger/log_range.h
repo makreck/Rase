@@ -48,4 +48,5 @@ class LogRange {
         double center(void);
         bool is_equal(LogRange* _givenRange, double _threshold = 0.0);
         bool is_in_window(double _value);
+        bool is_overlapping(const LogRange* _source);
 };
