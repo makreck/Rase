@@ -49,6 +49,7 @@ bool LogFile::put(int _fd) {
 }
 
 bool LogFile::get(int _fd) {
+    Files::flush_file_buffers(_fd);
     if (Files::read_data_from(_fd, LOG_FILE_POS_HEADER, get_header(), sizeof(LogHeader))) {
         if (Files::read_data_from(_fd, LOG_FILE_POS_INVENTORY, get_inventory(), sizeof(LogInventory))) {
             if (Files::read_data_from(_fd, LOG_FILE_POS_REGISTRY, get_registry(), sizeof(LogRegistry))) {
