@@ -22,7 +22,6 @@
 #include "includes.h"
 
 void EvaluationTask::init(Evaluator* _base, int _task_index, int _fd, LogWindow* _window) {
-printf("2a \n"); // ****
     memset(m.points, 0, sizeof (m.points));
     m.base          = _base;
     m.task_index    = _task_index;
@@ -30,29 +29,23 @@ printf("2a \n"); // ****
     m.thread_handle = INVALID_THREAD_HANDLE;
     m.data_ready    = false;
 
-printf("2b \n"); // ****
     m.logfile = new LogFile();
-printf("2c \n"); // ****
     m.logfile->get(m.fd);
 
     _base ->set_task_pointer(_task_index, this);
 
-printf("2d \n"); // ****
     perform_for_window(_window);
 }
 
 void EvaluationTask::cleanup() {
-printf("6a \n"); // ****
     if (m.thread_handle != INVALID_THREAD_HANDLE) {
         pthread_cancel(m.thread_handle);
         pthread_join(m.thread_handle, nullptr);
         m.thread_handle = INVALID_THREAD_HANDLE;
-printf("6b \n"); // ****
     }
 
     m.data_ready = false;
 
-printf("6c \n"); // ****
     for (int i = 0; i < LOG_SLOT_MAX; i++) {
         if (m.points[i] != nullptr) {
             free(m.points[i]);
@@ -60,33 +53,24 @@ printf("6c \n"); // ****
         }
     }
 
-printf("6e \n"); // ****
     if (m.logfile != nullptr) {
-printf("6f \n"); // ****
         delete (m.logfile);
-printf("6g \n"); // ****
     }
 }
 
 void EvaluationTask::perform_for_window(LogWindow* _window) {
-printf("3a \n"); // ****
     m.window.set(_window);
 
-    // m.logfile->get(m.fd);
     LogRegistry* reg = m.logfile->get_registry();
 
-printf("3b \n"); // ****
     if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
         (reg->get_timecode_begin() <= m.window.time.get_end())) {
         // perform_sync();
-printf("3c \n"); // ****
         perform_async();
     } else {
         m.data_ready = true;
         if (m.base != nullptr) {
-printf("3d \n"); // ****
             m.base->set_active(m.task_index);
-printf("3e \n"); // ****
         }
     }
 }
@@ -149,7 +133,6 @@ Scale* EvaluationTask::get_scale(int _index) {
 }
 
 void EvaluationTask::perform_async(void) {
-printf("8 "); // ****
     m.data_ready = false;
     pthread_create(&m.thread_handle, nullptr, EvaluationTask::_evaluation_thread, this);
     usleep(1000);
@@ -160,21 +143,17 @@ void* EvaluationTask::_evaluation_thread(void *_object) {
     return (nullptr);
 }
 void EvaluationTask::evaluation_thread(void) {
-printf("9 "); // ****
     m.thread_handle = pthread_self();
     perform_sync();
 }
 
 void EvaluationTask::perform_sync(void) {
-printf("10 "); // ****
-
     for (int i = 0; i < LOG_SLOT_MAX; i++) {
         if (m.points[i] != nullptr) {
             reset_points(m.points[i]);
         }
     }
 
-printf(" 11 "); // ****
     int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
     LogFrame frame;
     while (m.logfile->get_frame(m.fd, scan_position, &frame)) {
@@ -200,11 +179,9 @@ printf(" 11 "); // ****
         }
     }
 
-printf("12 "); // ****
     m.data_ready = true;
 
     if (m.base != nullptr) {
-printf("13 "); // ****
         m.base->set_active(m.task_index);
     }
 }
