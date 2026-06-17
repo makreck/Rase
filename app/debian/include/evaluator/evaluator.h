@@ -23,7 +23,7 @@
 
 #include "evaluator/evaluation_defs.h"
 #include "evaluator/evaluation_point.h"
-#include "evaluator/evaluation_slot.h"
+#include "evaluator/evaluation_task.h"
 #include "evaluator/evaluation_curve.h"
 
 class Evaluator {
@@ -31,20 +31,19 @@ class Evaluator {
         struct {
             std::string path;
             int fd = -1;
-            LogFile* logfile = nullptr;
-            LogWindow window;
-            LogWindow ext_window;
-            
+
             pthread_mutex_t slot_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-            int active_slot = 0;
-            EvaluationSlot* evaluation_slot[2]{ nullptr };
+            int active_task = -1;
+            EvaluationTask* evaluation_task[2]{ nullptr };
 
             std::vector<EvalCurve*> curve_list;
         } m;
 
         void init(const char* _path);
         void cleanup(void);
+        void schedule_evaluation(LogWindow _window);
+        void _delete_next_slot(void);
 
     public:
         Evaluator(const char* _path) {
@@ -59,7 +58,9 @@ class Evaluator {
         void sleep(void);
 
         void delete_curve_list(void);
-        const char* get_path(void);
         void set_window(LogWindow _window);
-        void draw_curves(cairo_t* cr, RectEx& _rect, LogWindow _window, bool _vertical);
+        void draw_curves(cairo_t* cr, RectEx& _rect, LogWindow& _window, bool _vertical);
+        void set_active(int _task_index);
+        void set_task_pointer(int _task_index, EvaluationTask* _task_pointer);
+        const char* get_path(void);
 };

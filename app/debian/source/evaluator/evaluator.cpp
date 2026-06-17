@@ -24,7 +24,6 @@
 void Evaluator::init(const char* _path) {
     m.path = _path;
     m.fd = -1;
-    m.logfile = new LogFile();
     
     pthread_mutex_init(&m.slot_mutex, nullptr);
     resume();
@@ -34,20 +33,17 @@ void Evaluator::cleanup(void) {
     pthread_mutex_lock(&m.slot_mutex); {
         delete_curve_list();
 
-        for (int i = 0; i < SIZEOFARRAY(m.evaluation_slot); i++) {
-            if (m.evaluation_slot[i] != nullptr) {
-                delete (m.evaluation_slot[i]);
-                m.evaluation_slot[i] = nullptr;
+        for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+            if (m.evaluation_task[i] != nullptr) {
+                delete (m.evaluation_task[i]);
+                m.evaluation_task[i] = nullptr;
             }
         }
 
-        if (m.logfile != nullptr) {
-            if (m.fd != -1) {
-                Files::close_file(m.fd);
-            }
-            delete (m.logfile);
+        if (m.fd != -1) {
+            Files::close_file(m.fd);
         }
-        
+
     } pthread_mutex_unlock(&m.slot_mutex);
 
     pthread_mutex_destroy(&m.slot_mutex);
@@ -57,7 +53,6 @@ void Evaluator::resume(void) {
     pthread_mutex_lock(&m.slot_mutex); {
         if (m.fd == -1) {
             if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
-                m.logfile->get(m.fd);
                 printf("---> Evaluator resumed: <%s>\n", m.path.c_str());
             }
         }
@@ -77,35 +72,6 @@ const char* Evaluator::get_path(void) {
     return (m.path.c_str());
 }
 
-void Evaluator::set_window(LogWindow _window) {
-    if (m.fd == -1) {
-        return;
-    }
-
-    pthread_mutex_lock(&m.slot_mutex); {
-        m.window     = _window;
-        m.ext_window = m.window;
-        m.ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
-
-        if (m.evaluation_slot[m.active_slot] != nullptr) {
-            if (m.evaluation_slot[m.active_slot]->is_data_ready()) {
-                delete (m.evaluation_slot[m.active_slot]);
-                m.evaluation_slot[m.active_slot] = nullptr;
-            }
-        }
-
-        if (m.evaluation_slot[m.active_slot] == nullptr) {
-            m.logfile->get(m.fd);
-            m.evaluation_slot[m.active_slot] = new EvaluationSlot(m.fd, m.logfile, &m.ext_window);
-
-            m.active_slot++;
-            if (m.active_slot >= SIZEOFARRAY(m.evaluation_slot)) {
-                m.active_slot = 0;
-            }
-        }
-    } pthread_mutex_unlock(&m.slot_mutex);
-}
-
 void Evaluator::delete_curve_list(void) {
     if (m.curve_list.size() > 0) {
         for (EvalCurve*& curve : m.curve_list) {
@@ -118,63 +84,140 @@ void Evaluator::delete_curve_list(void) {
     }
 }
 
-void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, LogWindow _window, bool _vertical) {
-    pthread_mutex_lock(&m.slot_mutex); {
+void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, LogWindow& _window, bool _vertical) {
+    if ((m.active_task < 0) || (m.active_task >= SIZEOFARRAY(m.evaluation_task))) {
+        return;
+    }
 
+    pthread_mutex_lock(&m.slot_mutex); {
+        EvaluationTask *task = m.evaluation_task[m.active_task];
         delete_curve_list();
 
-        if (m.evaluation_slot[m.active_slot] != nullptr) {
-            for (int channel_index = 0; channel_index < LOG_SLOT_MAX;  channel_index++) {
+        if (task != nullptr) {
+            for (int channel_index = 0; channel_index < LOG_SLOT_MAX; channel_index++) {
 
-                Scale* scale = m.logfile->get_inventory()->get_slot(channel_index);
-                if (scale == nullptr) continue;
+                LogWindow *slot_window = task->get_window();
+                if (!_window.time.is_overlapping(&slot_window->time)) {
+                    continue;
+                }
 
-                EvalPt* channel = m.evaluation_slot[m.active_slot]->get_points(channel_index, false);
-                if (channel != nullptr) {
-                    LogWindow slot_window(m.evaluation_slot[m.active_slot]->get_window());
+                EvalPt *eval_point = task->get_points(channel_index, false);
+                if (eval_point == nullptr) {
+                    continue;
+                }
 
-                    int count = 0;
-                    for (int i = 0; i < LOG_EVAL_CURVE_LEN_MAX; i++) {
-                        if (channel[i].is_used()) {
-                            count++;
-                        }
+                Scale *scale = task->get_scale(channel_index);
+                if (scale == nullptr) {
+                    continue;
+                }
+
+                int count = 0;
+                for (int i = 0; i < LOG_EVAL_CURVE_LEN_MAX; i++) {
+                    if (eval_point[i].is_used()) {
+                        count++;
+                    }
+                }
+
+                if (count > 0) {
+                    EvalCurve *curve = new EvalCurve(count, channel_index, scale->get_color_ref(), scale->get_line_width(), _rect);
+                    if (curve == nullptr) {
+                        continue;
                     }
 
-                    if (count > 0) {
-                        EvalCurve* curve = new EvalCurve(count, channel_index, scale->get_color_ref(), scale->get_line_width());
-                        if (curve == nullptr) { continue; }
+                    double t_begin = _window.time.get_begin();
+                    double t_end = _window.time.get_end();
+                    double t_span = _window.time.get_span();
+                    double v_begin = 0.0; // _window.level.get_begin();
+                    double v_span = 1.0;  // _window.level.get_span();
 
-                        double t_begin = _window.time.get_begin();
-                        double t_end   = _window.time.get_end();
-                        double t_span  = _window.time.get_span();
-                        double v_begin = 0.0; // _window.level.get_begin();
-                        double v_span  = 1.0; // _window.level.get_span();
+                    int gap = 0;
+                    int n = -1;
+                    for (int i = 0; (i < LOG_EVAL_CURVE_LEN_MAX) && (n < count); i++) {
+                        if (eval_point[i].is_used()) {
+                            float norm_value = scale->get_zoom_normalized(eval_point[i].get_value());
+                            double timecode = eval_point[i].get_timecode();
 
-                        int n = 0;
-                        for (int i = 0; (i < LOG_EVAL_CURVE_LEN_MAX) && (n < count); i++) {
-                            float norm_value = scale->get_zoom_normalized(channel[i].get_value());
-
-                            if (channel[i].is_used()) {
-                                double timecode = channel[i].get_timecode();
-                                if (_vertical) {
-                                    curve->set(n++, ((norm_value - v_begin) * (double)_rect.width  / v_span) + (double)_rect.x,
-                                                    ((t_end - timecode) * (double)_rect.height / t_span) + (double)_rect.y);
-                                } else {
-                                    curve->set(n++, ((timecode - t_begin) * (double)_rect.width  / t_span) + (double)_rect.x,
-                                                    ((norm_value - v_begin) * (double)_rect.height / v_span) + (double)_rect.y);
-                                }
+                            if ((gap >= LOG_EVAL_MAX_GAP) && (n >= 0)) {
+                                curve->set_property(n, 0x00, false, true);
                             }
-                        }
 
-                        m.curve_list.push_back(curve);
+                            if (_vertical) {
+                                curve->set(++n, ((norm_value - v_begin) * (double)_rect.width / v_span) + (double)_rect.x,
+                                           ((t_end - timecode) * (double)_rect.height / t_span) + (double)_rect.y);
+                            } else {
+                                curve->set(++n, ((timecode - t_begin) * (double)_rect.width / t_span) + (double)_rect.x,
+                                           ((norm_value - v_begin) * (double)_rect.height / v_span) + (double)_rect.y);
+                            }
+
+                            curve->set_property(n, 0x00, ((gap >= LOG_EVAL_MAX_GAP) || (n == 0)), false);
+                            gap = 0;
+                        } else {
+                            gap++;
+                        }
                     }
+
+                    m.curve_list.push_back(curve);
                 }
             }
         }
 
-        for (EvalCurve*& curve : m.curve_list) {
+        for (EvalCurve *&curve : m.curve_list) {
             curve->draw(_cr);
         }
+    } pthread_mutex_unlock(&m.slot_mutex);
+}
 
+void Evaluator::set_window(LogWindow _window) {
+    if (m.fd == -1) {
+        return;
+    }
+
+    schedule_evaluation(_window);
+}
+
+void Evaluator::_delete_next_slot(void) {
+    int next_task = (m.active_task + 1) % (int)SIZEOFARRAY(m.evaluation_task);
+    if (m.evaluation_task[next_task] != nullptr) {
+        delete (m.evaluation_task[next_task]);
+        m.evaluation_task[next_task] = nullptr;
+    }
+}
+
+void Evaluator::set_task_pointer(int _task_index, EvaluationTask* _task_pointer) {
+    if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
+        m.evaluation_task[_task_index] = _task_pointer;
+    }
+}
+
+void Evaluator::set_active(int _task_index) {
+    if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
+
+        pthread_mutex_lock(&m.slot_mutex); {
+
+            if (m.evaluation_task[_task_index] != nullptr) {
+                if (m.evaluation_task[_task_index]->is_data_ready()) {
+                    m.active_task = _task_index;
+                    _delete_next_slot();
+                }
+            }
+
+        } pthread_mutex_unlock(&m.slot_mutex);
+    }
+}
+
+void Evaluator::schedule_evaluation(LogWindow _window) {
+    LogWindow ext_window = _window;
+    ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
+
+    for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+        if (m.evaluation_task[i] == nullptr) {
+            m.evaluation_task[i] = new EvaluationTask(this, i, m.fd, &ext_window);
+            return;
+        }
+    }
+
+printf("Error: All task slots occupied!\n");
+    pthread_mutex_lock(&m.slot_mutex); {
+        _delete_next_slot();
     } pthread_mutex_unlock(&m.slot_mutex);
 }
