@@ -40,5 +40,5 @@ class EvalCurve {
         void init(size_t _length, int _index, ColorRef _color, float _line_width);
         void cleanup(void);
         bool set(int _index, double _x, double _y);
-        void draw(cairo_t* _cr, ColorRef _color = C_RED, int line_width = 2);
+        void draw(cairo_t* _cr, bool _foreground_curve = false);
 };

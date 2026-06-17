@@ -49,11 +49,23 @@ bool EvalCurve::set(int _index, double _x, double _y) {
     return (false);
 }
 
-void EvalCurve::draw(cairo_t *_cr, ColorRef _color, int line_width) {
+void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
     if (data != nullptr) {
         if (length > 1) {
-            cairo_set_source_rgba(_cr, CR_R(_color), CR_G(_color), CR_B(_color), CR_A(_color));
-            cairo_set_line_width(_cr, (double)line_width);
+            float red   = CR_R(color);
+            float green = CR_G(color);
+            float blue  = CR_B(color);
+            float alpha = CR_A(color);
+            float width = (float)line_width;
+
+            if (_foreground_curve == false) {
+                alpha *= 0.75f;
+            } else {
+                width += 1.0f;
+            }
+
+            cairo_set_source_rgba(_cr, red, green, blue, alpha);
+            cairo_set_line_width(_cr, width);
             cairo_move_to(_cr, data[0].x, data[0].y);
             for (size_t i = 1; i < length; i++) {
                 cairo_line_to(_cr, data[i].x, data[i].y);
