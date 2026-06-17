@@ -157,10 +157,10 @@ app_err_t Application::sensor_bus_callback(SensorBusMessageCode message, void* a
         } break;
 
         case SensorBusMessageCode::recording_ended: {
-            const char* logging_path = (const char*)arg1;
-            if ((logging_path != nullptr) && (m.lineRecorder != nullptr)) {
-                m.lineRecorder->disable_evaluation(logging_path);
-            }
+            // const char* logging_path = (const char*)arg1;
+            // if ((logging_path != nullptr) && (m.lineRecorder != nullptr)) {
+            //     m.lineRecorder->disable_evaluation(logging_path);
+            // }
         } break;
 
         default: {
