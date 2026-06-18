@@ -31,14 +31,16 @@ void Scale::cleanup(void) {
 bool Scale::set_values(const Scale *_source) {
     bool modified = false;
     if (_source != nullptr) {
-        modified  = ((value != _source->value) || (count != _source->count));
-        value     = _source->value;
-        min       = _source->min;
-        max       = _source->max;
-        average   = _source->average;
-        count     = _source->count;
-        sum       = _source->sum;
-        color_ref = _source->color_ref;
+        modified   = ((value != _source->value) || (count != _source->count));
+        value      = _source->value;
+        min        = _source->min;
+        max        = _source->max;
+        zoom_begin = _source->zoom_begin;
+        zoom_end   = _source->zoom_end;
+        average    = _source->average;
+        count      = _source->count;
+        sum        = _source->sum;
+        color_ref  = _source->color_ref;
         distribute_color(true);
     }
     return (modified);
@@ -50,6 +52,36 @@ void Scale::set(const Scale *_source) {
         set_name(_source->name);
         set_shortcut(_source->shortcut);
         set_unit(_source->unit);
+        flags      = _source->flags;
+        color_ref  = _source->color_ref;
+        bottom     = _source->bottom;
+        top        = _source->top;
+        value      = _source->value;
+        min        = _source->min;
+        max        = _source->max;
+        step       = _source->step;
+        zoom_begin = _source->zoom_begin;
+        zoom_end   = _source->zoom_end;
+        average    = _source->average;
+        count      = _source->count;
+        sum        = _source->sum;
+    } else {
+        clear();
+    }
+    distribute_color(true);
+}
+
+void Scale::clear(void) {
+    memset(buffer, 0, sizeof (buffer));
+}
+
+void Scale::import(ScaleJson* _source) {
+    if (_source != nullptr) {
+        set_key(_source->key);
+        set_name(_source->name);
+        set_shortcut(_source->shortcut);
+        set_unit(_source->unit);
+        set_color(_source->color);
         flags     = _source->flags;
         color_ref = _source->color_ref;
         bottom    = _source->bottom;
@@ -59,25 +91,10 @@ void Scale::set(const Scale *_source) {
         max       = _source->max;
         average   = _source->average;
         count     = _source->count;
-        sum       = _source->sum;
+        distribute_color(false);
     } else {
-        set_key();
-        set_name();
-        set_shortcut();
-        set_unit();
-        
-        flags     = 0;
-        color_ref = 0;
-        bottom    = 0.0;
-        top       = 0.0;
-        value     = 0.0;
-        min       = 0.0;
-        max       = 0.0;
-        average   = 0.0;
-        count     = 0;
-        sum       = 0.0;
+        set(nullptr);
     }
-    distribute_color(true);
 }
 
 void Scale::set_defaults(void) {

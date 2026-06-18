@@ -39,6 +39,7 @@
 #include "files.h"
 #include "config.h"
 #include "scale.h"
+#include "scale_json.h"
 #include "scale_drawing.h"
 #include "product_id.h"
 #include "sensor_connection.h"

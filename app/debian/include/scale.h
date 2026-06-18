@@ -21,6 +21,8 @@
 
 #pragma once
 
+class ScaleJson;
+
 class ScaleFormat {
     private:
         union {
@@ -181,7 +183,7 @@ class ScaleFormat {
 
 };
 
-class Scale : public MicroJsonObject {
+class Scale {
     public:
         union {
             uint8_t buffer[256]{ 0 };
@@ -206,7 +208,6 @@ class Scale : public MicroJsonObject {
                 float average;
                 int   count;
 
-                // Must follow struct ScaleFormat
                 union {
                     struct {
                         uint32_t flags;
@@ -220,23 +221,6 @@ class Scale : public MicroJsonObject {
                 void* user_data;
             };
         };
-
-        const MicroJsonStruct meta_data[13] = {
-            JSON_ITEM(Scale, name,      MicroJsonObjectType::obj_chars),
-            JSON_ITEM(Scale, shortcut,  MicroJsonObjectType::obj_chars),
-            JSON_ITEM(Scale, unit,      MicroJsonObjectType::obj_chars),
-            JSON_ITEM(Scale, color,     MicroJsonObjectType::obj_chars),
-            JSON_ITEM(Scale, bottom,    MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, top,       MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, value,     MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, min,       MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, max,       MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, average,   MicroJsonObjectType::obj_float),
-            JSON_ITEM(Scale, count,     MicroJsonObjectType::obj_int),
-            JSON_ITEM(Scale, flags,     MicroJsonObjectType::obj_long),
-            JSON_ITEM(Scale, color_ref, MicroJsonObjectType::obj_long),
-        };
-        JSON_GETTERS(Scale, meta_data);
 
     public:
         Scale(void) {
@@ -261,6 +245,10 @@ class Scale : public MicroJsonObject {
             set_top(_top);
         }
 
+        Scale(ScaleJson* _source) {
+            import(_source);
+        }
+
         ~Scale() {
             cleanup();
         }
@@ -280,6 +268,10 @@ class Scale : public MicroJsonObject {
         void set(const Scale* _source);
         bool set_values(const Scale *_source);
         void set_defaults(void);
+
+        void import(ScaleJson* _source);
+
+        void clear(void);
         void reset(void);
         void reset_zoom(void);
 

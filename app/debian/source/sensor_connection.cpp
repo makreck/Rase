@@ -178,7 +178,7 @@ char* SensorConnection::parse_query_header(char* buffer, SensorQuery& query_head
     return (strstr(p, "["));
 }
 
-char* SensorConnection::parse_channel_key(char* key, Scale& sensor_channel) {
+char* SensorConnection::parse_channel_key(char* key, ScaleJson& sensor_channel) {
     char* p = strstr(key, "{");
     if (p == nullptr) return (nullptr);
     p = strstr(p, "\"");
@@ -214,11 +214,10 @@ int SensorConnection::extract_query_data(char* buffer) {
 
     int channel_count = 0;
     do {
-        Scale sensor_channel;
+        ScaleJson sensor_channel;
         key = parse_channel_key(key, sensor_channel);
         if (key != nullptr) {
             channel_count++;
-            sensor_channel.distribute_color();
             store_channel_data(sensor_channel);
         }
     } while (key != nullptr);
@@ -235,7 +234,8 @@ int SensorConnection::extract_query_data(char* buffer) {
     return (channel_count);
 }
 
-void SensorConnection::store_channel_data(Scale& sensor_channel) {
+void SensorConnection::store_channel_data(ScaleJson& json_scale) {
+    Scale sensor_channel(&json_scale);
     for (Scale*& channel : m.channels) {
         if (channel != nullptr) {
             if (strncmp(channel->key, sensor_channel.key, sizeof (channel->key)) == 0) {

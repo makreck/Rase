@@ -73,8 +73,8 @@ class SensorConnection {
 
         int extract_query_data(char* buffer);
         char* parse_query_header(char* key, SensorQuery& query_header);
-        char* parse_channel_key(char* key, Scale& sensor_channel);
-        void store_channel_data(Scale& sensor_channel);
+        char* parse_channel_key(char* key, ScaleJson& sensor_channel);
+        void store_channel_data(ScaleJson& sensor_channel);
         void clear_channel_data(void);
 
     public:
