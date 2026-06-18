@@ -23,10 +23,11 @@
 
 void Evaluator::init(const char* _path) {
     m.path = _path;
-    m.fd = -1;
-    
+    Files::open_file(m.fd, m.path.c_str(), O_RDWR);
     pthread_mutex_init(&m.slot_mutex, nullptr);
-    resume();
+    for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+        m.evaluation_task[i] = new EvaluationTask(this, i, m.fd);
+    }
 }
 
 void Evaluator::cleanup(void) {
@@ -172,52 +173,17 @@ void Evaluator::set_window(LogWindow _window) {
         return;
     }
 
-    schedule_evaluation(_window);
-}
-
-void Evaluator::_delete_next_slot(void) {
+    LogWindow ext_window = _window;
+    ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
     int next_task = (m.active_task + 1) % (int)SIZEOFARRAY(m.evaluation_task);
-    if (m.evaluation_task[next_task] != nullptr) {
-        delete (m.evaluation_task[next_task]);
-        m.evaluation_task[next_task] = nullptr;
-    }
-}
-
-void Evaluator::set_task_pointer(int _task_index, EvaluationTask* _task_pointer) {
-    if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
-        m.evaluation_task[_task_index] = _task_pointer;
-    }
+    m.evaluation_task[next_task]->set_window(&ext_window);
 }
 
 void Evaluator::set_active(int _task_index) {
     if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
-
+// printf("-> Switch to active task #%d, data ready.\n", _task_index + 1);
         pthread_mutex_lock(&m.slot_mutex); {
-
-            if (m.evaluation_task[_task_index] != nullptr) {
-                if (m.evaluation_task[_task_index]->is_data_ready()) {
-                    m.active_task = _task_index;
-                    _delete_next_slot();
-                }
-            }
-
+            m.active_task = _task_index;
         } pthread_mutex_unlock(&m.slot_mutex);
     }
-}
-
-void Evaluator::schedule_evaluation(LogWindow _window) {
-    LogWindow ext_window = _window;
-    ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
-
-    for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
-        if (m.evaluation_task[i] == nullptr) {
-            m.evaluation_task[i] = new EvaluationTask(this, i, m.fd, &ext_window);
-            return;
-        }
-    }
-
-printf("Error: All task slots occupied!\n");
-    pthread_mutex_lock(&m.slot_mutex); {
-        _delete_next_slot();
-    } pthread_mutex_unlock(&m.slot_mutex);
 }

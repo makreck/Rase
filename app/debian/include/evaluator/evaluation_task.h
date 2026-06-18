@@ -39,13 +39,16 @@ class EvaluationTask {
         static void* _evaluation_thread(void* _object);
         void evaluation_thread(void);
 
-        void init(Evaluator* _base, int _task_index, int _fd, LogWindow* _window);
+        void init(Evaluator* _base, int _task_index, int _fd);
         void cleanup(void);
         void reset_points(EvalPt* _points);
+        void init_points(void);
+        void set_ready(void);
+        void scan(void);
 
     public:
-        EvaluationTask(Evaluator* _base, int _task_index, int _fd, LogWindow* _window) {
-            init(_base, _task_index, _fd, _window);
+        EvaluationTask(Evaluator* _base, int _task_index, int _fd) {
+            init(_base, _task_index, _fd);
         }
 
         ~EvaluationTask() {
@@ -54,11 +57,8 @@ class EvaluationTask {
 
         LogWindow* get_window(void);
         EvalPt* get_points(int _index, bool _auto_create);
-        void perform_sync(void);
-        void perform_async(void);
         bool is_data_ready(void);
-        bool wait_for_data_ready(void);
         Scale* get_scale(int _index);
-        void perform_for_window(LogWindow* _window);
+        void set_window(LogWindow* _window);
 
 };

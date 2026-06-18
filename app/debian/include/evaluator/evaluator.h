@@ -42,8 +42,6 @@ class Evaluator {
 
         void init(const char* _path);
         void cleanup(void);
-        void schedule_evaluation(LogWindow _window);
-        void _delete_next_slot(void);
 
     public:
         Evaluator(const char* _path) {
@@ -61,6 +59,5 @@ class Evaluator {
         void set_window(LogWindow _window);
         void draw_curves(cairo_t* cr, RectEx& _rect, LogWindow& _window, bool _vertical);
         void set_active(int _task_index);
-        void set_task_pointer(int _task_index, EvaluationTask* _task_pointer);
         const char* get_path(void);
 };

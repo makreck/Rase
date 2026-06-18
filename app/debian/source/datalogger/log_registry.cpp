@@ -22,27 +22,23 @@
 #include "includes.h"
 
 void LogRegistry::clear(void) {
-    count              = 0;
-    step               = 1;
-    index              = 0;
-    count_of_records   = 0;
-    timecode_begin     = 0.0;
-    timecode_end       = 0.0;
-    first_log_position = LOG_FILE_POS_DATA;
-    next_log_position  = LOG_FILE_POS_DATA;
+    memset(&header, 0, sizeof (header));
     memset(chunk, 0, sizeof (chunk));
+    header.step               = 1;
+    header.first_log_position = LOG_FILE_POS_DATA;
+    header.next_log_position  = LOG_FILE_POS_DATA;
 }
 
 int64_t LogRegistry::get_count_of_records(void) {
-    return (count_of_records);
+    return (header.count_of_records);
 }
 
 double LogRegistry::get_timecode_begin(void) {
-    return (timecode_begin);
+    return (header.timecode_begin);
 }
 
 double LogRegistry::get_timecode_end(void) {
-    return (timecode_end);
+    return (header.timecode_end);
 }
 
 int64_t LogRegistry::get_file_position_for(double _timecode) {
@@ -60,36 +56,29 @@ int64_t LogRegistry::add(LogFrame* _frame) {
 
     double timecode = _frame->get_timecode();
 
-    if (count_of_records == 0) {
-        first_log_position = LOG_FILE_POS_DATA;
-        next_log_position  = LOG_FILE_POS_DATA;
-        timecode_begin     = timecode;
-        count              = 0;
-        step               = 1;
-        index              = 0;
-        count_of_records   = 0;
-        memset(chunk, 0, sizeof (chunk));
+    if (header.count_of_records == 0) {
+        header.timecode_begin = timecode;
     } else {
-        if (timecode < timecode_end) {
+        if (timecode < header.timecode_end) {
             return (0);
         }
     }
 
-    int64_t file_position = next_log_position;
-    next_log_position += sizeof (LogFrame);
+    int64_t file_position = header.next_log_position;
+    header.next_log_position += sizeof (LogFrame);
 
-    timecode_end = timecode;
-    count_of_records++;
+    header.timecode_end = timecode;
+    header.count_of_records++;
 
-    count++;
-    if (count >= step) {
-        count = 0;
-        chunk[index++].set(timecode, file_position);
-        if (index >= LOG_CHUNK_DIR_MAX) {
-            for (index = 0; index < (LOG_CHUNK_DIR_MAX / 2); index++) {
-                chunk[index] = chunk[index + index];
+    header.count++;
+    if (header.count >= header.step) {
+        header.count = 0;
+        chunk[header.index++].set(timecode, file_position);
+        if (header.index >= LOG_CHUNK_DIR_MAX) {
+            for (header.index = 0; header.index < (LOG_CHUNK_DIR_MAX / 2); header.index++) {
+                chunk[header.index] = chunk[header.index + header.index];
             }
-            step++;
+            header.step++;
         }
     }
 
@@ -97,11 +86,11 @@ int64_t LogRegistry::add(LogFrame* _frame) {
 }
 
 int LogRegistry::find(double _timecode) {
-    if ((count_of_records == 0) || (_timecode < timecode_begin) || (index < 2)) {
+    if ((header.count_of_records == 0) || (_timecode < header.timecode_begin) || (header.index < 2)) {
         return (0);
     }
 
-    int n = (int)(index / 2) + 1;
+    int n = (int)(header.index / 2) + 1;
     int i = n;
     do {
         n = n / 2;
@@ -124,7 +113,7 @@ int LogRegistry::find(double _timecode) {
 bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_put) {
     bool result = true;
 
-    int64_t begin = first_log_position;
+    int64_t begin = header.first_log_position;
     if (_file_position < begin) {
         result = false;
     }
@@ -136,4 +125,13 @@ bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_
     }
 
     return (result);
+}
+
+bool LogRegistry::update_header(int _fd) {
+    if (Files::write_data_at(_fd, LOG_FILE_POS_REGISTRY, &header, sizeof (header))) {
+        if (Files::flush_file_buffers(_fd)) {
+            return (true);
+        }
+    }
+    return (false);
 }

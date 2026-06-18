@@ -88,14 +88,16 @@ class LogRegistry {
         int find(double _timecode);
 
     public:
-        int64_t count;
-        int64_t step;
-        int64_t index;
-        int64_t count_of_records;
-        int64_t first_log_position;
-        int64_t next_log_position;
-        double timecode_begin;
-        double timecode_end;
+        struct {
+            int64_t count;
+            int64_t step;
+            int64_t index;
+            int64_t count_of_records;
+            int64_t first_log_position;
+            int64_t next_log_position;
+            double timecode_begin;
+            double timecode_end;
+        } header;
 
         LogRegistryChunk chunk[LOG_CHUNK_DIR_MAX];
 
@@ -113,4 +115,6 @@ class LogRegistry {
         double  get_timecode_begin(void);
         double  get_timecode_end(void);
         bool    validate_file_position(int64_t& _file_position, bool _use_for_put = false);
+        bool    update_header(int _fd);
+
 };

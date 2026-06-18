@@ -49,7 +49,6 @@ bool LogFile::put(int _fd) {
 }
 
 bool LogFile::get(int _fd) {
-    Files::flush_file_buffers(_fd);
     if (Files::read_data_from(_fd, LOG_FILE_POS_HEADER, get_header(), sizeof(LogHeader))) {
         if (Files::read_data_from(_fd, LOG_FILE_POS_INVENTORY, get_inventory(), sizeof(LogInventory))) {
             if (Files::read_data_from(_fd, LOG_FILE_POS_REGISTRY, get_registry(), sizeof(LogRegistry))) {
@@ -61,11 +60,12 @@ bool LogFile::get(int _fd) {
 }
 
 int64_t LogFile::put_frame(int _fd, LogFrame* _frame) {
-    int64_t file_position = get_registry()->add(_frame);
+    LogRegistry* reg = get_registry();
+    int64_t file_position = reg->add(_frame);
     if (file_position != 0) {
         get_header()->set_modified();
         if (Files::write_data_at(_fd, file_position, _frame, sizeof (LogFrame))) {
-            Files::flush_file_buffers(_fd);
+            reg->update_header(_fd);
         } else {
             file_position = 0;
         }

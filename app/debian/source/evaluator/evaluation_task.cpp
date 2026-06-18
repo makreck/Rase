@@ -21,23 +21,19 @@
 
 #include "includes.h"
 
-void EvaluationTask::init(Evaluator* _base, int _task_index, int _fd, LogWindow* _window) {
+void EvaluationTask::init(Evaluator* _base, int _task_index, int _fd) {
     memset(m.points, 0, sizeof (m.points));
     m.base          = _base;
     m.task_index    = _task_index;
     m.fd            = _fd;
-    m.thread_handle = INVALID_THREAD_HANDLE;
-    m.data_ready    = false;
-
-    m.logfile = new LogFile();
-    m.logfile->get(m.fd);
-
-    _base ->set_task_pointer(_task_index, this);
-
-    perform_for_window(_window);
+    m.data_ready    = true;
+    m.logfile       = new LogFile();
+    pthread_create(&m.thread_handle, nullptr, EvaluationTask::_evaluation_thread, this);
 }
 
 void EvaluationTask::cleanup() {
+    m.fd = -1;
+
     if (m.thread_handle != INVALID_THREAD_HANDLE) {
         pthread_cancel(m.thread_handle);
         pthread_join(m.thread_handle, nullptr);
@@ -58,23 +54,6 @@ void EvaluationTask::cleanup() {
     }
 }
 
-void EvaluationTask::perform_for_window(LogWindow* _window) {
-    m.window.set(_window);
-
-    LogRegistry* reg = m.logfile->get_registry();
-
-    if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
-        (reg->get_timecode_begin() <= m.window.time.get_end())) {
-        // perform_sync();
-        perform_async();
-    } else {
-        m.data_ready = true;
-        if (m.base != nullptr) {
-            m.base->set_active(m.task_index);
-        }
-    }
-}
-
 void EvaluationTask::reset_points(EvalPt* _points) {
     if (_points != nullptr) {
         double time_begin = m.window.time.get_begin();
@@ -83,6 +62,14 @@ void EvaluationTask::reset_points(EvalPt* _points) {
         for (int i = 0; i < LOG_EVAL_CURVE_LEN_MAX; i++) {
             double time_center = ((double)i * time_span / (double)LOG_EVAL_CURVE_LEN_MAX) + time_begin;
             _points[i].set_center(time_center, time_interval);
+        }
+    }
+}
+
+void EvaluationTask::init_points(void) {
+    for (int i = 0; i < LOG_SLOT_MAX; i++) {
+        if (m.points[i] != nullptr) {
+            reset_points(m.points[i]);
         }
     }
 }
@@ -105,20 +92,6 @@ LogWindow* EvaluationTask::get_window(void) {
 }
 
 bool EvaluationTask::is_data_ready(void) {
-    if (m.data_ready) {
-        if (m.thread_handle != INVALID_THREAD_HANDLE) {
-            pthread_join(m.thread_handle, nullptr);
-            m.thread_handle = INVALID_THREAD_HANDLE;
-        }
-    }
-    return (m.data_ready);
-}
-
-bool EvaluationTask::wait_for_data_ready(void) {
-    if (m.thread_handle != INVALID_THREAD_HANDLE) {
-        pthread_join(m.thread_handle, nullptr);
-        m.thread_handle = INVALID_THREAD_HANDLE;
-    }
     return (m.data_ready);
 }
 
@@ -132,30 +105,25 @@ Scale* EvaluationTask::get_scale(int _index) {
     return (nullptr);
 }
 
-void EvaluationTask::perform_async(void) {
-    m.data_ready = false;
-    pthread_create(&m.thread_handle, nullptr, EvaluationTask::_evaluation_thread, this);
-    usleep(1000);
-}
-
 void* EvaluationTask::_evaluation_thread(void *_object) {
     (reinterpret_cast<EvaluationTask *>(_object))->evaluation_thread();
     return (nullptr);
 }
 void EvaluationTask::evaluation_thread(void) {
-    m.thread_handle = pthread_self();
-    perform_sync();
+    while (true) {
+        if ((m.data_ready == true) || (m.fd == -1)) {
+            usleep(1000);
+            continue;
+        }
+        init_points();
+        scan();
+        set_ready();
+    }
 }
 
-void EvaluationTask::perform_sync(void) {
-    for (int i = 0; i < LOG_SLOT_MAX; i++) {
-        if (m.points[i] != nullptr) {
-            reset_points(m.points[i]);
-        }
-    }
-
-    int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
+void EvaluationTask::scan(void) {
     LogFrame frame;
+    int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
     while (m.logfile->get_frame(m.fd, scan_position, &frame)) {
         scan_position += sizeof (LogFrame);
 
@@ -169,18 +137,36 @@ void EvaluationTask::perform_sync(void) {
 
         int pt_index = (int)(((timecode - m.window.time.begin) * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()) + 0.5);
         if ((pt_index < 0) || (pt_index >= LOG_EVAL_CURVE_LEN_MAX)) { continue; }
-    
+        
         if (pt_index > 0) {
             points[pt_index - 1].add_value(timecode, frame.get_value());
         }
+
         points[pt_index].add_value(timecode, frame.get_value());
+
         if (pt_index < (LOG_EVAL_CURVE_LEN_MAX - 1)) {
             points[pt_index + 1].add_value(timecode, frame.get_value());
         }
     }
+}
 
+void EvaluationTask::set_window(LogWindow* _window) {
+    if (m.data_ready == true) {
+        m.window.set(_window);
+        m.logfile->get(m.fd);
+        LogRegistry* reg = m.logfile->get_registry();
+        if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
+            (reg->get_timecode_begin() <= m.window.time.get_end())) {
+            m.data_ready = false;
+        } else {
+            init_points();
+            set_ready();
+        }
+    }
+}
+
+void EvaluationTask::set_ready(void) {
     m.data_ready = true;
-
     if (m.base != nullptr) {
         m.base->set_active(m.task_index);
     }
