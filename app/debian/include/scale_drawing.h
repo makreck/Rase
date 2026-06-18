@@ -72,7 +72,7 @@ class ScaleDrawing : public Scale {
         void draw(ScaleLayout layout, ScalePointerType type, cairo_t* cr, RectEx *rc_area, RectEx *rc_scale,
             ColorRef color_background, ColorRef color_foreground, ColorRef color_pointer, const char *headline, std::vector<ScaleStep> &dividers);
 
-        size_t format_value(const ScaleFormat& _used_format, char* _buffer, size_t _size, double _value, int _stride, bool _with_unit);
+        size_t format_value(ScaleFormat* _used_format, char* _buffer, size_t _size, double _value, int _stride, bool _with_unit);
         size_t format_value(char* _buffer, size_t _size, double _value, bool _with_unit);
         size_t format_value(char* _buffer, size_t _size, bool _with_unit);
 

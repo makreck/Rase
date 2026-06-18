@@ -46,17 +46,17 @@ class ScaleFormat {
         ColorRef color_ref;
 
     public:
-        ScaleFormat() {
-            set(nullptr);
-        }
+        // ScaleFormat() {
+        //     set(nullptr);
+        // }
 
-        ScaleFormat(const ScaleFormat& _source) {
-            set(&_source);
-        }
+        // ScaleFormat(const ScaleFormat& _source) {
+        //     set(&_source);
+        // }
 
-        ScaleFormat(const ScaleFormat* _source) {
-            set(_source);
-        }
+        // ScaleFormat(const ScaleFormat* _source) {
+        //     set(_source);
+        // }
 
         void set(const ScaleFormat* _source) {
             if (_source != nullptr) {
@@ -74,17 +74,17 @@ class ScaleFormat {
             set(nullptr);
         }
 
-        void operator=(const ScaleFormat& source) {
-            set(&source);
-        }
+        // void operator=(const ScaleFormat& source) {
+        //     set(&source);
+        // }
 
-        bool operator==(const ScaleFormat& source) {
-            return ((color_ref == source.color_ref) && (flags == source.flags));
-        }
+        // bool operator==(const ScaleFormat& source) {
+        //     return ((color_ref == source.color_ref) && (flags == source.flags));
+        // }
 
-        bool operator!=(const ScaleFormat& source) {
-            return ((color_ref != source.color_ref) || (flags != source.flags));
-        }
+        // bool operator!=(const ScaleFormat& source) {
+        //     return ((color_ref != source.color_ref) || (flags != source.flags));
+        // }
 
         void set_hidden(bool state) {
             f_hidden = state;
@@ -207,8 +207,13 @@ class Scale : public MicroJsonObject {
                 int   count;
 
                 // Must follow struct ScaleFormat
-                uint32_t flags;
-                ColorRef color_ref;
+                union {
+                    struct {
+                        uint32_t flags;
+                        ColorRef color_ref;
+                    };
+                    ScaleFormat format;
+                };
 
                 // Internal work-data
                 float sum;

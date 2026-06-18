@@ -303,7 +303,7 @@ float Scale::get_count(void) {
 }
 
 ScaleFormat* Scale::get_format(void) {
-    return ((ScaleFormat*)&flags);
+    return ((ScaleFormat*)&format);
 }
 
 void Scale::distribute_color(bool ref2str) {

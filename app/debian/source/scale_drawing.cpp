@@ -201,10 +201,11 @@ void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
     cairo_set_font_size(cr, fontSize);
     cairo_select_font_face(cr, DEFAULT_FONT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 
-    ScaleFormat format(get_format());
+    ScaleFormat format;
+    format.set(get_format());
     format.set_scalemode(true);
     char string[256]{0};
-    format_value(format, string, sizeof(string), get_top(), 0, false);
+    format_value(&format, string, sizeof(string), get_top(), 0, false);
 
     cairo_text_extents_t extents{0};
     cairo_text_extents(cr, string, &extents);
@@ -247,7 +248,7 @@ void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
         if (step.f_main_divider == 1) {
             cairo_line_to(cr, step.pos, y4 + 5);
 
-            format_value(format, string, sizeof(string), step.value, 0, false);
+            format_value(&format, string, sizeof(string), step.value, 0, false);
             cairo_text_extents(cr, string, &extents);
 
             int x = std::max(overhead, (int)step.pos - (int)(extents.width / 2));
@@ -316,12 +317,14 @@ void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
     cairo_restore(cr);
 }
 
-size_t ScaleDrawing::format_value(const ScaleFormat& _used_format, char* _buffer, size_t _size, double _value, int _stride, bool _with_unit) {
+size_t ScaleDrawing::format_value(ScaleFormat* _used_format, char* _buffer, size_t _size, double _value, int _stride, bool _with_unit) {
     if ((_buffer == nullptr) || (_size < 3)) {
         return (0);
     }
 
-    ScaleFormat temp_format(_used_format);
+    ScaleFormat temp_format;
+    temp_format.set(_used_format);
+
     size_t nCount = (size_t)temp_format.get_number_len(top, bottom);
     size_t nColon = (size_t)temp_format.get_decimal_digits();
     if (temp_format.is_scalemode()) {
