@@ -21,19 +21,16 @@
 
 #include "includes.h"
 
-void EvaluationTask::init(Evaluator* _base, int _task_index, int _fd) {
+void EvaluationTask::init(Evaluator* _base, int _task_index) {
     memset(m.points, 0, sizeof (m.points));
     m.base          = _base;
     m.task_index    = _task_index;
-    m.fd            = _fd;
     m.data_ready    = true;
     m.logfile       = new LogFile();
     pthread_create(&m.thread_handle, nullptr, EvaluationTask::_evaluation_thread, this);
 }
 
 void EvaluationTask::cleanup() {
-    m.fd = -1;
-
     if (m.thread_handle != INVALID_THREAD_HANDLE) {
         pthread_cancel(m.thread_handle);
         pthread_join(m.thread_handle, nullptr);
@@ -111,7 +108,7 @@ void* EvaluationTask::_evaluation_thread(void *_object) {
 }
 void EvaluationTask::evaluation_thread(void) {
     while (true) {
-        if ((m.data_ready == true) || (m.fd == -1)) {
+        if ((m.data_ready == true) || (m.base->get_fd() == -1)) {
             usleep(1000);
             continue;
         }
@@ -124,7 +121,7 @@ void EvaluationTask::evaluation_thread(void) {
 void EvaluationTask::scan(void) {
     LogFrame frame;
     int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
-    while (m.logfile->get_frame(m.fd, scan_position, &frame)) {
+    while (m.logfile->get_frame(m.base->get_fd(), scan_position, &frame)) {
         scan_position += sizeof (LogFrame);
 
         int slot_index = frame.get_slot();
@@ -153,7 +150,7 @@ void EvaluationTask::scan(void) {
 void EvaluationTask::set_window(LogWindow* _window) {
     if (m.data_ready == true) {
         m.window.set(_window);
-        m.logfile->get(m.fd);
+        m.logfile->get(m.base->get_fd());
         LogRegistry* reg = m.logfile->get_registry();
         if ((reg->get_timecode_end() >= m.window.time.get_begin()) &&
             (reg->get_timecode_begin() <= m.window.time.get_end())) {
@@ -167,7 +164,5 @@ void EvaluationTask::set_window(LogWindow* _window) {
 
 void EvaluationTask::set_ready(void) {
     m.data_ready = true;
-    if (m.base != nullptr) {
-        m.base->set_active(m.task_index);
-    }
+    m.base->set_active(m.task_index);
 }

@@ -52,12 +52,10 @@ class Evaluator {
             cleanup();
         }
 
-        void resume(void);
-        void sleep(void);
-
         void delete_curve_list(void);
         void set_window(LogWindow _window);
         void draw_curves(cairo_t* cr, RectEx& _rect, LogWindow& _window, bool _vertical);
         void set_active(int _task_index);
         const char* get_path(void);
+        int get_fd(void);
 };

@@ -66,6 +66,17 @@ void LineRecorder::create_rectangles(int x, int y, int width, int height) {
     m.rc.info.height -= (LR_SCALE_INDENT_Y_TOP + LR_SCALE_INDENT_Y_BOTTOM);
 }
 
+void LineRecorder::init_colors(void) {
+    m.color.scaleBkg    = RGBA(247, 247, 247, 255);
+    m.color.scaleText   = RGBA(  0,   0,   0, 255);
+    m.color.paper       = RGBA(255, 255, 255, 255);
+    m.color.paperText   = RGBA( 63,   0, 127, 255);
+    m.color.gridFine    = RGBA(223, 223, 223, 255);
+    m.color.gridMain    = RGBA(191, 191, 191, 255);
+    m.color.infoTextDef = RGBA(  0,   0,   0, 255);
+    m.color.infoTextHi  = RGBA( 63,   0, 127, 255);
+}
+
 void LineRecorder::draw_paper(cairo_t* cr) {
     cairo_save(cr);
     m.rc.paperBox.clip(cr);

@@ -26,17 +26,16 @@
 #define SECON_USE_LAST_QUERY_TIME_MS    (-1)
 #define SECON_ERROR_LIMIT               (5)
 #define SECON_KEY_NODES                 "\"nodes\""
-#define SECON_KEY_CHANNELS              "\"channels\"" // **** depreciated!
 
 class SensorBus;
 class Datalogger;
 
 class SensorQuery : public MicroJsonObject {
     public:
-        char sensor[32];
-        char timestamp[20];
-        char rssi[16];
-        char tx_power[16];
+        char sensor[32]{ 0 };
+        char timestamp[20]{ 0 };
+        char rssi[16]{ 0 };
+        char tx_power[16]{ 0 };
 
         const MicroJsonStruct meta_data[4] = {
             JSON_ITEM(SensorQuery, sensor,    MicroJsonObjectType::obj_chars),
@@ -94,5 +93,4 @@ class SensorConnection {
         int query(void);
         void update(void);
         void set_initial_channel_count(int n);
-
 };

@@ -90,8 +90,6 @@ class SensorBus {
         void init(SensorBusCallback _callback_proc, void* _user_param);
         void cleanup(void);
 
-        void print(void);
-
         static void* _autoscan_thread(void* _object);
         void autoscan_thread(void);
 

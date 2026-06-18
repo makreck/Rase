@@ -331,7 +331,6 @@ class LineRecorder {
         GtkWidget* get(void) { return (m.area); }
         const Scale* get_selected_scale(void);
         
-        bool enable_evaluation(const char* _path);
-        bool disable_evaluation(const char* _path);
+        bool add_evaluation(const char* _path);
 
 };

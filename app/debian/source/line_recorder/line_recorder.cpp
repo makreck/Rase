@@ -81,17 +81,6 @@ void LineRecorder::redraw(void) {
     cairo_destroy(cr);
 }
 
-void LineRecorder::init_colors(void) {
-    m.color.scaleBkg    = RGBA(247, 247, 247, 255);
-    m.color.scaleText   = RGBA(  0,   0,   0, 255);
-    m.color.paper       = RGBA(255, 255, 255, 255);
-    m.color.paperText   = RGBA( 63,   0, 127, 255);
-    m.color.gridFine    = RGBA(223, 223, 223, 255);
-    m.color.gridMain    = RGBA(191, 191, 191, 255);
-    m.color.infoTextDef = RGBA(  0,   0,   0, 255);
-    m.color.infoTextHi  = RGBA( 63,   0, 127, 255);
-}
-
 void LineRecorder::init_times(void) {
     Times t(TimeInitializer::now);
     double t2 = t.get_timecode();
@@ -329,27 +318,14 @@ double LineRecorder::top_of_paper(void) {
     return (Times::get_now() - (m.window.time.get_span() * 0.05));
 }
 
-bool LineRecorder::enable_evaluation(const char* _path) {
+bool LineRecorder::add_evaluation(const char* _path) {
     for (Evaluator*& evaluator : m.curves) {
         if (evaluator != nullptr) {
             if (strcmp(_path, evaluator->get_path()) == 0) {
-                evaluator->resume();
                 return (true);
             }
         }
     }
     m.curves.push_back(new Evaluator(_path));
     return (true);
-}
-
-bool LineRecorder::disable_evaluation(const char* _path) {
-    for (Evaluator*& evaluator : m.curves) {
-        if (evaluator != nullptr) {
-            if (strcmp(_path, evaluator->get_path()) == 0) {
-                evaluator->sleep();
-                return (true);
-            }
-        }
-    }
-    return (false);
 }

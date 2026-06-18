@@ -26,7 +26,6 @@ int main(int argc, char* argv[]) {
     Application* app = new Application(argc, argv);
     if (app != nullptr) {
         result = app->run();
-        usleep(100000);
         delete (app);
     }
     return (result);

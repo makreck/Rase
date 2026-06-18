@@ -52,16 +52,6 @@ void SensorBus::cleanup(void) {
     pthread_mutex_destroy(&m.message_mutex);
 }
 
-void SensorBus::print(void) {
-    printf("SensorBus scan completed, %d connected devices found:\n", (int)m.device_list.size());
-    for (SensorConnection*& entry : m.device_list) {
-        if (entry != nullptr) {
-            const ProductID* pid = entry->get_pid();
-            printf("Path = \"%s\": manufacturer=\"%s\", sn=\"%s\"\n", entry->get_path(), pid->manufacturer, pid->device_serial_number);
-        }
-    }
-}
-
 void SensorBus::reset(void) {
     stop_query();
 

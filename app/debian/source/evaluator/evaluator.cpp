@@ -26,7 +26,7 @@ void Evaluator::init(const char* _path) {
     Files::open_file(m.fd, m.path.c_str(), O_RDWR);
     pthread_mutex_init(&m.slot_mutex, nullptr);
     for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
-        m.evaluation_task[i] = new EvaluationTask(this, i, m.fd);
+        m.evaluation_task[i] = new EvaluationTask(this, i);
     }
 }
 
@@ -50,27 +50,12 @@ void Evaluator::cleanup(void) {
     pthread_mutex_destroy(&m.slot_mutex);
 }
 
-void Evaluator::resume(void) {
-    pthread_mutex_lock(&m.slot_mutex); {
-        if (m.fd == -1) {
-            if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
-                printf("---> Evaluator resumed: <%s>\n", m.path.c_str());
-            }
-        }
-    } pthread_mutex_unlock(&m.slot_mutex);
-}
-
-void Evaluator::sleep(void) {
-    pthread_mutex_lock(&m.slot_mutex); {
-        if (m.fd != -1) {
-            Files::close_file(m.fd);            
-            printf("---> Evaluator sleeping: <%s>\n", m.path.c_str());
-        }
-    } pthread_mutex_unlock(&m.slot_mutex);
-}
-
 const char* Evaluator::get_path(void) {
     return (m.path.c_str());
+}
+
+int Evaluator::get_fd(void) {
+    return (m.fd);
 }
 
 void Evaluator::delete_curve_list(void) {
@@ -181,7 +166,6 @@ void Evaluator::set_window(LogWindow _window) {
 
 void Evaluator::set_active(int _task_index) {
     if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
-// printf("-> Switch to active task #%d, data ready.\n", _task_index + 1);
         pthread_mutex_lock(&m.slot_mutex); {
             m.active_task = _task_index;
         } pthread_mutex_unlock(&m.slot_mutex);

@@ -163,9 +163,6 @@ void SensorConnection::set_initial_channel_count(int n) {
 
 char* SensorConnection::parse_query_header(char* buffer, SensorQuery& query_header) {
     char* key = strstr(buffer, SECON_KEY_NODES);
-    if (key == nullptr) { // *** check for depreciated old key also
-        key = strstr(buffer, SECON_KEY_CHANNELS);
-    }
     if (key == nullptr) return (nullptr);
 
     char* p = key;

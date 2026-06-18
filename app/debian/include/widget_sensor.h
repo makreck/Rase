@@ -79,23 +79,23 @@ class SensorWidget {
 
         static gboolean _eventHandler_ChannelWidget(GtkWidget* _widget, GdkEvent* _event, gpointer _data);
         static gboolean _eventHandler_SidebarWidget(GtkWidget* _widget, GdkEvent* _event, gpointer _data);
+
         void eventHandler(int _type, void* _holder, GdkEvent* _event);
         void handleMouseButtonEvent(int type, void* holder, GdkEventButton* btnEvent);
         void handleScrollEvent(GdkEventScroll* _scroll_event);
         void handleEnterLeave(int _type, ChannelWidget* _holder, GdkEventCrossing* _event);
         void handleMouseMoveEvent(int _type, ChannelWidget* _holder, GdkEventMotion* _motion_event);
         void processEventState(guint state);
+        void select_all_channels(bool _hilighted, bool _selected, uint8_t _flags = 0x03);
         bool processEventTime(uint32_t timeValue);
         bool processMouseClicks(int type, void* holder);
         bool processKeyStates(GdkEventButton* btnEvent);
         bool handleButtonRelease(void);
         bool selectChannel(ChannelWidget* holder);
-        void select_all_channels(bool _hilighted, bool _selected, uint8_t _flags = 0x03);
-
-        int create_label(void);
-        int create_sidebar(void);
-        int create_channel_list(void);
-        int update_channel_list(void);
+        int  create_label(void);
+        int  create_sidebar(void);
+        int  create_channel_list(void);
+        int  update_channel_list(void);
 
     public:
         SensorWidget(SensorConnection* _device, LineRecorder* _recorder = nullptr) {

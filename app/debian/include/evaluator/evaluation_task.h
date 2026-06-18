@@ -28,7 +28,6 @@ class EvaluationTask {
         struct {
             Evaluator*    base = nullptr;
             int           task_index = 0;
-            int           fd = -1;
             LogFile*      logfile = nullptr;
             LogWindow     window;
             EvalPt*       points[LOG_SLOT_MAX];
@@ -39,7 +38,7 @@ class EvaluationTask {
         static void* _evaluation_thread(void* _object);
         void evaluation_thread(void);
 
-        void init(Evaluator* _base, int _task_index, int _fd);
+        void init(Evaluator* _base, int _task_index);
         void cleanup(void);
         void reset_points(EvalPt* _points);
         void init_points(void);
@@ -47,8 +46,8 @@ class EvaluationTask {
         void scan(void);
 
     public:
-        EvaluationTask(Evaluator* _base, int _task_index, int _fd) {
-            init(_base, _task_index, _fd);
+        EvaluationTask(Evaluator* _base, int _task_index) {
+            init(_base, _task_index);
         }
 
         ~EvaluationTask() {

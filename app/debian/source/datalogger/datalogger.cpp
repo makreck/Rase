@@ -128,10 +128,6 @@ bool Datalogger::add_measurement(std::vector<Scale*>* _channels) {
             if (slot_index != -1) {
                 LogFrame frame(slot_index, timecode, slot->get_value());
                 if (m.logfile->put_frame(m.fd, &frame)) {
-
-// printf("Put frame %lld: slot=%d, timecode=%.8f, value=%.1f\n",
-//     (long long int)m.logfile->get_registry()->get_count_of_records(), frame.get_slot(), frame.get_timecode(), frame.get_value());
-
                     check_for_update();
                 }
             }
