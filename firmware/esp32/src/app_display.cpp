@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-//#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 AppState App::init_display(void) {
 #ifdef _ENABLE_LCD
@@ -322,35 +322,6 @@ AppState App::display_info_page(void) {
     return (AppState::OK);
 }
 
-AppState App::reload_screensaver(void) {
-    AppState state = AppState::OK;
-
-    if (m.flags.b.bDisplayOFF == 1) {
-        m.flags.b.bDisplayOFF = 0;
-        m.display->on();
-        state = AppState::idle;
-    }
-
-    reload_display_timeout();
-    return (state);
-}
-
-AppState App::check_screensaver(void) {
-    if ((m.display_off_time == 0) || (m.flags.b.bDisplayOFF == 1)) {
-        return (AppState::OK);
-    }
-
-    if (Tools::get_tick_seconds() >= m.display_off_time) {
-        if (m.flags.b.bDisplayOFF == 0) {
-            m.display->off();
-            m.flags.b.bDisplayOFF = 1;
-        }
-        return (AppState::sleep);
-    }
-
-    return (AppState::OK);
-}
-
 void App::flip_display(void) {
     m.cfg->flip_Rotation();
     m.display->set_rotation(m.cfg->get_rotation());
@@ -378,11 +349,47 @@ AppState App::set_display_page(DisplayPage page) {
 bool App::reload_display_timeout(void) {
     uint32_t reload = (uint32_t)m.cfg->get_display_timeout();
     if (reload != 0) {
-        m.display_off_time = Tools::get_tick_seconds() + reload;
+        uint32_t tick_time_s = Tools::get_tick_seconds();
+#ifdef DISPLAY_STATE
+        if (m.display_off_time != (tick_time_s + reload)) {
+            ESP_LOGI(TAG, "Display timeout reload for %us, time=%u, threshold=%u",
+                (unsigned int)reload, (unsigned int)tick_time_s, (unsigned int)m.display_off_time);
+        }
+#endif
+        m.display_off_time = tick_time_s + reload;
         return (true);
     } 
     m.display_off_time = 0;
     return (false);
+}
+
+AppState App::reload_screensaver(void) {
+    AppState state = AppState::OK;
+
+    if (m.flags.b.bDisplayOFF == 1) {
+        m.flags.b.bDisplayOFF = 0;
+        m.display->on();
+        state = AppState::idle;
+    }
+
+    reload_display_timeout();
+    return (state);
+}
+
+AppState App::check_screensaver(void) {
+    if ((m.display_off_time == 0) || (m.flags.b.bDisplayOFF == 1)) {
+        return (AppState::OK);
+    }
+
+    if (Tools::get_tick_seconds() >= m.display_off_time) {
+        if (m.flags.b.bDisplayOFF == 0) {
+            m.display->off();
+            m.flags.b.bDisplayOFF = 1;
+        }
+        return (AppState::sleep);
+    }
+
+    return (AppState::OK);
 }
 
 AppState App::request_sys_config_update(void) {

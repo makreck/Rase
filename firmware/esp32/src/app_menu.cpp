@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 const MenuItem menu_main[] {
     IDM_TITLE,               "Main menu",
@@ -162,11 +162,15 @@ void App::set_Menu(const MenuItem* items, const size_t count) {
     reset_Menu();
     m.menu = items;
     m.menu_count = count;
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "App::set_Menu(\"%s\" ... ).", m.menu[0].string);
+#endif    
 }
 
 void App::reset_Menu(void) {
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "App::reset_Menu().");
+#endif
     m.menuSelect = 1;
     m.menuStart = 1;
     m.display->clear();
@@ -183,7 +187,9 @@ void App::step_Menu(void) {
             m.menuStart++;
         }
     }
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "App::step_Menu(), select=%d, start=%d.", (int)m.menuSelect, (int)m.menuStart);
+#endif
 }
 
 size_t App::new_DynamicMenu(const char* menu_title) {
@@ -235,8 +241,9 @@ AppState App::switch_driver_to(uint8_t i2c_addr) {
 }
 
 bool App::exit_Menu(void) {
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "App::exit_Menu(%d), id=%d.", (int)m.menuSelect, (int)m.menu[m.menuSelect].id);
-
+#endif
     if ((m.menu[m.menuSelect].id >= IDM_SENSOR_BASE) && (m.menu[m.menuSelect].id < IDM_SENSOR_LAST)) {
         int i = m.menu[m.menuSelect].id - IDM_SENSOR_BASE;
         switch_driver_to(m.drv_scan_adr[i]);
@@ -341,11 +348,15 @@ bool App::exit_Menu(void) {
 
 AppState App::handle_config_interface(void) {
     if (m.cmd == nullptr) {
+#ifdef DISPLAY_STATE
         ESP_LOGI(TAG, "App::handle_config_interface(), create config interface.");
+#endif
         m.cmd = new ConfigInterface(this);
         m.cfg->set_config_enable(CONFIG_IFC_ENABLED);
     } else {
+#ifdef DISPLAY_STATE
         ESP_LOGI(TAG, "App::handle_config_interface(), delete config interface.");
+#endif
         SAFE_DELETE(m.cmd);
         m.cfg->set_config_enable(CONFIG_IFC_DISABLED);
     }
@@ -356,10 +367,14 @@ AppState App::handle_config_interface(void) {
         m.display->print(0, 1, "Config interface");
         if (m.cmd == nullptr) {
             m.display->print(0, 2, "is disabled.");
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "App::handle_config_interface(), CMD is disabled.");
+#endif
         } else {
             m.display->print(0, 2, "is enabled.");
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "App::handle_config_interface(), CMD is enabled.");
+#endif
         }
         m.display->update();
         vTaskDelay(pdMS_TO_TICKS(1000));

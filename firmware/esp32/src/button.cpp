@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 void Button::init(void) {
     for (size_t i = 0; i < SIZEOFARRAY(button_port); i++) {
