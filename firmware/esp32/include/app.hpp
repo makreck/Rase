@@ -55,7 +55,7 @@
 #include "config_interface.hpp"
 #include "app_menu.hpp"
 
-#define WEB_SITE_BASE_STRING    WebServer::webserver_resp_str_2
+#define WEB_SITE_BASE_STRING    WebServer::webserver_resp_str_1
 
 #define TASK_DEFAULT_PRIORITY   (20)
 #define TASK_SMALL_STACKSIZE    (1024)
