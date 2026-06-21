@@ -87,24 +87,6 @@ ssize_t ConfigInterface::send(const char* data, size_t length) {
     return (written);
 }
 
-void ConfigInterface::process_command(const char* data, size_t length) {
-    if (strncmp(data, CFG_KEY_ID_RESPONSE, strlen(CFG_KEY_ID_RESPONSE)) == 0) {
-        char* device_id_json = Tools::get_device_id_json();
-        send(device_id_json, strlen(device_id_json));
-        free(device_id_json);
-    } else if (strncmp(data, CFG_KEY_SENSOR_RESPONSE, strlen(CFG_KEY_SENSOR_RESPONSE)) == 0) {
-        size_t len = 0;
-        char* json_response = app->get_sensor()->get_json(len); 
-        send(json_response, len);
-        free(json_response);
-    } else if (strncmp(data, CFG_KEY_WIFI_SETUP, strlen(CFG_KEY_WIFI_SETUP)) == 0) {
-        handle_wifi_setup(data, length);
-    } else if (strncmp(data, CFG_KEY_WEBSITE_RESPONSE, strlen(CFG_KEY_WEBSITE_RESPONSE)) == 0) {
-        size_t len = strlen(WEB_SITE_BASE_STRING);
-        send(WEB_SITE_BASE_STRING, len);
-    }
-}
-
 void ConfigInterface::handle_wifi_setup(const char* data, size_t length) {
     char buffer[256];
     memset(buffer, 0, sizeof(buffer));
@@ -150,4 +132,42 @@ void ConfigInterface::handle_wifi_setup(const char* data, size_t length) {
     app->request_sys_config_update();
     vTaskDelay(pdMS_TO_TICKS(3000));
     app->handle_reset(false);
+}
+
+
+
+void ConfigInterface::handle_id_response(void) {
+    char *device_id_json = Tools::get_device_id_json();
+    send(device_id_json, strlen(device_id_json));
+    free(device_id_json);
+}
+
+void ConfigInterface::handle_sensor_response(void) {
+    size_t len = 0;
+    char *json_response = app->get_sensor()->get_json(len);
+    send(json_response, len);
+    free(json_response);
+}
+
+void ConfigInterface::handle_website_response(void) {
+    size_t len = strlen(WEB_SITE_BASE_STRING);
+    send(WEB_SITE_BASE_STRING, len);
+}
+
+void ConfigInterface::handle_config_response(const char* data, size_t length) {
+// @TODO: Reveive device configuration JSON string.
+}
+
+void ConfigInterface::process_command(const char* data, size_t length) {
+    if (strncmp(data, CFG_KEY_ID_RESPONSE, strlen(CFG_KEY_ID_RESPONSE)) == 0) {
+        handle_id_response();
+    } else if (strncmp(data, CFG_KEY_SENSOR_RESPONSE, strlen(CFG_KEY_SENSOR_RESPONSE)) == 0) {
+        handle_sensor_response();
+    } else if (strncmp(data, CFG_KEY_WIFI_SETUP, strlen(CFG_KEY_WIFI_SETUP)) == 0) {
+        handle_wifi_setup(data, length);
+    } else if (strncmp(data, CFG_KEY_WEBSITE_RESPONSE, strlen(CFG_KEY_WEBSITE_RESPONSE)) == 0) {
+        handle_website_response();
+    } else if (strncmp(data, CFG_KEY_CONFIG, strlen(CFG_KEY_CONFIG)) == 0) {
+        handle_config_response(data, length);
+    }
 }

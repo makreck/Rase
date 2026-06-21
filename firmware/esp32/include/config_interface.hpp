@@ -24,10 +24,11 @@
 #define RX_BUFFER_SIZE  (1024)
 #define TX_BUFFER_SIZE  (1024)
 
-#define CFG_KEY_WEBSITE_RESPONSE "/api/root"
-#define CFG_KEY_WIFI_SETUP       "/api/setup-wifi"
+#define CFG_KEY_WEBSITE_RESPONSE "/root"
 #define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
 #define CFG_KEY_ID_RESPONSE      "/api/id"
+#define CFG_KEY_WIFI_SETUP       "/setup-wifi"
+#define CFG_KEY_CONFIG           "/config"
 
 class App;
 
@@ -48,8 +49,12 @@ class ConfigInterface {
         void init(void);
         void cleanup(void);
         void process_command(const char* data, size_t length);
-        void handle_wifi_setup(const char* data, size_t length);
         void setup(void);
+        void handle_wifi_setup(const char* data, size_t length);
+        void handle_id_response(void);
+        void handle_sensor_response(void);
+        void handle_website_response(void);
+        void handle_config_response(const char* data, size_t length);
 
     public:
         ConfigInterface(App* _app) {
