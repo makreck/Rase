@@ -70,7 +70,8 @@ class WebServer {
         esp_err_t init_time_server(void);
 
     public:
-        static const char* webserver_resp_str;
+        static const char* webserver_resp_str_1;
+        static const char* webserver_resp_str_2;
 
         WebServer(void) {
             init();

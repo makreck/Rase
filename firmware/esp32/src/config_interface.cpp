@@ -100,8 +100,8 @@ void ConfigInterface::process_command(const char* data, size_t length) {
     } else if (strncmp(data, CFG_KEY_WIFI_SETUP, strlen(CFG_KEY_WIFI_SETUP)) == 0) {
         handle_wifi_setup(data, length);
     } else if (strncmp(data, CFG_KEY_WEBSITE_RESPONSE, strlen(CFG_KEY_WEBSITE_RESPONSE)) == 0) {
-        size_t len = strlen(WebServer::webserver_resp_str);
-        send(WebServer::webserver_resp_str, len);
+        size_t len = strlen(WEB_SITE_BASE_STRING);
+        send(WEB_SITE_BASE_STRING, len);
     }
 }
 
