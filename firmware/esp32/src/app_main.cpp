@@ -118,13 +118,6 @@ AppState App::init_webserver(void) {
 AppState App::init_driver(void) {
     m.sensor = new SensorDevice("ESP32-S3");
     m.driver = SensorDriver::auto_scan(m.cfg->get_sensor_type());
-
-    //m.driver = new SensorSHT2(); // ****
-    //m.driver = SensorDriver::auto_scan(SensorType::SHT2x); // ****
-    //m.driver = SensorDriver::auto_scan(SensorType::SHT3x); // ****
-    //m.driver = SensorDriver::auto_scan(SensorType::HTU21d); // ****
-    //m.driver = SensorDriver::auto_scan(SensorType::BMx280); // ****
-
     return (((m.sensor != nullptr) && (m.driver != nullptr)) ? AppState::OK : AppState::failed);
 }
 
@@ -249,6 +242,13 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
 #endif
             m.flags.b.bWebsiteReady = 1;
             m.display_request++;
+        } break;
+
+        case AppEvent::web_time_sync: {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "Webserver time synchronization event.");
+#endif
+            reload_screensaver();
         } break;
 
         default: {

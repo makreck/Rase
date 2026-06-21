@@ -43,6 +43,7 @@ enum class AppEvent:uint32_t {
     web_api_event     = 303,
     web_query_event   = 304,
     web_favicon_req   = 305,
+    web_time_sync     = 306,
     
     leds_online       = 400,
     leds_offline      = 401,

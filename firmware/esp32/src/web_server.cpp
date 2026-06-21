@@ -124,6 +124,10 @@ esp_err_t WebServer::stop(void) {
     return (ESP_OK);
 }
 
+void WebServer::_time_sync_notification(struct timeval* tv) {
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_time_sync, nullptr, 0, pdMS_TO_TICKS(1));
+}
+
 esp_err_t WebServer::init_time_server(void) {
 #ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "WebServer::init_time_server().");
@@ -135,6 +139,9 @@ esp_err_t WebServer::init_time_server(void) {
     esp_sntp_setservername(0, CONFIG_SNTP_SERVER_0);
     esp_sntp_setservername(1, CONFIG_SNTP_SERVER_1);
     esp_sntp_setservername(2, CONFIG_SNTP_SERVER_2);
+
+    esp_sntp_set_time_sync_notification_cb(_time_sync_notification);
+
     esp_sntp_init();
 
     return (ESP_OK);

@@ -65,6 +65,8 @@ class WebServer {
         static esp_err_t _opcua_get_handler(httpd_req_t *req);
         esp_err_t opcua_get_handler(httpd_req_t *req);
 
+        static void _time_sync_notification(struct timeval* tv);
+
         esp_err_t init(void);
         esp_err_t cleanup(void);
         esp_err_t init_time_server(void);
