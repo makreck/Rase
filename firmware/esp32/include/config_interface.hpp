@@ -27,10 +27,22 @@
 #define CFG_KEY_WEBSITE_RESPONSE "/root"
 #define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
 #define CFG_KEY_ID_RESPONSE      "/api/id"
-#define CFG_KEY_WIFI_SETUP       "/setup-wifi"
+#define CFG_KEY_WIFI_SETUP       "/connect"
 #define CFG_KEY_CONFIG           "/config"
+#define CFG_KEY_INITIALIZE       "/initialize"
+#define CFG_KEY_REBOOT           "/reboot"
 
 class App;
+class ConfigInterface;
+
+typedef void (* Config_Function_t)(ConfigInterface* instance, int mode, const char* data, size_t length);
+
+class ConfigCB {
+    public:
+        const char* key;
+        Config_Function_t callback;
+        int mode;
+};
 
 class ConfigInterface {
     private:
@@ -50,11 +62,23 @@ class ConfigInterface {
         void cleanup(void);
         void process_command(const char* data, size_t length);
         void setup(void);
-        void handle_wifi_setup(const char* data, size_t length);
-        void handle_id_response(void);
-        void handle_sensor_response(void);
-        void handle_website_response(void);
-        void handle_config_response(const char* data, size_t length);
+        
+        static void handle_wifi_setup(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_config_response(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_id_response(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_sensor_response(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_website_output(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_restart(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+
+        const ConfigCB function_tab[7] = {
+            { CFG_KEY_WIFI_SETUP,       ConfigInterface::handle_wifi_setup,      0},
+            { CFG_KEY_CONFIG,           ConfigInterface::handle_config_response, 0},
+            { CFG_KEY_ID_RESPONSE,      ConfigInterface::handle_id_response,     0},
+            { CFG_KEY_SENSOR_RESPONSE,  ConfigInterface::handle_sensor_response, 0},
+            { CFG_KEY_WEBSITE_RESPONSE, ConfigInterface::handle_website_output,  0},
+            { CFG_KEY_REBOOT,           ConfigInterface::handle_restart,         0},
+            { CFG_KEY_INITIALIZE,       ConfigInterface::handle_restart,         9},
+        };
 
     public:
         ConfigInterface(App* _app) {
