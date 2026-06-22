@@ -436,4 +436,4 @@ const char* WebServer::webserver_resp_str_1 =
 	"    </script>\n"
 	"</body>\n"
 	"</html>\n"
-	"";
+	"\0";
