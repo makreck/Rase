@@ -27,7 +27,7 @@
 
 enum class AppEvent:uint32_t {
     none              = 0,
-
+    
     display_ready     = 100,
     display_off       = 101,
 
@@ -54,4 +54,7 @@ enum class AppEvent:uint32_t {
     button_ready      = 600,
     button_event      = 601,
     button_idle       = 602,
+
+    reboot            = 998,
+    factory_reset     = 999,
 };

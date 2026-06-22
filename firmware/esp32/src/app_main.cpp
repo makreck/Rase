@@ -128,6 +128,38 @@ AppState App::trigger_watchdog(void) {
     return ((esp_task_wdt_reset() == ESP_OK) ? AppState::OK : AppState::watchdog);
 }
 
+AppState App::handle_nvm_update(void) {
+    if (m.flags.b.bNVMUpdateReq == 1) {
+        m.flags.b.bNVMUpdateReq = 0;
+        m.cfg->update();
+        vTaskDelay(pdMS_TO_TICKS(250));
+    }
+    return (AppState::idle);
+}
+
+AppState App::handle_reset(bool init_flash) {
+    if (m.display != nullptr) {
+        m.display->clear();
+        m.display->print(0, 0, (init_flash) ? "Factory reset..." : "System restart..");
+        m.display->update();
+    }
+
+    if (init_flash) {
+        m.cfg->perform_factory_reset();
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    cleanup();
+    esp_restart();
+    
+    return (AppState::OK);
+}
+
+AppState App::request_sys_config_update(void) {
+    m.flags.b.bNVMUpdateReq = 1;
+    return (AppState::OK);
+}
+
 void App::_app_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     (reinterpret_cast<App*>(arg))->app_event_handler(event_base, (AppEvent)event_id, event_data);
 }
@@ -173,9 +205,6 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::wifi_enabled: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Wifi is enabled.");
-#endif
             m.flags.b.bWifiEnabled = 1;
             m.display_request++;
         } break;
@@ -201,12 +230,7 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::driver_ready: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Sensor driver is ready.");
-#endif
             m.flags.b.bDriverReady = 1;
-
-            m.display_page = m.cfg->get_display_layout();
             m.display_request++;
 
             if (m.sensor != nullptr) {
@@ -223,23 +247,14 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             if ((m.flags.b.bWebsiteReady  == 0) && 
                 (m.flags.b.bWifiConnected == 1) && 
                 (m.flags.b.bDriverReady   == 1)) {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Webserver is starting...");
-#endif
                 m.webserver->start(m.sensor);
             } else {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Webserver start is delayed because the sensor driver is not ready.");
-#endif
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 esp_event_post(APP_EVENT, (int32_t)AppEvent::web_start_server, nullptr, 0, pdMS_TO_TICKS(1));
             }
         } break;
 
         case AppEvent::web_started: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Webserver is running.");
-#endif
             m.flags.b.bWebsiteReady = 1;
             m.display_request++;
         } break;
@@ -251,38 +266,23 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             reload_screensaver();
         } break;
 
+        case AppEvent::factory_reset: {
+            handle_reset(true);
+        } break;
+
+        case AppEvent::reboot: {
+            handle_reset(false);
+        } break;
+
         default: {
+#ifdef DISPLAY_STATE
+            ESP_LOGE(TAG, "Unsupported message %d.", (int)event_id);
+#endif
         } break;
 
     }
 
     return (ESP_OK);
-}
-
-AppState App::handle_nvm_update(void) {
-    if (m.flags.b.bNVMUpdateReq == 1) {
-        m.flags.b.bNVMUpdateReq = 0;
-        m.cfg->update();
-    }
-    return (AppState::idle);
-}
-
-AppState App::handle_reset(bool init_flash) {
-    if (m.display != nullptr) {
-        m.display->clear();
-        m.display->print(0, 0, (init_flash) ? "Factory reset..." : "System restart..");
-        m.display->update();
-    }
-
-    if (init_flash) {
-        m.cfg->perform_factory_reset();
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    cleanup();
-    esp_restart();
-    
-    return (AppState::OK);
 }
 
 AppState App::run(void) {
