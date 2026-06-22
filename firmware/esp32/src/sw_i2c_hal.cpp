@@ -31,8 +31,6 @@ esp_err_t SwI2CBus::enable(void) {
 
 
 void SwI2CBus::bitWait(void) {
-    //vTaskDelay(1);
-    //esp_rom_delay_us(500);    
     esp_rom_delay_us(5);    
 }
 

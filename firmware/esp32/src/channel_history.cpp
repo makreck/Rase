@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 void ChannelHistory::clear(void) {
     memset(data, 0, sizeof(data));

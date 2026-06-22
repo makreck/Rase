@@ -27,16 +27,11 @@ extern "C" {
 #endif
 
 void app_main(void) {
-    ESP_LOGI(TAG, "System startup ...");
     App* app = new App();
     if (app != nullptr) {
-        ESP_LOGI(TAG, "Running system ...");
         app->run();
         delete (app);
-    } else {
-
     }
-
 }
 
 #ifdef __cplusplus

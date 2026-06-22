@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 AppState SysConfig::init(void) {
     init_nvs_flash();
