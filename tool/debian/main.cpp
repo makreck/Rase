@@ -124,9 +124,15 @@ int main(int argc, char* argv[]) {
         printf("*** Important: Please ensure, that sensor's serial interface is enabled by sensor setup! ***\n");
         printf("Usage: fcmd [options] command\n");
         printf("Supported commands:\n");
-        printf("\t\"/api/setup-wifi=<ssid>:<password>\" to configure Wifi\n");
-        printf("\t\"/api/sensors\" to receive latest measurements\n");
-        printf("\t\"/api/id\" to receive the sensor ID data\n");
+
+        printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
+        printf("\t\"/config=<JSON>\"\t\tConfigure device by given JSON string.\n");
+        printf("\t\"/initialize\"\t\t\tPerform a factory reset.\n");
+        printf("\t\"/reboot\"\t\t\tReboot the device.\n");
+        printf("\t\"/root\"\t\t\t\tQuery the root website source.\n");
+        printf("\t\"/api/id\"\t\t\tQuery the senosr identification data (JSON).\n");
+        printf("\t\"/api/sensors\"\t\t\tQuery the latest measurement (JSON).\n");
+
         return (0);
     }
 
