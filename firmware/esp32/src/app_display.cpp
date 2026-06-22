@@ -52,7 +52,7 @@ AppState App::handle_display(void) {
     }
 
     if (m.display_page == DisplayPage::invalid) {
-        m.display_page = m.cfg->get_display_layout();
+        m.display_page = DisplayPage::value_page;
         m.display_request++;
     } else if (m.display_page == DisplayPage::menu) {
         reload_screensaver();
@@ -87,32 +87,12 @@ AppState App::handle_display(void) {
         } break;
 
         case DisplayPage::value_page: {
-            if (m.display->has_DisplayOfType(DisplayType::OLED128x64)) {
-                display_value_page();
-            }
-            if (m.display->has_DisplayOfType(DisplayType::LCD16x2)) {
-                display_small_value_page();
-            }
-        } break;
-
-        case DisplayPage::details_page: {
-            if (m.display->has_DisplayOfType(DisplayType::OLED128x64)) {
-                display_details_page();
-            }
-            if (m.display->has_DisplayOfType(DisplayType::LCD16x2)) {
-            }
-        } break;
-
-        case DisplayPage::info_page: {
-            if (m.display->has_DisplayOfType(DisplayType::OLED128x64)) {
-                display_info_page();
-            }
-            if (m.display->has_DisplayOfType(DisplayType::LCD16x2)) {
-            }
+            display_value_page();
         } break;
 
         default: {
-            m.display_page = m.cfg->get_display_layout();
+            m.display_page = DisplayPage::value_page;
+            display_value_page();
         } break;
     }
 
@@ -216,9 +196,41 @@ AppState App::display_small_value_page(void) {
 }
 
 AppState App::display_value_page(void) {
-    print_measuring_info();
-    print_large_text(m.cfg->get_display_parameter());
-    print_net_Info();
+    DisplayLayout layout_type = m.cfg->get_display_layout();
+
+    if (m.display->has_DisplayOfType(DisplayType::OLED128x64)) {
+        switch (layout_type) {
+            case DisplayLayout::info: {
+                display_info_page();
+            } break;
+
+            case DisplayLayout::detailes: {
+                display_details_page();
+            } break;
+
+            case DisplayLayout::large_values:
+            default: {
+                print_measuring_info();
+                print_large_text(m.cfg->get_display_parameter());
+                print_net_Info();
+            } break;
+        }
+    }
+        
+    if (m.display->has_DisplayOfType(DisplayType::LCD16x2)) {
+        switch (layout_type) {
+            case DisplayLayout::info:
+                // No layout available, display space is too small!
+            case DisplayLayout::detailes:
+                // No layout available, display space is too small!
+            case DisplayLayout::large_values:
+            default: {
+                display_small_value_page();
+
+            } break;
+        }
+    }
+
     return (AppState::OK);
 }
 
@@ -339,8 +351,6 @@ void App::set_display_contrast(float value) {
 }
 
 AppState App::set_display_page(DisplayPage page) {
-    m.cfg->set_display_layout(page);
-    request_sys_config_update();
     m.display_page = page;
     m.display_request++;
     return (AppState::OK);
@@ -389,10 +399,5 @@ AppState App::check_screensaver(void) {
         return (AppState::sleep);
     }
 
-    return (AppState::OK);
-}
-
-AppState App::request_sys_config_update(void) {
-    m.flags.b.bNVMUpdateReq = 1;
     return (AppState::OK);
 }

@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 AppState SysConfig::init(void) {
     init_nvs_flash();
@@ -68,7 +68,7 @@ AppState SysConfig::load_defaults(void) {
     cfg.channel                 = WIFI_DEFAULT_CHANNEL;
     cfg.display_layout          = DISPLAY_LAYOUT_DEFAULT;
     cfg.display_param           = 0;
-    cfg.display_rotation        = 0;
+    cfg.display_rotation        = DISPLAY_ROTATION_DEFAULT;
     cfg.display_timeout_s       = T_APP_DISPLAY_TIMEOUT_S;
     cfg.display_contrast        = DISPLAY_CONTRAST_DEFAULT;
     cfg.config_interface_enable = CONFIG_IFC_ENABLED;
@@ -236,19 +236,6 @@ AppState SysConfig::flip_Rotation(void) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_layout(DisplayPage layoutID) {
-    if (cfg.display_layout != (uint8_t)layoutID) {
-        cfg.display_layout  = (uint8_t)layoutID;
-        cfg.display_param   = (uint8_t)0;
-        modified = true;
-    }
-    return (AppState::OK);
-}
-
-DisplayPage SysConfig::get_display_layout(void) {
-    return ((DisplayPage)cfg.display_layout);
-}
-
 AppState SysConfig::set_display_contrast(float value) {
     float contrast = MIN(1.0f, MAX(0.0f, value));
     if (cfg.display_contrast != contrast) {
@@ -278,6 +265,19 @@ AppState SysConfig::get_mac_Address(char* string, size_t size) {
         mac_byte_buffer[4],
         mac_byte_buffer[5]);
     return (AppState::OK);
+}
+
+AppState SysConfig::set_display_layout(DisplayLayout layout) {
+    if (cfg.display_layout != (uint8_t)layout) {
+        cfg.display_layout  = (uint8_t)layout;
+        cfg.display_param   = (uint8_t)0;
+        modified = true;
+    }
+    return (AppState::OK);
+}
+
+DisplayLayout SysConfig::get_display_layout(void) {
+    return ((DisplayLayout)cfg.display_layout);
 }
 
 AppState SysConfig::set_display_parameter(uint8_t parameter) {

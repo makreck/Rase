@@ -134,7 +134,7 @@ AppState App::handle_menu(void) {
     if (m.btnState.button_message == BTN_LONG_PRESS) {
         if (m.display_page == DisplayPage::menu) {
             if (exit_Menu()) {
-                m.display_page = m.cfg->get_display_layout();
+                m.display_page = DisplayPage::value_page;
                 m.display_request++;
                 return (AppState::idle);
             }
@@ -159,22 +159,22 @@ AppState App::handle_menu(void) {
 }
 
 void App::set_Menu(const MenuItem* items, const size_t count) {
+    if ((items == nullptr) || (count < 2)) {
+        return;
+    }
     reset_Menu();
     m.menu = items;
     m.menu_count = count;
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "App::set_Menu(\"%s\" ... ).", m.menu[0].string);
-#endif    
 }
 
 void App::reset_Menu(void) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "App::reset_Menu().");
-#endif
     m.menuSelect = 1;
     m.menuStart = 1;
-    m.display->clear();
-    m.display->update();
+
+    if (m.display != nullptr) {
+        m.display->clear();
+        m.display->update();
+    }
 }
 
 void App::step_Menu(void) {
@@ -187,9 +187,6 @@ void App::step_Menu(void) {
             m.menuStart++;
         }
     }
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "App::step_Menu(), select=%d, start=%d.", (int)m.menuSelect, (int)m.menuStart);
-#endif
 }
 
 size_t App::new_DynamicMenu(const char* menu_title) {
@@ -203,9 +200,6 @@ size_t App::new_DynamicMenu(const char* menu_title) {
 }
 
 AppState App::select_driver(void) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "App::select_driver()");
-#endif
     size_t size = new_DynamicMenu("Sensors");
     if (m.driver != nullptr) {
         size_t count = m.driver->search(APP_DRV_LIST_MAX, m.drv_scan_name, m.drv_scan_adr, m.drv_scan_type);
@@ -241,9 +235,6 @@ AppState App::switch_driver_to(uint8_t i2c_addr) {
 }
 
 bool App::exit_Menu(void) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "App::exit_Menu(%d), id=%d.", (int)m.menuSelect, (int)m.menu[m.menuSelect].id);
-#endif
     if ((m.menu[m.menuSelect].id >= IDM_SENSOR_BASE) && (m.menu[m.menuSelect].id < IDM_SENSOR_LAST)) {
         int i = m.menu[m.menuSelect].id - IDM_SENSOR_BASE;
         switch_driver_to(m.drv_scan_adr[i]);
@@ -299,11 +290,11 @@ bool App::exit_Menu(void) {
             } break;
 
             case IDM_REBOOT: {
-                handle_reset(false);
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::reboot, nullptr, 0, pdMS_TO_TICKS(1));
             } return (true);
 
             case IDM_FACTORY_RESET: {
-                handle_reset(true);
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::factory_reset, nullptr, 0, pdMS_TO_TICKS(1));
             } return (true);
 
             case IDM_CONFIG: {
@@ -315,15 +306,18 @@ bool App::exit_Menu(void) {
             } return (true);
 
             case IDM_LAYOUT_VALUE_PAGE: {
-                set_display_page(DisplayPage::value_page);
+                m.cfg->set_display_layout(DisplayLayout::large_values);
+                request_sys_config_update();
             } return (true);
 
             case IDM_LAYOUT_DETAILS_PAGE: {
-                set_display_page(DisplayPage::details_page);
+                m.cfg->set_display_layout(DisplayLayout::detailes);
+                request_sys_config_update();
             } return (true);
 
             case IDM_LAYOUT_INFO_PAGE: {
-                set_display_page(DisplayPage::info_page);
+                m.cfg->set_display_layout(DisplayLayout::info);
+                request_sys_config_update();
             } return (true);
 
             case IDM_CONTRAST_HIGH: {
@@ -348,15 +342,9 @@ bool App::exit_Menu(void) {
 
 AppState App::handle_config_interface(void) {
     if (m.cmd == nullptr) {
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "App::handle_config_interface(), create config interface.");
-#endif
         m.cmd = new ConfigInterface(this);
         m.cfg->set_config_enable(CONFIG_IFC_ENABLED);
     } else {
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "App::handle_config_interface(), delete config interface.");
-#endif
         SAFE_DELETE(m.cmd);
         m.cfg->set_config_enable(CONFIG_IFC_DISABLED);
     }
@@ -367,14 +355,8 @@ AppState App::handle_config_interface(void) {
         m.display->print(0, 1, "Config interface");
         if (m.cmd == nullptr) {
             m.display->print(0, 2, "is disabled.");
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "App::handle_config_interface(), CMD is disabled.");
-#endif
         } else {
             m.display->print(0, 2, "is enabled.");
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "App::handle_config_interface(), CMD is enabled.");
-#endif
         }
         m.display->update();
         vTaskDelay(pdMS_TO_TICKS(1000));

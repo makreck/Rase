@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-//#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 void DisplayI2C::init(i2c_port_t lcdPort, gpio_num_t pinSDA, gpio_num_t pinSCL) {
     port = lcdPort;

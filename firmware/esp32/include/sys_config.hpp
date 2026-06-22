@@ -40,6 +40,12 @@
 #define DISPLAY_CONTRAST_LOW     (0.0f)
 #define DISPLAY_CONTRAST_DEFAULT (DISPLAY_CONTRAST_HIGH)
 
+#ifdef ESP32_S3_WROOM_1
+    #define DISPLAY_ROTATION_DEFAULT (1)
+#else
+    #define DISPLAY_ROTATION_DEFAULT (0)
+#endif
+
 #define CONFIG_IFC_ENABLED       (0x01)
 #define CONFIG_IFC_DISABLED      (0x00)
 
@@ -48,19 +54,16 @@
 
 // *** Misc default data, later to be defined in their modules:
 #define T_APP_DISPLAY_TIMEOUT_S  (0.0f)
-#define DISPLAY_LAYOUT_DEFAULT   ((uint8_t)(DisplayPage::value_page))
+#define DISPLAY_LAYOUT_DEFAULT   ((uint8_t)(DisplayLayout::large_values))
 #define SENSOR_TYPE_DEFAULT      ((uint8_t)SensorType::autoscan)
 
 #define WIFI_AP_NAME_MAX         (32)
 #define WIFI_AP_PASSWD_MAX       (64)
 
-enum class DisplayPage : int32_t {
-    invalid      = 0,
-    title_screen = 1,
-    menu         = 2,    
-    value_page   = 3,
-    details_page = 4,
-    info_page    = 5,
+enum class DisplayLayout {
+    large_values = 0,
+    detailes     = 1,
+    info         = 2,
 };
 
 class SysConfigData {
@@ -115,7 +118,7 @@ class SysConfig {
         AppState set_display_timeout(float timeout_s);
         AppState set_LED_intensity(float intensity);
         AppState set_display_contrast(float value);
-        AppState set_display_layout(DisplayPage layoutID = DisplayPage::title_screen);
+        AppState set_display_layout(DisplayLayout layout);
         AppState set_display_parameter(uint8_t parameter = 0);
         AppState set_ssid(const char* ap_name);
         AppState set_password(const char* password);
@@ -127,7 +130,7 @@ class SysConfig {
         float get_LED_intensity(void);
         float get_display_contrast(void);
 
-        DisplayPage get_display_layout(void);
+        DisplayLayout get_display_layout(void);
         uint8_t get_display_parameter(void);
         int get_wifi_channel(void);
         uint8_t get_rotation(void);

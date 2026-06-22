@@ -64,6 +64,13 @@
 
 #define APP_DRV_LIST_MAX (16)
 
+enum class DisplayPage {
+    invalid      = 0,
+    title_screen = 1,
+    menu         = 2,    
+    value_page   = 3,
+};
+
 class App {
     private:
 
@@ -94,6 +101,7 @@ class App {
             int32_t          display_request  = 0;
             int32_t          display_update   = 0;
             DisplayPage      display_page     = DisplayPage::invalid;
+
             uint32_t         display_off_time = 0;
 
             union {
