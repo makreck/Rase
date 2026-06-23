@@ -166,8 +166,9 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
                         n = 0;
 
                         draw_stopper(_cr, y);
-                    } else if (n > 32) {
+                    } else if (n >= LOG_EVAL_MAX_STROKE) {
                         cairo_stroke(_cr);
+                        cairo_move_to(_cr, x, y);
                         n = 0;
                     }
                 }

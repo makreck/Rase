@@ -154,11 +154,12 @@ void EvaluationTask::set_window(LogWindow* _window) {
             (reg->get_timecode_begin() <= m.window.time.get_end())) {
             m.data_ready = false;
         } else {
+            usleep(20000);
             init_points();
             set_ready();
         }
     } else {
-        usleep(1000);
+        usleep(20000);
     }
 }
 

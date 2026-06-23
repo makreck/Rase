@@ -148,7 +148,7 @@ class LineRecorder {
 
             cairo_surface_t* segment = nullptr; 
             double paper_shift = 0.0;
-            double update_speed_s = 0.025;
+            double update_speed_s = 0.050;
             LogWindow window;
 
             float event_time_s = 0.0f;
