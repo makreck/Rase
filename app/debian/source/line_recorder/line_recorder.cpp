@@ -41,14 +41,14 @@ void LineRecorder::cleanup(void) {
         m.update_thread_handle = INVALID_THREAD_HANDLE;
     }
 
-    if (m.curves.size() > 0) {
-        for (Evaluator*& evaluator : m.curves) {
+    if (m.evaluations.size() > 0) {
+        for (Evaluator*& evaluator : m.evaluations) {
             if (evaluator != nullptr) {
                 delete (evaluator);
                 evaluator = nullptr;
             }
         }
-        m.curves.clear();
+        m.evaluations.clear();
     }
 
     m.area = nullptr;
@@ -307,7 +307,7 @@ void LineRecorder::update_callback(void) {
 }
 
 void LineRecorder::window_update(void) {
-    for (Evaluator*& evaluator : m.curves) {
+    for (Evaluator*& evaluator : m.evaluations) {
         if (evaluator != nullptr) {
             evaluator->set_window(m.window);
         }
@@ -319,13 +319,13 @@ double LineRecorder::top_of_paper(void) {
 }
 
 bool LineRecorder::add_evaluation(const char* _path) {
-    for (Evaluator*& evaluator : m.curves) {
+    for (Evaluator*& evaluator : m.evaluations) {
         if (evaluator != nullptr) {
             if (strcmp(_path, evaluator->get_path()) == 0) {
                 return (true);
             }
         }
     }
-    m.curves.push_back(new Evaluator(_path));
+    m.evaluations.push_back(new Evaluator(_path));
     return (true);
 }

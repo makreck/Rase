@@ -65,7 +65,7 @@ int64_t LogFile::put_frame(int _fd, LogFrame* _frame) {
     if (file_position != 0) {
         get_header()->set_modified();
         if (Files::write_data_at(_fd, file_position, _frame, sizeof (LogFrame))) {
-            reg->update_header(_fd);
+            reg->update(_fd);
         } else {
             file_position = 0;
         }

@@ -119,8 +119,8 @@ void EvaluationTask::evaluation_thread(void) {
 }
 
 void EvaluationTask::scan(void) {
-    LogFrame frame;
     int64_t scan_position = m.logfile->get_registry()->get_file_position_for(m.window.time.begin);
+    LogFrame frame;
     while (m.logfile->get_frame(m.base->get_fd(), scan_position, &frame)) {
         scan_position += sizeof (LogFrame);
 
@@ -129,11 +129,9 @@ void EvaluationTask::scan(void) {
         if (points == nullptr) { continue; }
 
         double timecode = frame.get_timecode();
-        if (timecode < m.window.time.begin) { continue; }
-        if (timecode > m.window.time.end)   { break;    }
-
         int pt_index = (int)(((timecode - m.window.time.begin) * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()) + 0.5);
-        if ((pt_index < 0) || (pt_index >= LOG_EVAL_CURVE_LEN_MAX)) { continue; }
+        if ((pt_index < -1) || (pt_index > LOG_EVAL_CURVE_LEN_MAX)) { continue; }
+        pt_index = std::max(0, std::min(LOG_EVAL_CURVE_LEN_MAX - 1, pt_index));
         
         if (pt_index > 0) {
             points[pt_index - 1].add_value(timecode, frame.get_value());
@@ -159,6 +157,8 @@ void EvaluationTask::set_window(LogWindow* _window) {
             init_points();
             set_ready();
         }
+    } else {
+        usleep(1000);
     }
 }
 

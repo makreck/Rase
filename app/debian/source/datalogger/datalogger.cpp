@@ -106,7 +106,7 @@ void Datalogger::open_file(ProductID* _product_id, std::vector<Scale*>* _channel
         if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
             update_header(_product_id);
             update_inventory(_channels);
-            m.logfile->get_registry()->clear();
+            m.logfile->get_registry()->init();
             m.logfile->put(m.fd);
         }
     }
@@ -123,12 +123,14 @@ bool Datalogger::add_measurement(std::vector<Scale*>* _channels) {
     double timecode = Times::get_now();
     if (_channels != nullptr) {
         LogInventory* inventory = m.logfile->get_inventory();
-        for (Scale*& slot : *_channels) {
-            int slot_index = inventory->add_slot(slot);
-            if (slot_index != -1) {
-                LogFrame frame(slot_index, timecode, slot->get_value());
-                if (m.logfile->put_frame(m.fd, &frame)) {
-                    check_for_update();
+        for (Scale*& node : *_channels) {
+            if (node->get_count() > 1) {
+                int node_index = inventory->add_slot(node);
+                if (node_index != -1) {
+                    LogFrame frame(node_index, timecode, node->get_value());
+                    if (m.logfile->put_frame(m.fd, &frame)) {
+                        check_for_update();
+                    }
                 }
             }
         }

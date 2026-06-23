@@ -23,5 +23,5 @@
 
 #define LOG_EVAL_CURVE_LEN_MIN           (2)
 #define LOG_EVAL_CURVE_LEN_MAX           (4096)
-#define LOG_DISPLAY_WINDOW_EXPAND_FACTOR (0.5)
+#define LOG_DISPLAY_WINDOW_EXPAND_FACTOR (1.0)
 #define LOG_EVAL_MAX_GAP                 ((int)(LOG_EVAL_CURVE_LEN_MAX * 0.05))

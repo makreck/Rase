@@ -36,25 +36,17 @@ class LogRegistryChunk {
             position = pos;
         }
 
-        void operator=(const LogRegistryChunk* _source) {
-            set(_source);
-        }
-
-        void operator=(const LogRegistryChunk& _source) {
-            set(&_source);
-        }
-
-        bool operator<(const LogRegistryChunk& _source) {
-            return (timecode < _source.timecode);
-        }
-
-        bool operator>(const LogRegistryChunk& _source) {
-            return (timecode > _source.timecode);
-        }
-
-        bool operator==(const LogRegistryChunk& _source) {
+        bool operator==(double _timecode) {
             double hysteresis = TC_MILLISEC / 2.0;
-            return ((timecode >= (_source.timecode - hysteresis)) && (timecode <= (_source.timecode + hysteresis)));
+            return ((timecode >= (_timecode - hysteresis)) && (timecode <= (_timecode + hysteresis)));
+        }
+
+        bool operator>(double _timecode) {
+            return (timecode > _timecode);
+        }
+
+        bool operator<(double _timecode) {
+            return (timecode < _timecode);
         }
 
         void clear(void) {
@@ -85,36 +77,43 @@ class LogRegistryChunk {
 
 class LogRegistry {
     private:
-        int find(double _timecode);
-
-    public:
         struct {
             int64_t count;
-            int64_t step;
-            int64_t index;
+            int32_t step;
+            int32_t index;
             int64_t count_of_records;
             int64_t first_log_position;
             int64_t next_log_position;
             double timecode_begin;
             double timecode_end;
-        } header;
+            union {
+                int64_t flags;
+                struct {
+                    int64_t f_modified : 1;
+                    int64_t f_reserved : 63;
+                };
+            };
+        } header; // 64 bytes
 
         LogRegistryChunk chunk[LOG_CHUNK_DIR_MAX];
 
+    public:
         LogRegistry() {
-            clear();
+            init();
         }
 
         ~LogRegistry() {
         }
 
-        void    clear(void);
+        void    init(void);
+        int     find(double _timecode);
         int64_t get_file_position_for(double _timecode);
         int64_t add(LogFrame* _frame);
         int64_t get_count_of_records(void);
+        int64_t get_position(int i);
         double  get_timecode_begin(void);
         double  get_timecode_end(void);
         bool    validate_file_position(int64_t& _file_position, bool _use_for_put = false);
-        bool    update_header(int _fd);
-
+        bool    update(int _fd);
+        bool    is_modified(void);
 };

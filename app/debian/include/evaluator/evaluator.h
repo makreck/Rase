@@ -31,13 +31,10 @@ class Evaluator {
         struct {
             std::string path;
             int fd = -1;
-
-            pthread_mutex_t slot_mutex = PTHREAD_MUTEX_INITIALIZER;
-
+            pthread_mutex_t task_mutex = PTHREAD_MUTEX_INITIALIZER;
             int active_task = -1;
             EvaluationTask* evaluation_task[2]{ nullptr };
-
-            std::vector<EvalCurve*> curve_list;
+            std::vector<EvalCurve*> displayed_curves;
         } m;
 
         void init(const char* _path);
@@ -52,9 +49,13 @@ class Evaluator {
             cleanup();
         }
 
-        void delete_curve_list(void);
+        bool delete_curves(std::vector<EvalCurve*>& _curves);
+        bool create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, RectEx& _rect, LogWindow& _window, bool _vertical);
+
+        void set_displayed_curves(std::vector<EvalCurve*> _curves);
+        std::vector<EvalCurve*> get_displayed_curves(void);
+
         void set_window(LogWindow _window);
-        void draw_curves(cairo_t* cr, RectEx& _rect, LogWindow& _window, bool _vertical);
         void set_active(int _task_index);
         const char* get_path(void);
         int get_fd(void);

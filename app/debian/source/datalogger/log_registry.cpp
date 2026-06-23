@@ -21,12 +21,13 @@
 
 #include "includes.h"
 
-void LogRegistry::clear(void) {
+void LogRegistry::init(void) {
     memset(&header, 0, sizeof (header));
-    memset(chunk, 0, sizeof (chunk));
     header.step               = 1;
     header.first_log_position = LOG_FILE_POS_DATA;
     header.next_log_position  = LOG_FILE_POS_DATA;
+
+    memset(chunk, 0, sizeof (chunk));
 }
 
 int64_t LogRegistry::get_count_of_records(void) {
@@ -41,17 +42,14 @@ double LogRegistry::get_timecode_end(void) {
     return (header.timecode_end);
 }
 
-int64_t LogRegistry::get_file_position_for(double _timecode) {
-    int i = find(_timecode);
-    if (i < 0) {
-        return (LOG_FILE_POS_DATA);
-    }
-    return (chunk[i].get_position());
-}
-
 int64_t LogRegistry::add(LogFrame* _frame) {
     if (_frame == nullptr) {
         return (0);
+    }
+
+    if ((header.first_log_position < LOG_FILE_POS_DATA) ||
+        (header.next_log_position < LOG_FILE_POS_DATA)) {
+        init();
     }
 
     double timecode = _frame->get_timecode();
@@ -72,6 +70,7 @@ int64_t LogRegistry::add(LogFrame* _frame) {
 
     header.count++;
     if (header.count >= header.step) {
+        header.f_modified = 1;
         header.count = 0;
         chunk[header.index++].set(timecode, file_position);
         if (header.index >= LOG_CHUNK_DIR_MAX) {
@@ -83,31 +82,6 @@ int64_t LogRegistry::add(LogFrame* _frame) {
     }
 
     return (file_position);
-}
-
-int LogRegistry::find(double _timecode) {
-    if ((header.count_of_records == 0) || (_timecode < header.timecode_begin) || (header.index < 2)) {
-        return (0);
-    }
-
-    int n = (int)(header.index / 2) + 1;
-    int i = n;
-    do {
-        n = n / 2;
-        if (_timecode > chunk[i].get_timecode()) {
-            i -= n;
-        } else if (_timecode < chunk[i].get_timecode()) {
-            i += n;
-        } else {
-            break;
-        }
-    } while (n > 0);
-
-    while ((i > 0) && (_timecode >= chunk[i].get_timecode())) {
-        i--;
-    }
-
-    return (i);
 }
 
 bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_put) {
@@ -127,11 +101,70 @@ bool LogRegistry::validate_file_position(int64_t& _file_position, bool _use_for_
     return (result);
 }
 
-bool LogRegistry::update_header(int _fd) {
-    if (Files::write_data_at(_fd, LOG_FILE_POS_REGISTRY, &header, sizeof (header))) {
-        if (Files::flush_file_buffers(_fd)) {
-            return (true);
+bool LogRegistry::is_modified(void) {
+    return (header.f_modified == 1);
+}
+
+bool LogRegistry::update(int _fd) {
+    if (header.f_modified == 1) {
+        if (Files::write_data_at(_fd, LOG_FILE_POS_REGISTRY, this, sizeof(LogRegistry))) {
+            if (Files::flush_file_buffers(_fd)) {
+                header.f_modified = 0;
+                return (true);
+            }
         }
     }
     return (false);
+}
+
+int64_t LogRegistry::get_position(int i) {
+    if (i < 0) {
+        return (header.first_log_position);
+    }
+
+    if (i >= (int)header.index) {
+        i = std::max(0, (int)header.index - 1);
+    }
+
+    // Possibly, the file position entries are not up-to-date because the datalogger,
+    // which is recording from another thread at same time, hasn't updated the registry
+    // and performed a sync so far, we may be read a file position zero here. For best
+    // approximation of the file position, we can try the previously written entry and
+    // so on, until the start of the recording is reached.
+    int64_t pos = chunk[i].get_position();
+    while ((pos == 0) && (i > 0)) {
+        pos = chunk[--i].get_position();
+    }
+
+    pos = std::max(header.first_log_position, std::min(header.next_log_position, pos));
+    return ((int64_t)(pos / (int64_t)sizeof (LogFrame)) * (int64_t)sizeof (LogFrame));
+}
+
+int64_t LogRegistry::get_file_position_for(double _timecode) {
+    return (get_position(find(_timecode)));
+}
+
+int LogRegistry::find(double _timecode) {
+    if ((header.count_of_records == 0) || (_timecode < header.timecode_begin) || (header.index < 2)) {
+        return (0);
+    }
+
+    int n = (int)(header.index / 2);
+    int i = n;
+    do {
+        n = n / 2;
+        if (chunk[i] > _timecode) {
+            i -= n;
+        } else if (chunk[i] < _timecode) {
+            i += n;
+        } else {
+            break;
+        }
+    } while (n > 0);
+
+    while ((i > 0) && (chunk[i] > _timecode)) {
+        i--;
+    }
+
+    return (i);
 }

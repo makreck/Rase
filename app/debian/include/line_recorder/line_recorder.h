@@ -144,7 +144,7 @@ class LineRecorder {
             Scale default_scale;
             std::vector<ScaleStep> scale_steps;
 
-            std::vector<Evaluator*> curves;
+            std::vector<Evaluator*> evaluations;
 
             cairo_surface_t* segment = nullptr; 
             double paper_shift = 0.0;
