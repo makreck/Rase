@@ -77,6 +77,8 @@ void Scale::clear(void) {
 
 void Scale::import(ScaleJson* _source) {
     if (_source != nullptr) {
+        clear();
+
         set_key(_source->key);
         set_name(_source->name);
         set_shortcut(_source->shortcut);
@@ -91,6 +93,7 @@ void Scale::import(ScaleJson* _source) {
         max       = _source->max;
         average   = _source->average;
         count     = _source->count;
+
         distribute_color(false);
     } else {
         set(nullptr);
