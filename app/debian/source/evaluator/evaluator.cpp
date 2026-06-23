@@ -58,11 +58,7 @@ int Evaluator::get_fd(void) {
     return (m.fd);
 }
 
-bool Evaluator::delete_curves(std::vector<EvalCurve*>& _curves) {
-    if (_curves.size() < 1) {
-        return (false);
-    }
-
+void Evaluator::delete_curves(std::vector<EvalCurve*>& _curves) {
     for (EvalCurve*& curve : _curves) {
         if (curve != nullptr) {
             delete (curve);
@@ -70,7 +66,6 @@ bool Evaluator::delete_curves(std::vector<EvalCurve*>& _curves) {
         }
     }
     _curves.clear();
-    return (true);
 }
 
 bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, RectEx& _rect, LogWindow& _window, bool _vertical) {
@@ -79,7 +74,7 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Re
     }
 
     pthread_mutex_lock(&m.task_mutex); {
-        EvaluationTask *task = m.evaluation_task[m.active_task];
+        EvaluationTask* task = m.evaluation_task[m.active_task];
 
         if (task != nullptr) {
             delete_curves(_curves);
@@ -121,13 +116,15 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Re
 
                     int gap = 0;
                     int n = -1;
+                    bool start_flag = true;
                     for (int i = 0; (i < LOG_EVAL_CURVE_LEN_MAX) && (n < count); i++) {
                         if (eval_point[i].is_used()) {
                             float norm_value = scale->get_zoom_normalized(eval_point[i].get_value());
                             double timecode = eval_point[i].get_timecode();
 
                             if ((gap >= LOG_EVAL_MAX_GAP) && (n >= 0)) {
-                                curve->set_property(n, 0x00, false, true);
+                                curve->set_end(n);
+                                start_flag = true;
                             }
 
                             if (_vertical) {
@@ -138,7 +135,11 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Re
                                            ((norm_value - v_begin) * (double)_rect.height / v_span) + (double)_rect.y);
                             }
 
-                            curve->set_property(n, 0x00, ((gap >= LOG_EVAL_MAX_GAP) || (n == 0)), false);
+                            if (start_flag) {
+                                curve->set_begin(n);
+                                start_flag = false;
+                            }
+
                             gap = 0;
                         } else {
                             gap++;
@@ -174,13 +175,14 @@ void Evaluator::set_active(int _task_index) {
     }
 }
 
-void Evaluator::set_displayed_curves(std::vector<EvalCurve*> _curves) {
-    pthread_mutex_lock(&m.task_mutex); {
-        delete_curves(m.displayed_curves);
-        m.displayed_curves = _curves;
-    } pthread_mutex_unlock(&m.task_mutex);
-}
-
 std::vector<EvalCurve*> Evaluator::get_displayed_curves(void) {
     return (m.displayed_curves);
+}
+
+void Evaluator::draw_curves(cairo_t* _cr, std::vector<EvalCurve*> _curves) {
+    for (EvalCurve *&curve : _curves) {
+        curve->draw(_cr);
+    }
+    delete_curves(m.displayed_curves);
+    m.displayed_curves = _curves;
 }
