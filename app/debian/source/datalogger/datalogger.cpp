@@ -21,26 +21,6 @@
 
 #include "includes.h"
 
-void Datalogger::create_path(const char* _folder_path, ProductID* _product_id, std::string& _folder, std::string& _filename, std::string& _path) {
-    if (_product_id != nullptr) {
-
-        if (_folder_path == nullptr) {
-            Files::get_home_dir(_folder, LOG_FILE_DEF_FOLDER);
-        } else {
-            _folder = _folder_path;
-        }
-
-        _filename = _product_id->device_serial_number;
-        _filename.append(LOG_FILE_EXTENSION);
-
-        _path = _folder;
-        _path.append("/");
-        _path.append(_filename);
-
-        Files::mkpath(_folder.c_str(), 0777);
-    }
-}
-
 void Datalogger::init(const char* _folder_path, ProductID* _product_id, std::vector<Scale*>* _channels) {
     m.fd = -1;
     m.logfile = new LogFile();
@@ -67,6 +47,26 @@ void Datalogger::cleanup(void) {
 
     if (m.fd != -1) {
         Files::close_file(m.fd);
+    }
+}
+
+void Datalogger::create_path(const char* _folder_path, ProductID* _product_id, std::string& _folder, std::string& _filename, std::string& _path) {
+    if (_product_id != nullptr) {
+
+        if (_folder_path == nullptr) {
+            Files::get_home_dir(_folder, LOG_FILE_DEF_FOLDER);
+        } else {
+            _folder = _folder_path;
+        }
+
+        _filename = _product_id->device_serial_number;
+        _filename.append(LOG_FILE_EXTENSION);
+
+        _path = _folder;
+        _path.append("/");
+        _path.append(_filename);
+
+        Files::mkpath(_folder.c_str(), 0777);
     }
 }
 
