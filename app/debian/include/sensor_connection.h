@@ -63,7 +63,7 @@ class SensorConnection {
 
             int initial_count_of_channels = 0;
             int error_count = 0;
-
+            
             Datalogger* datalogger = nullptr;
         } m;
 

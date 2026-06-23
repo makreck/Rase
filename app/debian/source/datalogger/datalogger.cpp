@@ -124,13 +124,11 @@ bool Datalogger::add_measurement(std::vector<Scale*>* _channels) {
     if (_channels != nullptr) {
         LogInventory* inventory = m.logfile->get_inventory();
         for (Scale*& node : *_channels) {
-            if (node->get_count() > 1) {
-                int node_index = inventory->add_slot(node);
-                if (node_index != -1) {
-                    LogFrame frame(node_index, timecode, node->get_value());
-                    if (m.logfile->put_frame(m.fd, &frame)) {
-                        check_for_update();
-                    }
+            int node_index = inventory->add_slot(node);
+            if (node_index != -1) {
+                LogFrame frame(node_index, timecode, node->get_value());
+                if (m.logfile->put_frame(m.fd, &frame)) {
+                    check_for_update();
                 }
             }
         }
