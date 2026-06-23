@@ -21,18 +21,16 @@
 
 #include "includes.h"
 
-void EvalCurve::init(size_t _length, int _index, ColorRef _color, float _line_width, RectEx& _rect) {
-    index      = _index;
-    color      = _color;
-    line_width = _line_width;
-    rc         = _rect;
+void EvalCurve::init(size_t _length, int _slot, ColorRef _color, float _line_width, RectEx& _rect) {
+    length      = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
+    slot        = _slot;
+    color       = _color;
+    line_width  = _line_width;
+    rc          = _rect;
 
-    if (_length > 0) {
-        length = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
-        size_t size = sizeof(EvalCurvePt) * length;
-        data = (EvalCurvePt *)malloc(size);
-        memset(data, 0, size);
-    }
+    size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, length);
+    data = (EvalCurvePt *)malloc(size);
+    memset(data, 0, size);
 }
 
 void EvalCurve::cleanup(void) {
@@ -46,21 +44,66 @@ void EvalCurve::cleanup(void) {
 bool EvalCurve::set(int _index, double _x, double _y) {
     if ((_index >= 0) && (_index < length)) {
         data[_index].pt.set(_x, _y);
-        data[_index].flags = 0;
+        data[_index].f_used = 1;
         return (true);
     }
     return (false);
 }
 
-bool EvalCurve::set_property(int _index, uint8_t _symbol, bool _startpoint, bool _endpoint) {
+bool EvalCurve::is_used(int _index) {
     if ((_index >= 0) && (_index < length)) {
-        data[_index].flags        = 0;
-        data[_index].symbol       = _symbol;
-        data[_index].f_startpoint = _startpoint;
-        data[_index].f_endpoint   = _endpoint;
+        return (data[_index].f_used == 1);
+    }
+    return (false);
+}
+
+bool EvalCurve::is_begin(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return (data[_index].f_startpoint == 1);
+    }
+    return (false);
+}
+
+bool EvalCurve::is_end(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return (data[_index].f_endpoint == 1);
+    }
+    return (false);
+}
+
+bool EvalCurve::is_single(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return ((data[_index].f_startpoint == 1) && (data[_index].f_endpoint == 1));
+    }
+    return (false);
+}
+
+bool EvalCurve::set_begin(int _index, bool state) {
+    if ((_index >= 0) && (_index < length)) {
+        data[_index].f_startpoint = (state) ? 1 : 0;
         return (true);
     }
     return (false);
+}
+
+bool EvalCurve::set_end(int _index, bool state) {
+    if ((_index >= 0) && (_index < length)) {
+        data[_index].f_endpoint = (state) ? 1 : 0;
+        return (true);
+    }
+    return (false);
+}
+
+bool EvalCurve::set_symbol(int _index, uint8_t _symbol) {
+    if ((_index >= 0) && (_index < length)) {
+        data[_index].symbol = _symbol;
+        return (true);
+    }
+    return (false);
+}
+
+int EvalCurve::get_slot(void) {
+    return (slot);
 }
 
 void EvalCurve::draw_stopper(cairo_t *_cr, double y) {
@@ -96,41 +139,56 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
 
             double x = data[0].pt.x;
             double y = data[0].pt.y;
+            cairo_move_to(_cr, x, y);
 
-            if (length > 1) {
-                cairo_set_source_rgba(_cr, red, green, blue, alpha);
-                cairo_set_line_width(_cr, width);
-                cairo_move_to(_cr, x, y);
+            cairo_set_source_rgba(_cr, red, green, blue, alpha);
+            cairo_set_line_width(_cr, width);
 
-                int n = 0;
-                for (size_t i = 0; i < length; i++) {
-                    x = data[i].pt.x;
-                    y = data[i].pt.y;
+            int n = 0;
+            for (size_t i = 0; i < length; i++) {
+                x = data[i].pt.x;
+                y = data[i].pt.y;
 
-                    if (data[i].f_startpoint == 1) {
+                if (is_single(i)) {
+                    cairo_move_to(_cr, x, y);
+                    cairo_arc(_cr, x, y, 3, 0.0, 2.0 * M_PI);
+                    cairo_fill(_cr);
+                    cairo_stroke(_cr);
+                } else if (is_begin(i)) {
+                    draw_stopper(_cr, y);
+                    cairo_move_to(_cr, x, y);
+                } else {
+                    cairo_line_to(_cr, x, y);
+                    n++;
+
+                    if (is_end(i)) {
+                        cairo_stroke(_cr);
+                        n = 0;
+
                         draw_stopper(_cr, y);
-                        cairo_move_to(_cr, x, y);
-                    } else {
-                        cairo_line_to(_cr, x, y);
-                        n++;
-
-                        if (data[i].f_endpoint == 1) {
-                            cairo_stroke(_cr);
-                            n = 0;
-                        
-                            draw_stopper(_cr, y);
-                        }
+                    } else if (n > 32) {
+                        cairo_stroke(_cr);
+                        n = 0;
                     }
                 }
+            }
 
-                if (n > 0) {
-                    cairo_stroke(_cr);
-                }
-            } else {
-                cairo_set_source_rgba(_cr, red, green, blue, alpha);
-                cairo_arc(_cr, x, y, 3, 0.0, 2.0 * M_PI);
-                cairo_fill(_cr);
+            if (n > 0) {
+                cairo_stroke(_cr);
             }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
