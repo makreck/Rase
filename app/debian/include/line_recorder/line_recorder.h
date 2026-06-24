@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "line_recorder/line_recorder_find.h"
+
 #define LR_MAX_TASK                     (6)
 #define LV_CURVE_MAX                    (4096)
 #define LV_CURVE_AUTO_SIZE              (0)
@@ -46,90 +48,6 @@
 #define LR_ZOOM_RECT_MIN_SIZE           (16)
 
 #define LR_INIT_TIMESPAN                (1.0 / TC_MINUTES_PER_DAY)
-#define LR_CAPTURE_THRESHOLD_PX         (10.0)
-
-enum class LRElementType {
-    invalid = 0,
-    scale   = 1,
-    paper   = 2,
-    info    = 3,
-};
-
-enum class LRElementSub {
-    standard      = 0,
-    scale_pointer = 10,
-    curve_point   = 20,
-    info_file     = 30,
-    info_wnd      = 31,
-    info_sel      = 32,
-};
-
-class LRFindResult {
-    public:
-        struct {
-            LRElementType type;
-            LRElementSub  subtype;
-            PointF        searched_pt;  
-            PointF        found_pt;
-            RectEx        found_rect;
-            RectEx        found_sub;
-            double        timecode;
-            double        value;
-            double        delta_px;
-        } m;
-
-        LRFindResult() {
-            clr();
-        }
-
-        LRFindResult(double _x, double _y) {
-            clr();
-            m.searched_pt.set(_x, _y);
-        }
-
-        ~LRFindResult() {
-        }
-
-        void set(LRFindResult* source) {
-            if (source != nullptr) {
-                memcpy(&m, &source->m, sizeof (m));
-            }
-        }
-
-        void clr(void) {
-            memset (&m, 0, sizeof (m));
-            m.searched_pt.set(-1.0, -1.0);
-            m.found_pt.set(-1.0, -1.0);
-            m.type = LRElementType::invalid;
-            m.subtype = LRElementSub::standard;
-            m.delta_px = -1.0;
-        }
-
-        static const char* get_TypeName(LRElementType _type) {
-            if (_type == LRElementType::scale) return ("scale");
-            if (_type == LRElementType::paper) return ("paper");
-            if (_type == LRElementType::info)  return ("info");
-            return ("invalid");
-        }        
-
-        static const char* get_SubTypeName(LRElementSub _subtype) {
-            if (_subtype == LRElementSub::standard)      return ("background");
-            if (_subtype == LRElementSub::curve_point)   return ("curve point");
-            if (_subtype == LRElementSub::scale_pointer) return ("scale pointer");
-            if (_subtype == LRElementSub::info_file)     return ("info file");
-            if (_subtype == LRElementSub::info_wnd)      return ("info window");
-            if (_subtype == LRElementSub::info_sel)      return ("sel. info");
-            return ("invalid");
-        }
-
-        const char* get_TypeName(void) {
-            return (get_TypeName(m.type));
-        }
-
-        const char* get_SubTypeName(void) {
-            return (get_SubTypeName(m.subtype));
-        }
-};
 
 typedef bool (*LREventCallback)(LRFindResult* _event_result, LogWindow* _window, void* _user_param);
 
