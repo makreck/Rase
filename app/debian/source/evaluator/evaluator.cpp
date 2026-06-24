@@ -120,7 +120,8 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
                     bool start_flag = true;
                     for (int i = 0; (i < LOG_EVAL_CURVE_LEN_MAX) && (n < count); i++) {
                         if (eval_point[i].is_used()) {
-                            float norm_value = scale->get_zoom_normalized(eval_point[i].get_value());
+                            float value = eval_point[i].get_value();
+                            float norm_value = scale->get_zoom_normalized(value);
                             double timecode = eval_point[i].get_timecode();
 
                             if ((gap >= LOG_EVAL_MAX_GAP) && (n >= 0)) {
@@ -129,9 +130,9 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
                             }
 
                             if (_vertical) {
-                                curve->set(++n, timecode, ((norm_value - v_begin) / v_span), ((t_end - timecode) / t_span));
+                                curve->set(++n, timecode, value, (float)((norm_value - v_begin) / v_span), (float)((t_end - timecode) / t_span));
                             } else {
-                                curve->set(++n, timecode, ((timecode - t_begin) / t_span), ((norm_value - v_begin) / v_span));
+                                curve->set(++n, timecode, value, (float)((timecode - t_begin) / t_span), (float)((norm_value - v_begin) / v_span));
                             }
 
                             if (start_flag) {

@@ -25,6 +25,7 @@ class EvalCurvePt {
     public:
         PointF  pt;
         double  timecode;
+        float   value;
         uint8_t symbol;
         union {
             uint8_t flags;
@@ -59,8 +60,10 @@ class EvalCurve {
         int  get_slot(void);
         size_t get_length(void);
         PointF* get_point(int _index);
+        Scale* get_scale(void);
         double get_timecode(int _index);
-        bool set(int _index, double _timecode, double _x, double _y);
+        float get_value(int _index);
+        bool set(int _index, double _timecode, float _value, float _x, float _y);
         bool is_used(int _index);
         bool is_begin(int _index);
         bool is_end(int _index);

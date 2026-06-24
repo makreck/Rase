@@ -39,11 +39,12 @@ void EvalCurve::cleanup(void) {
     }
 }
 
-bool EvalCurve::set(int _index, double _timecode, double _x, double _y) {
+bool EvalCurve::set(int _index, double _timecode, float _value, float _x, float _y) {
     if ((_index >= 0) && (_index < length)) {
         data[_index].pt.set(_x, _y);
         data[_index].timecode = _timecode;
-        data[_index].f_used = 1;
+        data[_index].value    = _value;
+        data[_index].f_used   = 1;
         return (true);
     }
     return (false);
@@ -61,6 +62,13 @@ double EvalCurve::get_timecode(int _index) {
         return (data[_index].timecode);
     }
     return (0.0);
+}
+
+float EvalCurve::get_value(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return (data[_index].value);
+    }
+    return (0.0f);
 }
 
 bool EvalCurve::is_used(int _index) {
@@ -121,6 +129,10 @@ int EvalCurve::get_slot(void) {
 
 size_t EvalCurve::get_length(void) {
     return (length);
+}
+
+Scale* EvalCurve::get_scale(void) {
+    return (&scale);
 }
 
 void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
