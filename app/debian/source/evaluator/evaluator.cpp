@@ -68,7 +68,7 @@ void Evaluator::delete_curves(std::vector<EvalCurve*>& _curves) {
     _curves.clear();
 }
 
-bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, RectEx& _rect, LogWindow& _window, bool _vertical) {
+bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, LogWindow& _window, bool _vertical) {
     if ((m.active_task < 0) || (m.active_task >= SIZEOFARRAY(m.evaluation_task))) {
         return (false);
     }
@@ -103,7 +103,7 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Re
                 }
 
                 if (count > 0) {
-                    EvalCurve* curve = new EvalCurve(count, channel_index, scale, _rect);
+                    EvalCurve* curve = new EvalCurve(count, channel_index, scale);
                     if (curve == nullptr) {
                         continue;
                     }
@@ -129,13 +129,9 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Re
                             }
 
                             if (_vertical) {
-                                curve->set(++n, timecode,
-                                           ((norm_value - v_begin) * (double)_rect.width / v_span) + (double)_rect.x,
-                                           ((t_end - timecode) * (double)_rect.height / t_span) + (double)_rect.y);
+                                curve->set(++n, timecode, ((norm_value - v_begin) / v_span), ((t_end - timecode) / t_span));
                             } else {
-                                curve->set(++n, timecode,
-                                           ((timecode - t_begin) * (double)_rect.width / t_span) + (double)_rect.x,
-                                           ((norm_value - v_begin) * (double)_rect.height / v_span) + (double)_rect.y);
+                                curve->set(++n, timecode, ((timecode - t_begin) / t_span), ((norm_value - v_begin) / v_span));
                             }
 
                             if (start_flag) {
@@ -182,10 +178,10 @@ std::vector<EvalCurve*> Evaluator::get_displayed_curves(void) {
     return (m.displayed_curves);
 }
 
-void Evaluator::draw_curves(cairo_t* _cr, std::vector<EvalCurve*> _curves) {
+void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, std::vector<EvalCurve*> _curves) {
     for (EvalCurve *&curve : _curves) {
         if (curve != nullptr) {
-            curve->draw(_cr);
+            curve->draw(_cr, _rect, false);
         }
     }
 

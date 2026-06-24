@@ -21,10 +21,9 @@
 
 #include "includes.h"
 
-void EvalCurve::init(size_t _length, int _slot, Scale* _scale, RectEx& _rect) {
+void EvalCurve::init(size_t _length, int _slot, Scale* _scale) {
     length = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
     slot   = _slot;
-    rc     = _rect;
     scale.set(_scale);
 
     size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, length);
@@ -124,7 +123,7 @@ size_t EvalCurve::get_length(void) {
     return (length);
 }
 
-void EvalCurve::draw_stopper(cairo_t *_cr, double y) {
+void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
     const double stopper_dashes[2] = { 8.0, 4.0 };
 
     cairo_save(_cr);
@@ -140,7 +139,7 @@ void EvalCurve::draw_stopper(cairo_t *_cr, double y) {
     cairo_restore(_cr);
 }
 
-void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
+void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
     if (data != nullptr) {
         if (length > 0) {
             ColorRef color = scale.get_color_ref();
@@ -157,8 +156,9 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
                 width += 1.0f;
             }
 
-            double x = data[0].pt.x;
-            double y = data[0].pt.y;
+            double x = data[0].pt.x * (float)_rc.width  + _rc.x;
+            double y = data[0].pt.y * (float)_rc.height + _rc.y;
+
             cairo_move_to(_cr, x, y);
 
             cairo_set_source_rgba(_cr, red, green, blue, alpha);
@@ -168,8 +168,8 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
             for (size_t i = 0; i < length; i++) {
                 if (!is_used(i)) continue;
 
-                x = data[i].pt.x;
-                y = data[i].pt.y;
+                x = data[i].pt.x * (float)_rc.width  + _rc.x;
+                y = data[i].pt.y * (float)_rc.height + _rc.y;
 
                 if (is_single(i)) {
                     cairo_move_to(_cr, x, y);
@@ -177,7 +177,7 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
                     cairo_fill(_cr);
                     cairo_stroke(_cr);
                 } else if (is_begin(i)) {
-                    draw_stopper(_cr, y);
+                    draw_stopper(_cr, _rc, y);
                     cairo_move_to(_cr, x, y);
                 } else {
                     cairo_line_to(_cr, x, y);
@@ -187,7 +187,7 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
                         cairo_stroke(_cr);
                         n = 0;
 
-                        draw_stopper(_cr, y);
+                        draw_stopper(_cr, _rc, y);
                     } else if (n >= LOG_EVAL_MAX_STROKE) {
                         cairo_stroke(_cr);
                         cairo_move_to(_cr, x, y);

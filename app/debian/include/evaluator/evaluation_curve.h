@@ -38,27 +38,24 @@ class EvalCurvePt {
 };
 
 class EvalCurve {
-    private:
-        void draw_stopper(cairo_t *_cr, double y);
-
     public:
-        RectEx       rc;
         Scale        scale;
         int          slot   = 0;
         size_t       length = 0;
         EvalCurvePt* data   = nullptr;
 
-        EvalCurve(size_t _length, int _slot, Scale* _scale, RectEx& _rect) {
-            init(_length, _slot, _scale, _rect);
+        EvalCurve(size_t _length, int _slot, Scale* _scale) {
+            init(_length, _slot, _scale);
         }
 
         ~EvalCurve() {
             cleanup();
         }
 
-        void init(size_t _length, int _slot, Scale* _scale, RectEx& _rect);
+        void init(size_t _length, int _slot, Scale* _scale);
         void cleanup(void);
-        void draw(cairo_t* _cr, bool _foreground_curve = false);
+        void draw(cairo_t* _cr, RectEx& _rc, bool _foreground_curve = false);
+        void draw_stopper(cairo_t *_cr, RectEx& _rc, double y);
         int  get_slot(void);
         size_t get_length(void);
         PointF* get_point(int _index);

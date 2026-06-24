@@ -264,8 +264,8 @@ void LineRecorder::draw_channels(cairo_t* cr) {
 
     for (Evaluator*& evaluator : m.evaluations) {
         std::vector<EvalCurve*> curves;
-        if (evaluator->create_curves(curves, cr, m.rc.paper, m.window, true)) {
-            evaluator->draw_curves(cr, curves);
+        if (evaluator->create_curves(curves, cr, m.window, true)) {
+            evaluator->draw_curves(cr, m.rc.paper, curves);
         }
     }
 

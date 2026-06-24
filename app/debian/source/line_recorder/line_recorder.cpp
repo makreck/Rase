@@ -334,10 +334,11 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
         for (EvalCurve*& curve : curves) {
             if (curve != nullptr) {
                 for (size_t i = 0; i < curve->get_length(); i++) {
-                    PointF* pt = curve->get_point(i);
-                    if (pt != nullptr) {
-                        double dx = _x - pt->x;
-                        double dy = _y - pt->y;
+                    PointF* ptr = curve->get_point(i);
+                    if (ptr != nullptr) {
+                        PointF pt(ptr->x * m.rc.paper.width + m.rc.paper.x, ptr->y * m.rc.paper.height + m.rc.paper.y);
+                        double dx = _x - pt.x;
+                        double dy = _y - pt.y;
                         double delta_px = sqrt((dx * dx) + (dy * dy));
                         if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
                             smallest_delta = delta_px;
@@ -346,7 +347,7 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
                             result.m.subtype = LRElementSub::curve_point;
                             result.m.delta_px = delta_px;
                             result.m.found_pt.set(pt);
-                            result.m.found_sub.set(pt->x - selecting_range, pt->y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
+                            result.m.found_sub.set(pt.x - selecting_range, pt.y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
                         }
                     }
                 }
