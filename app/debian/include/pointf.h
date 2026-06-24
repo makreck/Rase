@@ -60,6 +60,11 @@ class PointF {
             y = (float)(_y);
         }
 
+        void set(float _x, float _y) {
+            x = _x;
+            y = _y;
+        }
+
         void set(PointF& source) {
             x = source.x;
             y = source.y;
