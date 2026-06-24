@@ -47,6 +47,7 @@ bool Scale::set_values(const Scale *_source) {
 }
 
 void Scale::set(const Scale *_source) {
+    clear();
     if (_source != nullptr) {
         set_key(_source->key);
         set_name(_source->name);
@@ -65,8 +66,6 @@ void Scale::set(const Scale *_source) {
         average    = _source->average;
         count      = _source->count;
         sum        = _source->sum;
-    } else {
-        clear();
     }
     distribute_color(true);
 }
@@ -76,9 +75,8 @@ void Scale::clear(void) {
 }
 
 void Scale::import(ScaleJson* _source) {
+    clear();
     if (_source != nullptr) {
-        clear();
-
         set_key(_source->key);
         set_name(_source->name);
         set_shortcut(_source->shortcut);
@@ -93,11 +91,8 @@ void Scale::import(ScaleJson* _source) {
         max       = _source->max;
         average   = _source->average;
         count     = _source->count;
-
-        distribute_color(false);
-    } else {
-        set(nullptr);
     }
+    distribute_color(false);
 }
 
 void Scale::set_defaults(void) {
