@@ -44,6 +44,7 @@ class Scale {
                 float zoom_end;
                 
                 float average;
+                float sum;
                 int   count;
 
                 union {
@@ -54,9 +55,11 @@ class Scale {
                     ScaleFormat format;
                 };
 
-                // Internal work-data
-                float sum;
-                void* user_data;
+                union { 
+                    void* ptr;
+                    double f;
+                } user_data;
+
             };
         };
 
@@ -163,6 +166,8 @@ class Scale {
         void set_line_width(float _width);
         ScaleFormat* get_format(void);
 
-        void set_userdata(void* _user_data);
+        void set_userdata(void* _ptr);
         void* get_userdata(void);
+        void set_userdata(double _f);
+        void get_userdata(double* _pf);
 };

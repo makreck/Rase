@@ -374,12 +374,22 @@ const char* Scale::get_color_css(void) {
     return (color);
 }
 
-void Scale::set_userdata(void *_user_data) {
-    user_data = _user_data;
+void Scale::set_userdata(void* _ptr) {
+    user_data.ptr = _ptr;
 }
 
 void* Scale::get_userdata(void) {
-    return (user_data);
+    return (user_data.ptr);
+}
+
+void Scale::set_userdata(double _f) {
+    user_data.f = _f;
+}
+
+void Scale::get_userdata(double* _pf) {
+    if (_pf != nullptr) {
+        *_pf = user_data.f;
+    }
 }
 
 float Scale::get_line_width(void) {
