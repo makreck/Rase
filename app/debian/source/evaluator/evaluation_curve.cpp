@@ -146,6 +146,8 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
 
             int n = 0;
             for (size_t i = 0; i < length; i++) {
+                if (!is_used(i)) continue;
+
                 x = data[i].pt.x;
                 y = data[i].pt.y;
 
