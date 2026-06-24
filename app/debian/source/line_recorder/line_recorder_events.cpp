@@ -75,7 +75,7 @@ bool LineRecorder::process_mouse_clicks(void) {
 
     if ((m.fAuxKeyDown == 0) && (m.fMultiClick == 0) && (m.event_time_s > 0.5f)) {
         if (m.fLeftBtnDown == 1) {
-            // @todo: must_update |= select_channel();
+            must_update |= select_channel();
         } else if (m.fRightBtnDown == 1) {
             must_update |= begin_mouse_zoom();
         } else if (m.fMidBtnDown == 1) {

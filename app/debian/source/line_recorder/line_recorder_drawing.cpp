@@ -187,93 +187,6 @@ void LineRecorder::draw_control_helpers(cairo_t* cr) {
     cairo_restore(cr);
 }
 
-void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& result) {
-    cairo_save(cr);
-    rc.clip(cr);
-
-    int x = rc.x;
-    int y = rc.y;
-    int x_max = 0;
-
-    draw_info_section(cr, x, y, x_max, "Selection:", result.get_TypeName(), result.get_SubTypeName(), nullptr);
-    y = rc.y;
-    x = x_max + 8;
-
-    // @todo: Draw the info for the selection rectangle according to the selected channel.
-
-    rc.y += 4;
-    rc.height -= 8;
-    rc.fill(cr, RGBA(0, 255, 0, 255), 0.1f); // ****
-
-    cairo_restore(cr);
-}
-
-void LineRecorder::draw_info_section(cairo_t* cr, int x, int y, int& max_x, const char* hint, const char* part1, const char* part2, const char* part3) {
-    cairo_text_extents_t extents{0};
-
-    cairo_text_extents(cr, "TEST", &extents);
-    int textHeight = extents.height + 4;
-    
-    if (hint != nullptr) {
-        _cairo_set_source_rgb_a(cr, m.color.infoTextDef, 1.0);
-        cairo_text_extents(cr, hint, &extents);
-        max_x = std::max(max_x, x + (int)extents.width);
-        y += textHeight;
-        cairo_move_to(cr, x, y);
-        cairo_show_text(cr, hint);
-    }
-
-    int y_a = y + 4;
-    int x_t = x + 4;
-
-    _cairo_set_source_rgb_a(cr, m.color.infoTextHi, 0.75);
-
-    if (part1 != nullptr) {
-        cairo_text_extents(cr, part1, &extents);
-        x_t = std::max(x_t, x + (int)extents.width);
-        max_x = std::max(max_x, x_t);
-        y += textHeight;
-        cairo_move_to(cr, x, y);
-        cairo_show_text(cr, part1);
-    }
-
-    if (part2 != nullptr) {
-        cairo_text_extents(cr, part2, &extents);
-        x_t = std::max(x_t, x + (int)extents.width);
-        max_x = std::max(max_x, x_t);
-        y += textHeight;
-        cairo_move_to(cr, x, y);
-        cairo_show_text(cr, part2);
-    }
-    
-    if (part3 != nullptr) {
-        _cairo_set_source_rgb_a(cr, m.color.infoTextDef, 1.0);
-        cairo_set_line_width(cr, 1.0);
-
-        x_t += 4;
-        int y_b = y + 2;
-        cairo_move_to(cr, x_t, y_a);
-        cairo_line_to(cr, x_t + 3, y_a);
-        cairo_line_to(cr, x_t + 3, y_b);
-        cairo_line_to(cr, x_t, y_b);
-        cairo_stroke(cr);
-    
-        y = (y_a + y_b) / 2;
-        cairo_move_to(cr, x_t + 3, y);
-        cairo_line_to(cr, x_t + 6, y);
-        cairo_stroke(cr);
-        max_x = std::max(max_x, x_t + 8);
-
-        cairo_text_extents(cr, part3, &extents);
-        cairo_move_to(cr, x_t + 8, y + (extents.height / 2));
-        cairo_show_text(cr, part3);
-
-        max_x += extents.width;
-    }
-
-    max_x += 8;
-}
-
 void LineRecorder::update_segment(void) {
     if (m.segment == nullptr) return;
 
@@ -365,4 +278,91 @@ void LineRecorder::draw_channels(cairo_t* cr) {
     m.rc.paperRollBottom.set(cr);
     cairo_set_source(cr, m.pattern.paperBottomRoll);
     cairo_fill(cr);  
+}
+
+void LineRecorder::draw_info_section(cairo_t* cr, int x, int y, int& max_x, const char* hint, const char* part1, const char* part2, const char* part3) {
+    cairo_text_extents_t extents{0};
+
+    cairo_text_extents(cr, "TEST", &extents);
+    int textHeight = extents.height + 4;
+    
+    if (hint != nullptr) {
+        _cairo_set_source_rgb_a(cr, m.color.infoTextDef, 1.0);
+        cairo_text_extents(cr, hint, &extents);
+        max_x = std::max(max_x, x + (int)extents.width);
+        y += textHeight;
+        cairo_move_to(cr, x, y);
+        cairo_show_text(cr, hint);
+    }
+
+    int y_a = y + 4;
+    int x_t = x + 4;
+
+    _cairo_set_source_rgb_a(cr, m.color.infoTextHi, 0.75);
+
+    if (part1 != nullptr) {
+        cairo_text_extents(cr, part1, &extents);
+        x_t = std::max(x_t, x + (int)extents.width);
+        max_x = std::max(max_x, x_t);
+        y += textHeight;
+        cairo_move_to(cr, x, y);
+        cairo_show_text(cr, part1);
+    }
+
+    if (part2 != nullptr) {
+        cairo_text_extents(cr, part2, &extents);
+        x_t = std::max(x_t, x + (int)extents.width);
+        max_x = std::max(max_x, x_t);
+        y += textHeight;
+        cairo_move_to(cr, x, y);
+        cairo_show_text(cr, part2);
+    }
+    
+    if (part3 != nullptr) {
+        _cairo_set_source_rgb_a(cr, m.color.infoTextDef, 1.0);
+        cairo_set_line_width(cr, 1.0);
+
+        x_t += 4;
+        int y_b = y + 2;
+        cairo_move_to(cr, x_t, y_a);
+        cairo_line_to(cr, x_t + 3, y_a);
+        cairo_line_to(cr, x_t + 3, y_b);
+        cairo_line_to(cr, x_t, y_b);
+        cairo_stroke(cr);
+    
+        y = (y_a + y_b) / 2;
+        cairo_move_to(cr, x_t + 3, y);
+        cairo_line_to(cr, x_t + 6, y);
+        cairo_stroke(cr);
+        max_x = std::max(max_x, x_t + 8);
+
+        cairo_text_extents(cr, part3, &extents);
+        cairo_move_to(cr, x_t + 8, y + (extents.height / 2));
+        cairo_show_text(cr, part3);
+
+        max_x += extents.width;
+    }
+
+    max_x += 8;
+}
+
+void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& result) {
+    cairo_save(cr);
+    rc.clip(cr);
+
+    int x = rc.x;
+    int y = rc.y;
+    int x_max = 0;
+
+    draw_info_section(cr, x, y, x_max, "Selection:", result.get_TypeName(), result.get_SubTypeName(), nullptr);
+    y = rc.y;
+    x = x_max + 8;
+
+    // @todo: Draw the info for the selection rectangle according to the selected channel.
+
+    rc.y += 4;
+    rc.height -= 8;
+    rc.fill(cr, RGBA(0, 255, 0, 255), 0.1f); // ****
+
+    cairo_restore(cr);
 }

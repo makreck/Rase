@@ -311,6 +311,7 @@ class LineRecorder {
         void set_found_on_paper(double _x, double _y, LRFindResult& result);
         void update_segment(void);
         void window_update(void);
+        bool select_channel(void);
 
         void draw_scale(cairo_t* cr);
         void draw_paper(cairo_t* cr);

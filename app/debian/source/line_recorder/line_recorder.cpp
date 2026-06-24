@@ -330,11 +330,11 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
     RectEx rc(m.rc.paper);
     
     for (Evaluator *&evaluator : m.evaluations) {
-        std::vector<EvalCurve *> curves = evaluator->get_displayed_curves();
-        for (EvalCurve *&curve : curves) {
+        std::vector<EvalCurve*> curves = evaluator->get_displayed_curves();
+        for (EvalCurve*& curve : curves) {
             if (curve != nullptr) {
                 for (size_t i = 0; i < curve->get_length(); i++) {
-                    PointF *pt = curve->get_point(i);
+                    PointF* pt = curve->get_point(i);
                     if (pt != nullptr) {
                         double dx = _x - pt->x;
                         double dy = _y - pt->y;
@@ -353,4 +353,8 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
             }
         }
     }
+}
+
+bool LineRecorder::select_channel(void) {
+    return (true);
 }
