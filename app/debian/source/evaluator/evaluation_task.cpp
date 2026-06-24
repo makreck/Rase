@@ -129,10 +129,13 @@ void EvaluationTask::scan(void) {
         if (points == nullptr) { continue; }
 
         double timecode = frame.get_timecode();
-        int pt_index = (int)(((timecode - m.window.time.begin) * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()) + 0.5);
-        if ((pt_index < -1) || (pt_index > LOG_EVAL_CURVE_LEN_MAX)) { continue; }
-        pt_index = std::max(0, std::min(LOG_EVAL_CURVE_LEN_MAX - 1, pt_index));
-        
+
+        int pt_index = (int)(((timecode - m.window.time.begin) 
+                     * (double)LOG_EVAL_CURVE_LEN_MAX / m.window.time.get_span()) + 0.5);
+        if ((pt_index < 0) || (pt_index >= LOG_EVAL_CURVE_LEN_MAX)) {
+            continue;
+        }
+
         if (pt_index > 0) {
             points[pt_index - 1].add_value(timecode, frame.get_value());
         }
