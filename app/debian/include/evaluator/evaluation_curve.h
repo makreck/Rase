@@ -24,6 +24,7 @@
 class EvalCurvePt {
     public:
         PointF  pt;
+        double  timecode;
         uint8_t symbol;
         union {
             uint8_t flags;
@@ -41,26 +42,28 @@ class EvalCurve {
         void draw_stopper(cairo_t *_cr, double y);
 
     public:
-        int          slot       = 0;
-        size_t       length     = 0;
-        float        line_width = 2.0f;
-        ColorRef     color      = C_RED;
         RectEx       rc;
-        EvalCurvePt* data       = nullptr;
+        Scale        scale;
+        int          slot   = 0;
+        size_t       length = 0;
+        EvalCurvePt* data   = nullptr;
 
-        EvalCurve(size_t _length, int _slot, ColorRef _color, float _line_width, RectEx& _rect) {
-            init(_length, _slot, _color, _line_width, _rect);
+        EvalCurve(size_t _length, int _slot, Scale* _scale, RectEx& _rect) {
+            init(_length, _slot, _scale, _rect);
         }
 
         ~EvalCurve() {
             cleanup();
         }
 
-        void init(size_t _length, int _slot, ColorRef _color, float _line_width, RectEx& _rect);
+        void init(size_t _length, int _slot, Scale* _scale, RectEx& _rect);
         void cleanup(void);
         void draw(cairo_t* _cr, bool _foreground_curve = false);
         int  get_slot(void);
-        bool set(int _index, double _x, double _y);
+        size_t get_length(void);
+        PointF* get_point(int _index);
+        double get_timecode(int _index);
+        bool set(int _index, double _timecode, double _x, double _y);
         bool is_used(int _index);
         bool is_begin(int _index);
         bool is_end(int _index);

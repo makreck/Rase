@@ -37,7 +37,7 @@ void EvalPt::reset(void) {
 
 void EvalPt::set_center(double _timecode, double _interval) {
     timecode = _timecode;
-    interval = std::max(TC_MILLISEC, _interval);
+    interval = std::max(TC_MILLISEC, fabs(_interval));
     reset();
 }
 
@@ -51,7 +51,7 @@ bool EvalPt::add_value(double _timecode, float _value) {
         return (false);
     }
 
-    if (count != 0) {
+    if (count > 0) {
         min = std::min(min, _value);
         max = std::max(max, _value);
     } else {
@@ -60,7 +60,8 @@ bool EvalPt::add_value(double _timecode, float _value) {
     }
 
     double tc_weight = 1.0 - (delta / (interval * 0.5));
-    sum += ((double)_value * tc_weight);
+
+    sum    += ((double)_value * tc_weight);
     weight += tc_weight;
 
     count++;
@@ -97,5 +98,5 @@ float EvalPt::get_precisition(void) {
 }
 
 bool EvalPt::is_used(void) {
-    return (count != 0);
+    return (count > 0);
 }

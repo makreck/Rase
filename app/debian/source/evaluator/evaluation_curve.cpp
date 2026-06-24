@@ -21,12 +21,11 @@
 
 #include "includes.h"
 
-void EvalCurve::init(size_t _length, int _slot, ColorRef _color, float _line_width, RectEx& _rect) {
-    length      = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
-    slot        = _slot;
-    color       = _color;
-    line_width  = _line_width;
-    rc          = _rect;
+void EvalCurve::init(size_t _length, int _slot, Scale* _scale, RectEx& _rect) {
+    length = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
+    slot   = _slot;
+    rc     = _rect;
+    scale.set(_scale);
 
     size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, length);
     data = (EvalCurvePt *)malloc(size);
@@ -41,13 +40,28 @@ void EvalCurve::cleanup(void) {
     }
 }
 
-bool EvalCurve::set(int _index, double _x, double _y) {
+bool EvalCurve::set(int _index, double _timecode, double _x, double _y) {
     if ((_index >= 0) && (_index < length)) {
         data[_index].pt.set(_x, _y);
+        data[_index].timecode = _timecode;
         data[_index].f_used = 1;
         return (true);
     }
     return (false);
+}
+
+PointF* EvalCurve::get_point(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return (&data[_index].pt);
+    }
+    return (nullptr);
+}
+
+double EvalCurve::get_timecode(int _index) {
+    if ((_index >= 0) && (_index < length)) {
+        return (data[_index].timecode);
+    }
+    return (0.0);
 }
 
 bool EvalCurve::is_used(int _index) {
@@ -106,6 +120,10 @@ int EvalCurve::get_slot(void) {
     return (slot);
 }
 
+size_t EvalCurve::get_length(void) {
+    return (length);
+}
+
 void EvalCurve::draw_stopper(cairo_t *_cr, double y) {
     const double stopper_dashes[2] = { 8.0, 4.0 };
 
@@ -125,11 +143,13 @@ void EvalCurve::draw_stopper(cairo_t *_cr, double y) {
 void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
     if (data != nullptr) {
         if (length > 0) {
+            ColorRef color = scale.get_color_ref();
             float red   = CR_R(color);
             float green = CR_G(color);
             float blue  = CR_B(color);
             float alpha = CR_A(color);
-            float width = (float)line_width;
+
+            float width = scale.get_line_width();
 
             if (_foreground_curve == false) {
                 alpha *= 0.75f;
@@ -182,16 +202,3 @@ void EvalCurve::draw(cairo_t *_cr, bool _foreground_curve) {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
