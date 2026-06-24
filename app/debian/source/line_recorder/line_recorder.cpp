@@ -204,8 +204,8 @@ void LineRecorder::set_found_on_scale(double _x, double _y, LRFindResult& result
     result.m.type    = LRElementType::scale;
     result.m.subtype = LRElementSub::standard;
 
-    result.m.foundRect.set(m.rc.scale);
-    result.m.foundPt.set(_x - (double)m.rc.scale.x, _y - (double)m.rc.scale.y);
+    result.m.found_rect.set(m.rc.scale);
+    result.m.found_pt.set(_x - (double)m.rc.scale.x, _y - (double)m.rc.scale.y);
     result.m.timecode = Times::get_now();
 
     // @todo: Enable scale for found channel and set the scale pointer to the head of recording display.
@@ -215,32 +215,20 @@ void LineRecorder::set_found_on_info(double _x, double _y, LRFindResult& result)
     result.m.type    = LRElementType::info;
     result.m.subtype = LRElementSub::standard;
 
-    result.m.foundRect.set(m.rc.info);
-    result.m.foundPt.set(_x - m.rc.info.x, _y - m.rc.info.y);
+    result.m.found_rect.set(m.rc.info);
+    result.m.found_pt.set(_x - m.rc.info.x, _y - m.rc.info.y);
     result.m.timecode = Times::get_now();
 
     if (m.rc.infoFile.is_pt_in_rect(_x, _y)) {
         result.m.subtype = LRElementSub::info_file;
-        result.m.foundSub.set(&m.rc.infoFile);
+        result.m.found_sub.set(&m.rc.infoFile);
     } else if (m.rc.infoWnd.is_pt_in_rect(_x, _y)) {
         result.m.subtype = LRElementSub::info_wnd;
-        result.m.foundSub.set(&m.rc.infoWnd);
+        result.m.found_sub.set(&m.rc.infoWnd);
     } else if (m.rc.infoSel.is_pt_in_rect(_x, _y)) {
         result.m.subtype = LRElementSub::info_sel;
-        result.m.foundSub.set(&m.rc.infoSel);
+        result.m.found_sub.set(&m.rc.infoSel);
     }
-}
-
-void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result) {
-    result.m.type    = LRElementType::paper;
-    result.m.subtype = LRElementSub::standard;
-
-    result.m.foundRect.set(m.rc.paper);
-    result.m.foundPt.set(_x - m.rc.paper.x, _y - m.rc.paper.y);
-    
-    result.m.timecode = Times::get_now();
-
-    // @todo: Search the nearest point of a displayed curve and set the selections according.
 }
 
 bool LineRecorder::find_element(double _x, double _y, LRFindResult* _result) {
@@ -328,4 +316,41 @@ bool LineRecorder::add_evaluation(const char* _path) {
     }
     m.evaluations.push_back(new Evaluator(_path));
     return (true);
+}
+
+void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result) {
+    result.m.type     = LRElementType::paper;
+    result.m.subtype  = LRElementSub::standard;
+    result.m.timecode = Times::get_now();
+    result.m.searched_pt.set(_x, _y);
+    result.m.found_rect.set(m.rc.paper);
+    result.m.found_pt.set(_x - m.rc.paper.x, _y - m.rc.paper.y);
+
+    double smallest_delta = -1.0;
+    RectEx rc(m.rc.paper);
+    
+    for (Evaluator *&evaluator : m.evaluations) {
+        std::vector<EvalCurve *> curves = evaluator->get_displayed_curves();
+        for (EvalCurve *&curve : curves) {
+            if (curve != nullptr) {
+                for (size_t i = 0; i < curve->get_length(); i++) {
+                    PointF *pt = curve->get_point(i);
+                    if (pt != nullptr) {
+                        double dx = _x - pt->x;
+                        double dy = _y - pt->y;
+                        double delta_px = sqrt((dx * dx) + (dy * dy));
+                        if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
+                            smallest_delta = delta_px;
+                            double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, delta_px));
+                            result.m.timecode = curve->get_timecode(i);
+                            result.m.subtype = LRElementSub::curve_point;
+                            result.m.delta_px = delta_px;
+                            result.m.found_pt.set(pt);
+                            result.m.found_sub.set(pt->x - selecting_range, pt->y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

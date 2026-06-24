@@ -166,12 +166,12 @@ void LineRecorder::draw_control_helpers(cairo_t* cr) {
 
     if (m.event_result.m.subtype == LRElementSub::curve_point) {
         _cairo_set_source_rgb_a(cr, C_BLUE, 0.25f);
-        cairo_arc(cr, m.event_result.m.foundPt.x, m.event_result.m.foundPt.y, m.event_result.m.foundSub.width, 0.0, 360.0);
+        cairo_arc(cr, m.event_result.m.found_pt.x, m.event_result.m.found_pt.y, m.event_result.m.found_sub.width, 0.0, 360.0);
         cairo_fill(cr);
     } else if ( (m.event_result.m.subtype == LRElementSub::info_file) ||
                 (m.event_result.m.subtype == LRElementSub::info_wnd)  ||
                 (m.event_result.m.subtype == LRElementSub::info_sel)) {
-        m.event_result.m.foundSub.fill(cr, C_BLUE, 0.25f);
+        m.event_result.m.found_sub.fill(cr, C_BLUE, 0.25f);
     }
 
     if (m.fZoomRectangle == 1) {

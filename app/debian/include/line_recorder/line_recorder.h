@@ -46,6 +46,7 @@
 #define LR_ZOOM_RECT_MIN_SIZE           (16)
 
 #define LR_INIT_TIMESPAN                (1.0 / TC_MINUTES_PER_DAY)
+#define LR_CAPTURE_THRESHOLD_PX         (10.0)
 
 enum class LRElementType {
     invalid = 0,
@@ -68,13 +69,13 @@ class LRFindResult {
         struct {
             LRElementType type;
             LRElementSub  subtype;
-            PointF        searchPt;  
-            PointF        foundPt;
-            RectEx        foundRect;
-            RectEx        foundSub;
+            PointF        searched_pt;  
+            PointF        found_pt;
+            RectEx        found_rect;
+            RectEx        found_sub;
             double        timecode;
             double        value;
-            double        distance_px;
+            double        delta_px;
         } m;
 
         LRFindResult() {
@@ -83,7 +84,7 @@ class LRFindResult {
 
         LRFindResult(double _x, double _y) {
             clr();
-            m.searchPt.set(_x, _y);
+            m.searched_pt.set(_x, _y);
         }
 
         ~LRFindResult() {
@@ -97,11 +98,11 @@ class LRFindResult {
 
         void clr(void) {
             memset (&m, 0, sizeof (m));
-            m.searchPt.set(-1.0, -1.0);
-            m.foundPt.set(-1.0, -1.0);
+            m.searched_pt.set(-1.0, -1.0);
+            m.found_pt.set(-1.0, -1.0);
             m.type = LRElementType::invalid;
             m.subtype = LRElementSub::standard;
-            m.distance_px = -1.0;
+            m.delta_px = -1.0;
         }
 
         static const char* get_TypeName(LRElementType _type) {
