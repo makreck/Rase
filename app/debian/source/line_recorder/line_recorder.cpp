@@ -231,30 +231,6 @@ void LineRecorder::set_found_on_info(double _x, double _y, LRFindResult& result)
     }
 }
 
-bool LineRecorder::find_element(double _x, double _y, LRFindResult* _result) {
-    bool found = false;
-    LRFindResult result(_x, _y);
-
-    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
-        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
-            set_found_on_scale(_x, _y, result);
-            found = true;
-        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
-            set_found_on_paper(_x, _y, result);
-            found = true;
-        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
-            set_found_on_info(_x, _y, result);
-            found = true;
-        }
-    }
-
-    if (_result != nullptr) {
-        _result->set(&result);
-    }    
-
-    return (found);
-}
-
 const Scale* LineRecorder::get_selected_scale(void) {
     return (&m.default_scale);
 }
@@ -318,36 +294,49 @@ bool LineRecorder::add_evaluation(const char* _path) {
     return (true);
 }
 
-void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result) {
-    result.m.type     = LRElementType::paper;
-    result.m.subtype  = LRElementSub::standard;
-    result.m.timecode = Times::get_now();
-    result.m.searched_pt.set(_x, _y);
-    result.m.found_rect.set(m.rc.paper);
-    result.m.found_pt.set(_x - m.rc.paper.x, _y - m.rc.paper.y);
+bool LineRecorder::find_element(double _x, double _y, LRFindResult* _result) {
+    bool found = false;
+    LRFindResult result(_x, _y);
 
+    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
+        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
+            set_found_on_scale(_x, _y, result);
+            found = true;
+        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
+            set_found_on_paper(_x, _y, result);
+            found = true;
+        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
+            set_found_on_info(_x, _y, result);
+            found = true;
+        }
+    }
+
+    if (_result != nullptr) {
+        _result->set(&result);
+    }    
+
+    return (found);
+}
+
+void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result) {
+    result.set_paper(_x, _y, &m.rc.paper);
     double smallest_delta = -1.0;
-    RectEx rc(m.rc.paper);
     
     for (Evaluator *&evaluator : m.evaluations) {
         std::vector<EvalCurve*> curves = evaluator->get_displayed_curves();
         for (EvalCurve*& curve : curves) {
             if (curve != nullptr) {
                 for (size_t i = 0; i < curve->get_length(); i++) {
+                    Scale* scale = curve->get_scale();
                     PointF* ptr = curve->get_point(i);
-                    if (ptr != nullptr) {
+                    if ((ptr != nullptr) && (scale != nullptr)) {
                         PointF pt(ptr->x * m.rc.paper.width + m.rc.paper.x, ptr->y * m.rc.paper.height + m.rc.paper.y);
                         double dx = _x - pt.x;
                         double dy = _y - pt.y;
                         double delta_px = sqrt((dx * dx) + (dy * dy));
                         if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
                             smallest_delta = delta_px;
-                            double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, delta_px));
-                            result.m.timecode = curve->get_timecode(i);
-                            result.m.subtype = LRElementSub::curve_point;
-                            result.m.delta_px = delta_px;
-                            result.m.found_pt.set(pt);
-                            result.m.found_sub.set(pt.x - selecting_range, pt.y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
+                            result.set_curve_point(scale, curve, i, &pt, delta_px);
                         }
                     }
                 }
@@ -357,5 +346,11 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
 }
 
 bool LineRecorder::select_channel(void) {
+    if (m.event_result.m.subtype == LRElementSub::curve_point) {
+        m.default_scale.set(m.event_result.get_scale());
+    } else {
+        m.default_scale.set_defaults();
+    }
     return (true);
 }
+
