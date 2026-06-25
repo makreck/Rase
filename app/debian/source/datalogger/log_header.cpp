@@ -116,3 +116,7 @@ bool LogHeader::must_update(uint64_t& update_timestamp) {
 
     return (must_update);    
 }
+
+ProductID* LogHeader::get_product_id(void) {
+    return (&data.product_info);
+}
