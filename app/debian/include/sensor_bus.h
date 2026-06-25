@@ -118,6 +118,9 @@ class SensorBus {
         static int get_available_data_length(int _sock);
         static ssize_t send_http_request(int sock, const char* _host_addr, const char* _json_request, const char* _accept_from);
         static bool poll_socket(int sock, uint32_t _timeout_ms);
+        static char* read_http_headers(int _sock, uint32_t _timeout_ms);
+        static char* read_http_body(int _sock, int _content_len);
+        static int parse_http_headers(char* headers, const char* _accept_from);
 
         void set_ip_flag(int _adr, uint8_t _flag);
         void set_ip_flag(const char* _path, uint8_t _flag);

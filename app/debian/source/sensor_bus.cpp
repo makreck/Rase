@@ -72,12 +72,6 @@ void SensorBus::reset(void) {
     m.device_list.clear();
 }
 
-int SensorBus::get_available_data_length(int _sock) {
-    int length = 0;
-    ioctl(_sock, FIONREAD, &length);
-    return (length);
-}
-
 void SensorBus::set_socket_timeout(int _sock, uint32_t _timeout_ms) {
     uint32_t seconds = _timeout_ms / 1000;
     uint32_t millis  = _timeout_ms % 1000;
@@ -382,46 +376,89 @@ bool SensorBus::poll_socket(int _sock, uint32_t _timeout_ms) {
     struct pollfd pfd;
     pfd.fd = _sock;
     pfd.events = POLLIN;
-    int result = poll(&pfd, 1, _timeout_ms * 2);
+    int result = poll(&pfd, 1, _timeout_ms);
     return ((result > 0) && (pfd.revents & POLLIN));
 }
 
-char* SensorBus::read_http_response(int _sock, const char* _accept_from, uint32_t _timeout_ms) {
-    char *buffer = nullptr;    
+int SensorBus::get_available_data_length(int _sock) {
+    int length = 0;
+    ioctl(_sock, FIONREAD, &length);
+    return (length);
+}
 
-    if (SensorBus::poll_socket(_sock, _timeout_ms)) {
-        int content_len = SensorBus::get_available_data_length(_sock);
-        if (content_len < 128) {
-            char header[128]{ 0 };
-            int read_len = recv(_sock, header, content_len, 0);
-            char *p = strstr(header, "Content-Length:");
-            if ((strstr(header, _accept_from) != nullptr) && (p != nullptr)) {
-                p += 15;
-                if ((*p == ' ') || (*p == '\t')) p++;
-                content_len = atoi(p) + 2;
-            } else {
-                return (nullptr);
-            }
-        }
+char* SensorBus::read_http_headers(int _sock, uint32_t _timeout_ms) {
+    int headers_len = SensorBus::get_available_data_length(_sock);
+    size_t size = headers_len + 2;
+    char* headers = (char *)malloc(size);
+    if (headers == nullptr) {
+        return (nullptr);
+    }
+    memset(headers, 0, size);
 
-        buffer = (char *)malloc(content_len + 8);
-        if (buffer == nullptr) {
-            return (nullptr);
-        }
-        memset(buffer, 0, content_len + 8);
-
-        int current_len = 0;
-        while (current_len < content_len) {
-            int remaining_len = content_len - current_len;
-            int chunk_size = (remaining_len < 4096) ? remaining_len : 4096;
-            int read_len = recv(_sock, &buffer[current_len], chunk_size, 0);
-            if (read_len <= 0) {
+    char data = 0;
+    int read_len = 0;
+    while ((recv(_sock, &data, 1, 0) == 1) && (read_len < headers_len)) {
+        headers[read_len++] = data;
+        if (read_len > 4) {
+            if (!memcmp(&headers[read_len - 4], "\r\n\r\n", 4)) {
                 break;
             }
-            current_len += (size_t)read_len;
         }
-        buffer[current_len] = 0;
+    }
+
+    return (headers);
+}
+
+int SensorBus::parse_http_headers(char* _headers, const char* _accept_from) {
+    int content_len = 0;
+    char *p = strstr(_headers, "Content-Length:");
+    if ((strstr(_headers, _accept_from) != nullptr) && (p != nullptr)) {
+        p += 15;
+        if ((*p == ' ') || (*p == '\t')) {
+            p++; 
+        }
+        content_len = atoi(p) + 2;
+    }
+    return (content_len);
+}
+
+char* SensorBus::read_http_body(int _sock, int _content_len) {
+    size_t size = _content_len + 2;
+    char* buffer = (char *)malloc(size);
+    if (buffer == nullptr) {
+        return (nullptr);
+    }
+    memset(buffer, 0, size);
+
+    int current_len = 0;
+    while (current_len < _content_len) {
+        int remaining_len = _content_len - current_len;
+        int chunk_size = (remaining_len < 4096) ? remaining_len : 4096;
+        int read_len = recv(_sock, &buffer[current_len], chunk_size, 0);
+        if (read_len <= 0) {
+            break;
+        }
+        current_len += read_len;
     }
 
     return (buffer);
+}
+
+char* SensorBus::read_http_response(int _sock, const char* _accept_from, uint32_t _timeout_ms) {
+    if (!poll_socket(_sock, _timeout_ms)) {
+        return (nullptr);
+    }
+
+    char* headers = read_http_headers(_sock, _timeout_ms);
+    if (headers == nullptr) {
+        return (nullptr);
+    }
+
+    int content_len = parse_http_headers(headers, _accept_from);
+    free(headers);
+    if (content_len < 1) {
+        return (nullptr);
+    }
+
+    return (read_http_body(_sock, content_len));
 }
