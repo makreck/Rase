@@ -58,6 +58,7 @@ class EvaluationTask {
         EvalPt* get_points(int _index, bool _auto_create);
         bool is_data_ready(void);
         Scale* get_scale(int _index);
+        ProductID* get_device(void);
         void set_window(LogWindow* _window);
 
 };

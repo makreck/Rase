@@ -92,6 +92,16 @@ bool EvaluationTask::is_data_ready(void) {
     return (m.data_ready);
 }
 
+ProductID* EvaluationTask::get_device(void) {
+    if (m.logfile != nullptr) {
+        LogHeader* header = m.logfile->get_header();
+        if (header != nullptr) {
+            return (header->get_product_id());
+        }
+    }
+    return (nullptr);
+}
+
 Scale* EvaluationTask::get_scale(int _index) {
     if (m.logfile != nullptr) {
         LogInventory* inventory = m.logfile->get_inventory();
