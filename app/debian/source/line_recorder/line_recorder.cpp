@@ -327,16 +327,15 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
         for (EvalCurve*& curve : curves) {
             if (curve != nullptr) {
                 for (size_t i = 0; i < curve->get_length(); i++) {
-                    Scale* scale = curve->get_scale();
                     PointF* ptr = curve->get_point(i);
-                    if ((ptr != nullptr) && (scale != nullptr)) {
+                    if (ptr != nullptr) {
                         PointF pt(ptr->x * m.rc.paper.width + m.rc.paper.x, ptr->y * m.rc.paper.height + m.rc.paper.y);
                         double dx = _x - pt.x;
                         double dy = _y - pt.y;
                         double delta_px = sqrt((dx * dx) + (dy * dy));
                         if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
                             smallest_delta = delta_px;
-                            result.set_curve_point(scale, curve, i, &pt, delta_px);
+                            result.set_curve_point(curve, i, &pt, delta_px);
                         }
                     }
                 }
@@ -348,8 +347,8 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
 bool LineRecorder::select_channel(void) {
     if (m.event_result.m.subtype == LRElementSub::curve_point) {
         m.default_scale.set(m.event_result.get_scale());
-    } else {
-        m.default_scale.set_defaults();
+    // } else {
+    //     m.default_scale.set_defaults();
     }
     return (true);
 }
