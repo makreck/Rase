@@ -40,20 +40,30 @@ class EvalCurvePt {
 
 class EvalCurve {
     public:
-        Scale        scale;
-        int          slot   = 0;
-        size_t       length = 0;
-        EvalCurvePt* data   = nullptr;
+        ProductID device;
+        Scale     scale;
+        union {
+            uint32_t flags;
+            struct {
+                uint32_t length     : 16;
+                uint32_t slot       : 4;
+                uint32_t f_selected : 1;
+                uint32_t reserved2  : 3;
+                uint32_t reserved3  : 8;
+            };
+        };
 
-        EvalCurve(size_t _length, int _slot, Scale* _scale) {
-            init(_length, _slot, _scale);
+        EvalCurvePt* data = nullptr;
+
+        EvalCurve(size_t _length, int _slot, ProductID* _product_id, Scale* _scale) {
+            init(_length, _slot, _product_id, _scale);
         }
 
         ~EvalCurve() {
             cleanup();
         }
 
-        void init(size_t _length, int _slot, Scale* _scale);
+        void init(size_t _length, int _slot, ProductID* _product_id, Scale* _scale);
         void cleanup(void);
         void draw(cairo_t* _cr, RectEx& _rc, bool _foreground_curve = false);
         void draw_stopper(cairo_t *_cr, RectEx& _rc, double y);
@@ -61,9 +71,13 @@ class EvalCurve {
         size_t get_length(void);
         PointF* get_point(int _index);
         Scale* get_scale(void);
+        ProductID* get_device(void);
         double get_timecode(int _index);
         float get_value(int _index);
+        float get_newest_value(void);
+        void set_selected(bool _state = true);
         bool set(int _index, double _timecode, float _value, float _x, float _y);
+        bool is_selected(void);
         bool is_used(int _index);
         bool is_begin(int _index);
         bool is_end(int _index);

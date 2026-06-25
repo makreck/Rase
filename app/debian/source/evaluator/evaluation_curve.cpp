@@ -21,12 +21,14 @@
 
 #include "includes.h"
 
-void EvalCurve::init(size_t _length, int _slot, Scale* _scale) {
-    length = std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX));
-    slot   = _slot;
+void EvalCurve::init(size_t _length, int _slot, ProductID* _product_id, Scale* _scale) {
+    length = (uint32_t)(std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX)) & 0xffff);
+    slot   = (uint32_t)(_slot & 0x0f);
+    
+    device.set(_product_id);
     scale.set(_scale);
 
-    size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, length);
+    size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, get_length());
     data = (EvalCurvePt *)malloc(size);
     memset(data, 0, size);
 }
@@ -40,7 +42,7 @@ void EvalCurve::cleanup(void) {
 }
 
 bool EvalCurve::set(int _index, double _timecode, float _value, float _x, float _y) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         data[_index].pt.set(_x, _y);
         data[_index].timecode = _timecode;
         data[_index].value    = _value;
@@ -51,56 +53,71 @@ bool EvalCurve::set(int _index, double _timecode, float _value, float _x, float 
 }
 
 PointF* EvalCurve::get_point(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (&data[_index].pt);
     }
     return (nullptr);
 }
 
 double EvalCurve::get_timecode(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (data[_index].timecode);
     }
     return (0.0);
 }
 
 float EvalCurve::get_value(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (data[_index].value);
     }
     return (0.0f);
 }
 
+float EvalCurve::get_newest_value(void) {
+    if (length > 0) {
+        return (data[length - 1].value);
+    }
+    return (0.0f);
+}
+
+void EvalCurve::set_selected(bool _state) {
+    f_selected = (_state) ? 1 : 0;
+}
+
+bool EvalCurve::is_selected(void) {
+    return (f_selected == 1);
+}
+
 bool EvalCurve::is_used(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (data[_index].f_used == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_begin(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (data[_index].f_startpoint == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_end(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return (data[_index].f_endpoint == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_single(int _index) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         return ((data[_index].f_startpoint == 1) && (data[_index].f_endpoint == 1));
     }
     return (false);
 }
 
 bool EvalCurve::set_begin(int _index, bool state) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         data[_index].f_startpoint = (state) ? 1 : 0;
         return (true);
     }
@@ -108,7 +125,7 @@ bool EvalCurve::set_begin(int _index, bool state) {
 }
 
 bool EvalCurve::set_end(int _index, bool state) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         data[_index].f_endpoint = (state) ? 1 : 0;
         return (true);
     }
@@ -116,7 +133,7 @@ bool EvalCurve::set_end(int _index, bool state) {
 }
 
 bool EvalCurve::set_symbol(int _index, uint8_t _symbol) {
-    if ((_index >= 0) && (_index < length)) {
+    if ((_index >= 0) && (_index < get_length())) {
         data[_index].symbol = _symbol;
         return (true);
     }
@@ -124,15 +141,19 @@ bool EvalCurve::set_symbol(int _index, uint8_t _symbol) {
 }
 
 int EvalCurve::get_slot(void) {
-    return (slot);
+    return ((int)(slot & 0x0f));
 }
 
 size_t EvalCurve::get_length(void) {
-    return (length);
+    return ((size_t)(length & 0xffff));
 }
 
 Scale* EvalCurve::get_scale(void) {
     return (&scale);
+}
+
+ProductID* EvalCurve::get_device(void) {
+    return (&device);
 }
 
 void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
@@ -177,7 +198,7 @@ void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
             cairo_set_line_width(_cr, width);
 
             int n = 0;
-            for (size_t i = 0; i < length; i++) {
+            for (size_t i = 0; i < get_length(); i++) {
                 if (!is_used(i)) continue;
 
                 x = data[i].pt.x * (float)_rc.width  + _rc.x;
