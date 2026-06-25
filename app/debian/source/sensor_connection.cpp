@@ -137,7 +137,7 @@ void SensorConnection::clear_channel_data(void) {
 int SensorConnection::query(void) {
     int n = -1;
 
-    char* buffer = SensorBus::transact_http_request(get_path(), SENSOR_API_REQ_SENSORS, SENSOR_REQ_TYPE_JSON, 100);
+    char* buffer = SensorBus::transact_http_request(get_path(), SENSOR_API_REQ_SENSORS, SENSOR_REQ_TYPE_JSON, 1000);
     if (buffer != nullptr) {
         n = extract_query_data(buffer);
         free(buffer);
@@ -203,6 +203,7 @@ int SensorConnection::extract_query_data(char* buffer) {
     if (buffer == nullptr) {
         return (-1);
     }
+// printf("\n\n%s\n\n", buffer);
 
     char* key = parse_query_header(buffer, m.query_header);
     if (key == nullptr) {
@@ -218,6 +219,12 @@ int SensorConnection::extract_query_data(char* buffer) {
             store_channel_data(sensor_channel);
         }
     } while (key != nullptr);
+
+    if ((m.query_header.channels != 0) && (channel_count != m.query_header.channels)) {
+printf("Query error!\n");
+        return (-1);
+    }
+printf("Query OK!\n");
 
     if (m.datalogger == nullptr) {
         m.datalogger = new Datalogger(nullptr, &m.pid, &m.channels);

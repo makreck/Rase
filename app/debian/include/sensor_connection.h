@@ -36,12 +36,14 @@ class SensorQuery : public MicroJsonObject {
         char timestamp[20]{ 0 };
         char rssi[16]{ 0 };
         char tx_power[16]{ 0 };
+        int channels = 0;
 
-        const MicroJsonStruct meta_data[4] = {
+        const MicroJsonStruct meta_data[5] = {
             JSON_ITEM(SensorQuery, sensor,    MicroJsonObjectType::obj_chars),
             JSON_ITEM(SensorQuery, timestamp, MicroJsonObjectType::obj_chars),
             JSON_ITEM(SensorQuery, rssi,      MicroJsonObjectType::obj_chars),
             JSON_ITEM(SensorQuery, tx_power,  MicroJsonObjectType::obj_chars),
+            JSON_ITEM(SensorQuery, channels,  MicroJsonObjectType::obj_int),
         };
         JSON_GETTERS(SensorQuery, meta_data);
 };
