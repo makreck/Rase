@@ -88,17 +88,19 @@ void LRFindResult::set_paper(double _x, double _y, RectEx* _rc_paper) {
     m.found_pt.set(_x - _rc_paper->x, _y - _rc_paper->y);
 }
 
-void LRFindResult::set_curve_point(Scale* _scale, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px) {
+void LRFindResult::set_curve_point(EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px) {
     m.subtype  = LRElementSub::curve_point;
     m.timecode = _curve->get_timecode(_pt_index);
-    m.scale.set(_scale);
-    m.scale.set_value(_curve->get_value(_pt_index));
-    m.scale.set_userdata(m.timecode);
-    
-    double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, _delta_px));
-
+    m.value    = _curve->get_value(_pt_index);
     m.delta_px = _delta_px;
+
+    m.device.set(_curve->get_device());
+
+    m.scale.set(_curve->get_scale());
+    m.scale.set_value(_curve->get_newest_value());
+
     m.found_pt.set(_pt);
+    double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, _delta_px));
     m.found_sub.set(_pt->x - selecting_range, _pt->y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
 }
 
