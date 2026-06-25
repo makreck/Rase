@@ -31,6 +31,7 @@ const char* SensorDevice::sensor_header =
     "\t\"timestamp\": \"%s\",\n"
     "\t\"rssi\": \"%s\",\n"
     "\t\"tx_power\": \"%s\",\n"
+    "\t\"channels\": %d,\n"
     "\t\"nodes\": [\n";
 
 const char* SensorDevice::opcua_header = 
@@ -105,7 +106,9 @@ void SensorDevice::update_json(void) {
     char device_serial_number[22]{0};
     Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
     
-    size_t length = snprintf(nullptr, 0, SensorDevice::sensor_header, m.device_name, device_serial_number, time_string, rssi_string, tx_power_string);
+    size_t length = snprintf(nullptr, 0, SensorDevice::sensor_header,
+        m.device_name, device_serial_number, time_string, rssi_string, tx_power_string, (int)count);
+
     for (size_t i = 0; i < count; i++) {
         length += m.node[i]->get_length();
         if (i < (count - 1)) {
@@ -131,7 +134,9 @@ void SensorDevice::update_json(void) {
     m.json = (char*)malloc(length + 8);
     memset(m.json, 0, length + 8);
 
-    snprintf(m.json, m.length, SensorDevice::sensor_header, m.device_name, device_serial_number, time_string, rssi_string, tx_power_string);
+    snprintf(m.json, m.length, SensorDevice::sensor_header,
+        m.device_name, device_serial_number, time_string, rssi_string, tx_power_string, (int)count);
+    
     for (size_t i = 0; i < count; i++) {
         strcat(m.json, m.node[i]->get_json());
         if (i < (count - 1)) {
