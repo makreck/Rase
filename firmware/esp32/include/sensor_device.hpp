@@ -21,6 +21,8 @@
 
 #pragma once
 
+#define SENSOR_DEVICE_NAME_MAX (30)
+
 class SensorDevice {
     private:
         static const char* sensor_header;
@@ -28,7 +30,7 @@ class SensorDevice {
         static const char* end_of_list;
 
         struct {
-            char device_name[32]{ 0 };
+            char device_name[SENSOR_DEVICE_NAME_MAX]{ 0 };
             SemaphoreHandle_t mutex = nullptr;
             std::vector<SensorNode*> node;
             float rec_interval_s = 0.01f;
