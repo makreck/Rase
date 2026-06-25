@@ -23,18 +23,25 @@
 
 class ProductID : public MicroJsonObject {
     public:
-        char identification[32];
-        char manufacturer[32];
-        char product[32];
-        char device_serial_number[22];
-        char firmware_version[16];
-        char firmware_date[16];
-        char chip_type[16];
-        char wifi_station_mac[20];
-        char wifi_ap_mac[20];
-        char bluetooth_mac[20];
-        char rssi[16];
-        char tx_power[16];
+
+        union {
+            struct {
+                char identification[30];
+                char manufacturer[32];
+                char product[32];
+                char device_serial_number[22];
+                char firmware_version[16];
+                char firmware_date[16];
+                char chip_type[16];
+                char wifi_station_mac[20];
+                char wifi_ap_mac[20];
+                char bluetooth_mac[20];
+                char rssi[16];
+                char tx_power[16];
+            };
+
+            uint8_t buffer[256];
+        };
 
         const MicroJsonStruct identificationData[12] = {
             JSON_ITEM(ProductID, identification,  MicroJsonObjectType::obj_chars),
@@ -53,10 +60,18 @@ class ProductID : public MicroJsonObject {
         JSON_GETTERS(ProductID, identificationData);
 
         bool operator==(const ProductID& _source) {
-            return (strncmp(this->device_serial_number, _source.device_serial_number, sizeof (device_serial_number)) == 0);
+            return (is_equal_device(&_source));
         }
 
         bool is_equal_device(const ProductID* _source) {
             return (strncmp(this->device_serial_number, _source->device_serial_number, sizeof (device_serial_number)) == 0);
+        }
+
+        void set(ProductID* _source) {
+            if (_source != nullptr) {
+                memcpy(buffer, _source->buffer, sizeof (buffer));
+            } else {
+                memset(buffer, 0, sizeof (buffer));
+            }
         }
 };
