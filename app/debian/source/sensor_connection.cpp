@@ -203,7 +203,6 @@ int SensorConnection::extract_query_data(char* buffer) {
     if (buffer == nullptr) {
         return (-1);
     }
-// printf("\n\n%s\n\n", buffer);
 
     char* key = parse_query_header(buffer, m.query_header);
     if (key == nullptr) {
@@ -221,10 +220,8 @@ int SensorConnection::extract_query_data(char* buffer) {
     } while (key != nullptr);
 
     if ((m.query_header.channels != 0) && (channel_count != m.query_header.channels)) {
-printf("Query error!\n");
         return (-1);
     }
-printf("Query OK!\n");
 
     if (m.datalogger == nullptr) {
         m.datalogger = new Datalogger(nullptr, &m.pid, &m.channels);
