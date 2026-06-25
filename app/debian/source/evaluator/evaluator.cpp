@@ -90,6 +90,11 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
                     continue;
                 }
 
+                ProductID* product_id = task->get_device();
+                if (product_id == nullptr) {
+                    continue;
+                }
+
                 Scale* scale = task->get_scale(channel_index);
                 if (scale == nullptr) {
                     continue;
@@ -103,7 +108,7 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
                 }
 
                 if (count > 0) {
-                    EvalCurve* curve = new EvalCurve(count, channel_index, scale);
+                    EvalCurve* curve = new EvalCurve(count, channel_index, product_id, scale);
                     if (curve == nullptr) {
                         continue;
                     }
