@@ -347,8 +347,6 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
 bool LineRecorder::select_channel(void) {
     if (m.event_result.m.subtype == LRElementSub::curve_point) {
         m.default_scale.set(m.event_result.get_scale());
-    // } else {
-    //     m.default_scale.set_defaults();
     }
     return (true);
 }
