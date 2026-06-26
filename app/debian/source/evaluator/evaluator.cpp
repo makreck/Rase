@@ -23,10 +23,14 @@
 
 void Evaluator::init(const char* _path) {
     m.path = _path;
-    Files::open_file(m.fd, m.path.c_str(), O_RDWR);
     pthread_mutex_init(&m.task_mutex, nullptr);
-    for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
-        m.evaluation_task[i] = new EvaluationTask(this, i);
+
+    Files::open_file(m.fd, m.path.c_str(), O_RDWR);
+
+    if (m.fd != -1) {
+        for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+            m.evaluation_task[i] = new EvaluationTask(this, i);
+        }
     }
 }
 
@@ -66,6 +70,41 @@ void Evaluator::delete_curves(std::vector<EvalCurve*>& _curves) {
         }
     }
     _curves.clear();
+}
+
+void Evaluator::set_window(LogWindow _window) {
+    if (m.fd == -1) {
+        return;
+    }
+
+    LogWindow ext_window = _window;
+    ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
+    int next_task = (m.active_task + 1) % (int)SIZEOFARRAY(m.evaluation_task);
+    m.evaluation_task[next_task]->set_window(&ext_window);
+}
+
+void Evaluator::set_active(int _task_index) {
+    if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
+        pthread_mutex_lock(&m.task_mutex); {
+            m.active_task = _task_index;
+        } pthread_mutex_unlock(&m.task_mutex);
+    }
+}
+
+std::vector<EvalCurve*> Evaluator::get_displayed_curves(void) {
+    return (m.displayed_curves);
+}
+
+void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, std::vector<EvalCurve*> _curves) {
+    for (EvalCurve *&curve : _curves) {
+        if (curve != nullptr) {
+            curve->draw(_cr, _rect, false);
+        }
+    }
+
+    std::vector<EvalCurve*> old_curves = m.displayed_curves;
+    m.displayed_curves = _curves;
+    delete_curves(old_curves);
 }
 
 bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, LogWindow& _window, bool _vertical) {
@@ -151,6 +190,7 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
                         }
                     }
 
+                    curve->clean_curve();
                     _curves.push_back(curve);
                 }
             }
@@ -159,39 +199,4 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
     } pthread_mutex_unlock(&m.task_mutex);
 
     return (true);
-}
-
-void Evaluator::set_window(LogWindow _window) {
-    if (m.fd == -1) {
-        return;
-    }
-
-    LogWindow ext_window = _window;
-    ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
-    int next_task = (m.active_task + 1) % (int)SIZEOFARRAY(m.evaluation_task);
-    m.evaluation_task[next_task]->set_window(&ext_window);
-}
-
-void Evaluator::set_active(int _task_index) {
-    if ((_task_index >= 0) && (_task_index < SIZEOFARRAY(m.evaluation_task))) {
-        pthread_mutex_lock(&m.task_mutex); {
-            m.active_task = _task_index;
-        } pthread_mutex_unlock(&m.task_mutex);
-    }
-}
-
-std::vector<EvalCurve*> Evaluator::get_displayed_curves(void) {
-    return (m.displayed_curves);
-}
-
-void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, std::vector<EvalCurve*> _curves) {
-    for (EvalCurve *&curve : _curves) {
-        if (curve != nullptr) {
-            curve->draw(_cr, _rect, false);
-        }
-    }
-
-    std::vector<EvalCurve*> old_curves = m.displayed_curves;
-    m.displayed_curves = _curves;
-    delete_curves(old_curves);
 }
