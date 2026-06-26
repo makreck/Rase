@@ -50,7 +50,7 @@ void ScaleDrawing::draw(ScaleLayout layout, ScalePointerType type,
 }
 
 void ScaleDrawing::draw_line_pointer_horizontal(cairo_t* cr, PointF &pointer, RectEx &rc, ColorRef color_pointer) {
-    int x = rc.x + (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.pos))) + 0.5);
+    int x = rc.x + (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.x))) + 0.5);
     cairo_set_line_width(cr, 3.0);
     cairo_set_source_rgba(cr, CR_R(color_pointer), CR_G(color_pointer), CR_B(color_pointer), 0.9);
     cairo_move_to(cr, x, rc.y);
@@ -60,7 +60,7 @@ void ScaleDrawing::draw_line_pointer_horizontal(cairo_t* cr, PointF &pointer, Re
 
 void ScaleDrawing::draw_bar_pointer_horizontal(cairo_t* cr, PointF &pointer, RectEx &rc, ColorRef color_pointer) {
     RectEx rcFill = rc;
-    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.pos))) + 0.5);
+    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.x))) + 0.5);
     rcFill.y = rcFill.y2() - (int)((double)rcFill.height * 0.16);
     rcFill.fill(cr, color_pointer, 0.5);
     cairo_set_line_width(cr, 1.0);
@@ -72,13 +72,13 @@ void ScaleDrawing::draw_bar_pointer_horizontal(cairo_t* cr, PointF &pointer, Rec
 
 void ScaleDrawing::draw_fill_pointer_horizontal(cairo_t* cr, PointF &pointer, RectEx &rc, ColorRef color_pointer) {
     RectEx rcFill = rc;
-    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.pos))) + 0.5);
+    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.x))) + 0.5);
     rcFill.fill(cr, color_pointer, 0.5f);
 }
 
 void ScaleDrawing::draw_regular_pointer_horizontal(cairo_t* cr, PointF &pointer, RectEx &rc, ColorRef color_pointer) {
     RectEx rcFill = rc;
-    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.pos))) + 0.5);
+    rcFill.width = (int)(((double)rc.width * std::max(0.0, std::min(1.0, (double)pointer.x))) + 0.5);
     rcFill.y = rcFill.y2() - (int)((double)rcFill.height * 0.3);
     rcFill.height += 4;
 

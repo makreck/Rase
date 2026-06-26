@@ -163,8 +163,8 @@ cairo_pattern_t* GtkTool::make_gradientfill_pattern(GradientMode _mode, ColorRef
 
     ColorRGBA color_rgba(_color);
     for (const PointF& pt : steps) {
-        ColorRef c = color_rgba.mul(pt.value);
-        cairo_pattern_add_color_stop_rgb(pattern, pt.pos, CR_RED(c), CR_GREEN(c), CR_BLUE(c));
+        ColorRef c = color_rgba.mul(pt.y);
+        cairo_pattern_add_color_stop_rgb(pattern, pt.x, CR_RED(c), CR_GREEN(c), CR_BLUE(c));
     }
 
     return (pattern);
