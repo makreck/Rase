@@ -23,16 +23,8 @@
 
 class PointF {
     public:
-        union {
-            struct {
-                float x;
-                float y;
-            };
-            struct {
-                float pos;
-                float value;
-            };
-        };
+        float x;
+        float y;
 
         PointF(float givenX = 0.0f, float givenY = 0.0f) {
             x = givenX;
