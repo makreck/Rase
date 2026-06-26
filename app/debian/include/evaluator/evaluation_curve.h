@@ -23,19 +23,31 @@
 
 class EvalCurvePt {
     public:
-        PointF  pt;
-        double  timecode;
-        float   value;
-        uint8_t symbol;
-        union {
-            uint8_t flags;
-            struct {
-                uint8_t f_used       : 1;
-                uint8_t f_startpoint : 1;
-                uint8_t f_endpoint   : 1;
-                uint8_t f_reserved0  : 5;
+        struct {
+            PointF pt;
+            double timecode;
+            float  value;
+            union {
+                uint32_t flags;
+                struct {
+                    uint32_t symbol       : 8;
+                    uint32_t f_used       : 1;
+                    uint32_t f_startpoint : 1;
+                    uint32_t f_endpoint   : 1;
+                    uint32_t reserved1    : 5;
+                    uint32_t reserved2    : 8;
+                    uint32_t reserved3    : 8;
+                };
             };
-        };
+        } m;
+
+        void set(EvalCurvePt* _source) {
+            if (_source != nullptr) {
+                memcpy(&m, &_source->m, sizeof (m));
+            } else {
+                memset(&m, 0, sizeof (m));
+            }
+        }
 };
 
 class EvalCurve {
@@ -85,4 +97,6 @@ class EvalCurve {
         bool set_begin(int _index, bool state = true);
         bool set_end(int _index, bool state = true);
         bool set_symbol(int _index, uint8_t _symbol = 0x00);
+        bool clean_curve(void);
+
 };

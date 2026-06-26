@@ -43,10 +43,10 @@ void EvalCurve::cleanup(void) {
 
 bool EvalCurve::set(int _index, double _timecode, float _value, float _x, float _y) {
     if ((_index >= 0) && (_index < get_length())) {
-        data[_index].pt.set(_x, _y);
-        data[_index].timecode = _timecode;
-        data[_index].value    = _value;
-        data[_index].f_used   = 1;
+        data[_index].m.pt.set(_x, _y);
+        data[_index].m.timecode = _timecode;
+        data[_index].m.value    = _value;
+        data[_index].m.f_used   = 1;
         return (true);
     }
     return (false);
@@ -54,28 +54,28 @@ bool EvalCurve::set(int _index, double _timecode, float _value, float _x, float 
 
 PointF* EvalCurve::get_point(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (&data[_index].pt);
+        return (&data[_index].m.pt);
     }
     return (nullptr);
 }
 
 double EvalCurve::get_timecode(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (data[_index].timecode);
+        return (data[_index].m.timecode);
     }
     return (0.0);
 }
 
 float EvalCurve::get_value(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (data[_index].value);
+        return (data[_index].m.value);
     }
     return (0.0f);
 }
 
 float EvalCurve::get_newest_value(void) {
-    if (length > 0) {
-        return (data[length - 1].value);
+    if (get_length() > 0) {
+        return (data[get_length() - 1].m.value);
     }
     return (0.0f);
 }
@@ -90,35 +90,35 @@ bool EvalCurve::is_selected(void) {
 
 bool EvalCurve::is_used(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (data[_index].f_used == 1);
+        return (data[_index].m.f_used == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_begin(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (data[_index].f_startpoint == 1);
+        return (data[_index].m.f_startpoint == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_end(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return (data[_index].f_endpoint == 1);
+        return (data[_index].m.f_endpoint == 1);
     }
     return (false);
 }
 
 bool EvalCurve::is_single(int _index) {
     if ((_index >= 0) && (_index < get_length())) {
-        return ((data[_index].f_startpoint == 1) && (data[_index].f_endpoint == 1));
+        return ((data[_index].m.f_startpoint == 1) && (data[_index].m.f_endpoint == 1));
     }
     return (false);
 }
 
 bool EvalCurve::set_begin(int _index, bool state) {
     if ((_index >= 0) && (_index < get_length())) {
-        data[_index].f_startpoint = (state) ? 1 : 0;
+        data[_index].m.f_startpoint = (state) ? 1 : 0;
         return (true);
     }
     return (false);
@@ -126,7 +126,7 @@ bool EvalCurve::set_begin(int _index, bool state) {
 
 bool EvalCurve::set_end(int _index, bool state) {
     if ((_index >= 0) && (_index < get_length())) {
-        data[_index].f_endpoint = (state) ? 1 : 0;
+        data[_index].m.f_endpoint = (state) ? 1 : 0;
         return (true);
     }
     return (false);
@@ -134,7 +134,7 @@ bool EvalCurve::set_end(int _index, bool state) {
 
 bool EvalCurve::set_symbol(int _index, uint8_t _symbol) {
     if ((_index >= 0) && (_index < get_length())) {
-        data[_index].symbol = _symbol;
+        data[_index].m.symbol = _symbol;
         return (true);
     }
     return (false);
@@ -189,8 +189,8 @@ void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
                 width += 1.0f;
             }
 
-            double x = data[0].pt.x * (float)_rc.width  + _rc.x;
-            double y = data[0].pt.y * (float)_rc.height + _rc.y;
+            double x = data[0].m.pt.x * (float)_rc.width  + _rc.x;
+            double y = data[0].m.pt.y * (float)_rc.height + _rc.y;
 
             cairo_move_to(_cr, x, y);
 
@@ -201,10 +201,14 @@ void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
             for (size_t i = 0; i < get_length(); i++) {
                 if (!is_used(i)) continue;
 
-                x = data[i].pt.x * (float)_rc.width  + _rc.x;
-                y = data[i].pt.y * (float)_rc.height + _rc.y;
+                x = data[i].m.pt.x * (float)_rc.width  + _rc.x;
+                y = data[i].m.pt.y * (float)_rc.height + _rc.y;
 
                 if (is_single(i)) {
+                    if (n > 0) {
+                        cairo_stroke(_cr);
+                        n = 0;
+                    }
                     cairo_move_to(_cr, x, y);
                     cairo_arc(_cr, x, y, 3, 0.0, 2.0 * M_PI);
                     cairo_fill(_cr);
@@ -234,4 +238,18 @@ void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
             }
         }
     }
+}
+
+bool EvalCurve::clean_curve(void) {
+    int k = 0;
+    int i = 0;
+    for (i = 0; i < get_length(); i++) {
+        if (data[i].m.f_used == 1) {
+            if (k != i) {
+                data[k++].set(&data[i]);
+            }
+        }
+    }
+    length = k;
+    return (k != i);
 }
