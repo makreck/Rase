@@ -243,7 +243,7 @@ float Scale::get_range(void) {
 }
 
 void Scale::set_value(float _value) {
-    value = std::max(bottom, std::min(top, value));
+    value = std::max(bottom, std::min(top, _value));
     sum += value;
     count += 1.0f;
 }
