@@ -61,6 +61,7 @@ class LineRecorder {
             cairo_surface_t* surface = nullptr;
 
             Scale default_scale;
+            std::string headline;
             std::vector<ScaleStep> scale_steps;
 
             std::vector<Evaluator*> evaluations;
@@ -230,6 +231,8 @@ class LineRecorder {
         void update_segment(void);
         void window_update(void);
         bool select_channel(void);
+        Evaluator* get_evaluator_of_device(const char* _device_serial_number);
+        float get_sel_curve_value_at_top_of_window(void);
 
         void draw_scale(cairo_t* cr);
         void draw_paper(cairo_t* cr);
