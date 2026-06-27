@@ -31,6 +31,7 @@ class Evaluator {
         struct {
             std::string path;
             int fd = -1;
+            LogHeader header;
             pthread_mutex_t task_mutex = PTHREAD_MUTEX_INITIALIZER;
             int active_task = -1;
             EvaluationTask* evaluation_task[2]{ nullptr };
@@ -58,5 +59,6 @@ class Evaluator {
         void set_window(LogWindow _window);
         void set_active(int _task_index);
         const char* get_path(void);
+        const char* get_device_serial_number(void);
         int get_fd(void);
 };

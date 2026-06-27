@@ -25,11 +25,13 @@ void Evaluator::init(const char* _path) {
     m.path = _path;
     pthread_mutex_init(&m.task_mutex, nullptr);
 
-    Files::open_file(m.fd, m.path.c_str(), O_RDWR);
-
-    if (m.fd != -1) {
-        for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
-            m.evaluation_task[i] = new EvaluationTask(this, i);
+    if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
+        if (Files::read_data_from(m.fd, LOG_FILE_POS_HEADER, &m.header, sizeof(LogHeader))) {
+            if (strlen(get_device_serial_number()) > 0) {
+                for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+                    m.evaluation_task[i] = new EvaluationTask(this, i);
+                }
+            }
         }
     }
 }
@@ -52,6 +54,11 @@ void Evaluator::cleanup(void) {
     } pthread_mutex_unlock(&m.task_mutex);
 
     pthread_mutex_destroy(&m.task_mutex);
+}
+
+const char* Evaluator::get_device_serial_number(void) {
+    ProductID* id = m.header.get_product_id();
+    return (id->device_serial_number);
 }
 
 const char* Evaluator::get_path(void) {
