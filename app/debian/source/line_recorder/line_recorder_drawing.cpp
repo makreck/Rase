@@ -244,20 +244,6 @@ void LineRecorder::update_segment(void) {
     cairo_destroy(cr);
 }
 
-void LineRecorder::draw_scale(cairo_t* cr) {
-    char headline[256]{ 0 };
-
-    ScaleDrawing* scale = (ScaleDrawing*)get_selected_scale();
-    scale->draw(ScaleLayout::normal_horizontal, ScalePointerType::pointer,
-        cr, &m.rc.scaleBox, &m.rc.scale, m.color.scaleBkg, m.color.scaleText, scale->get_format()->get_color_ref(), headline, m.scale_steps);
-
-    update_segment();
-
-    m.rc.scaleBorder.set(cr);
-    cairo_set_source(cr, m.pattern.scaleBorder);
-    cairo_fill(cr);
-}
-
 void LineRecorder::draw_channels(cairo_t* cr) {
     cairo_save(cr);
     m.rc.paper.clip(cr);
@@ -365,4 +351,19 @@ void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& re
     rc.fill(cr, RGBA(0, 255, 0, 255), 0.1f); // ****
 
     cairo_restore(cr);
+}
+
+void LineRecorder::draw_scale(cairo_t* cr) {
+    ScaleDrawing* scale = (ScaleDrawing*)get_selected_scale();
+    scale->set_value(get_sel_curve_value_at_top_of_window()); // ***
+
+    scale->draw(ScaleLayout::normal_horizontal, ScalePointerType::pointer,
+        cr, &m.rc.scaleBox, &m.rc.scale, m.color.scaleBkg, m.color.scaleText,
+        scale->get_format()->get_color_ref(), m.headline.c_str(), m.scale_steps);
+
+    update_segment();
+
+    m.rc.scaleBorder.set(cr);
+    cairo_set_source(cr, m.pattern.scaleBorder);
+    cairo_fill(cr);
 }
