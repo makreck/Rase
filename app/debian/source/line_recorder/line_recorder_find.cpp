@@ -97,7 +97,7 @@ void LRFindResult::set_curve_point(EvalCurve* _curve, int _pt_index, PointF* _pt
     m.device.set(_curve->get_device());
 
     m.scale.set(_curve->get_scale());
-    m.scale.set_value(_curve->get_newest_value());
+    m.scale.set_value(_curve->get_last_value());
 
     m.found_pt.set(_pt);
     double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, _delta_px));
@@ -106,4 +106,8 @@ void LRFindResult::set_curve_point(EvalCurve* _curve, int _pt_index, PointF* _pt
 
 Scale* LRFindResult::get_scale(void) {
     return (&m.scale);
+}
+
+const char* LRFindResult::get_device_serial_number(void) {
+    return (m.device.device_serial_number);
 }
