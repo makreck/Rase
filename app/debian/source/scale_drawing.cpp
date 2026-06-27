@@ -22,8 +22,12 @@
 #include "includes.h"
 
 void ScaleDrawing::draw(ScaleLayout layout, ScalePointerType type,
-    cairo_t* cr, RectEx *rc_area, RectEx *rc_scale, ColorRef color_background, ColorRef color_foreground,
-    ColorRef color_pointer, const char *headline, std::vector<ScaleStep> &dividers) {
+    cairo_t* cr, RectEx* rc_area, RectEx* rc_scale, ColorRef color_background, ColorRef color_foreground,
+    ColorRef color_pointer, const char* headline, std::vector<ScaleStep> &dividers) {
+
+    if (headline == nullptr) {
+        headline = "";
+    }
 
     dividers.clear();
 
@@ -102,7 +106,7 @@ void ScaleDrawing::draw_regular_pointer_horizontal(cairo_t* cr, PointF &pointer,
     cairo_stroke(cr);
 }
 
-void ScaleDrawing::calculate_for(ScaleLayout layout, RectEx &rc, int maxTextWidth_px, std::vector<ScaleStep> &dividers) {
+void ScaleDrawing::calculate_for(ScaleLayout layout, RectEx &rc, int maxTextWidth_px, std::vector<ScaleStep>& dividers) {
     dividers.clear();
 
     if (maxTextWidth_px < 3) {
@@ -178,8 +182,12 @@ void ScaleDrawing::calculate_for(ScaleLayout layout, RectEx &rc, int maxTextWidt
 }
 
 void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
-    cairo_t* cr, RectEx *rc_area, RectEx *rc_scale, ColorRef color_background, ColorRef color_foreground,
-    ColorRef color_pointer, const char *headline, std::vector<ScaleStep> &dividers) {
+    cairo_t* cr, RectEx* rc_area, RectEx* rc_scale, ColorRef color_background, ColorRef color_foreground,
+    ColorRef color_pointer, const char* headline, std::vector<ScaleStep>& dividers) {
+
+    if (headline == nullptr) {
+        headline = "";
+    }
 
     cairo_save(cr);
 
@@ -197,7 +205,10 @@ void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
     _cairo_set_source_rgb(cr, color_background);
     cairo_paint(cr);
 
-    int fontSize = (int)(rc.height * 0.125);
+    int fontSize       = (int)(rc.height * 0.125);
+    int largeFontSize  = (int)((float)fontSize * 1.6);
+    int headerFontSize = (int)((float)fontSize * 1.25);
+
     cairo_set_font_size(cr, fontSize);
     cairo_select_font_face(cr, DEFAULT_FONT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 
@@ -271,22 +282,23 @@ void ScaleDrawing::draw_scale_horizontal(ScalePointerType type,
 
     // @todo: Draw horizontal markers here.
 
-    if (headline == nullptr) {
-        headline = " ";
+    // We need the correct text extend, even if there is an empty headline!
+    const char* p = headline;
+    if (strlen(headline) < 1) {
+        p = "X";
     }
     cairo_select_font_face(cr, DEFAULT_FONT, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_text_extents(cr, headline, &extents);
-    y = rc.y + 4 + extents.height;
+    cairo_set_font_size(cr, headerFontSize);
+    cairo_text_extents(cr, p, &extents);
+    y = rc.y + extents.height + 4;
     _cairo_set_source_rgb(cr, color_foreground);
     cairo_move_to(cr, rc.center_x() - extents.width / 2, y);
+    // cairo_move_to(cr, xMin, y);
     cairo_show_text(cr, headline);
 
-    y = y4 - extents.height - 18;
-
-    int largeFontSize = (int)((float)fontSize * 1.6);
+    y = y + extents.height + 8;
     cairo_set_font_size(cr, largeFontSize);
-
-    const char *name = get_name();
+    const char* name = get_name();
     cairo_text_extents(cr, name, &extents);
     cairo_move_to(cr, xMin, y);
     cairo_show_text(cr, name);
