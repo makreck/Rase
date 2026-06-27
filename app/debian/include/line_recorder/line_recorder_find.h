@@ -78,7 +78,7 @@ class LRFindResult {
         void set_paper(double _x, double _y, RectEx* _rc_paper);
         void clr(void);
         Scale* get_scale(void);
-
+        const char* get_device_serial_number(void);
 };
 
 
