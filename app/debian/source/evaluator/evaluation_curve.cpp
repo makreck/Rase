@@ -73,9 +73,17 @@ float EvalCurve::get_value(int _index) {
     return (0.0f);
 }
 
-float EvalCurve::get_newest_value(void) {
+float EvalCurve::get_first_value(void) {
     if (get_length() > 0) {
-        return (data[get_length() - 1].m.value);
+        return (data[0].m.value);
+    }
+    return (0.0f);
+}
+
+float EvalCurve::get_last_value(void) {
+    if (get_length() > 0) {
+        int i = get_length() - 1;
+        return (data[i].m.value);
     }
     return (0.0f);
 }
@@ -252,4 +260,42 @@ bool EvalCurve::clean_curve(void) {
     }
     length = k;
     return (k != i);
+}
+
+float EvalCurve::get_value_at_timecode(double _timecode, double* _exact_time) {
+    int len = get_length();
+    if (len > 0) {
+        int i = 0;
+        if (_timecode < data[0].m.timecode) {
+            i = 0;
+        } else if (_timecode > data[len - 1].m.timecode) {
+            i = len - 1;
+        } else {
+            i = len / 2;
+            int n = (i / 2) + 1;
+            do {
+                if (_timecode < data[i].m.timecode) {
+                    i -= n;
+                } else if (_timecode > data[i].m.timecode) {
+                    i += n;
+                } else {
+                    break;
+                }
+                n /= 2;
+            } while (n > 0);
+        }
+        double d = fabs(_timecode - data[i].m.timecode);
+        if ((d >= TC_MILLISEC) && (i > 0) && (i < (len - 1))) {
+            if (fabs(_timecode - data[i - 1].m.timecode) < d) {
+                i--;
+            } else if (fabs(_timecode - data[i + 1].m.timecode) < d) {
+                i++;
+            }
+        }
+        if (_exact_time != nullptr) {
+            *_exact_time = data[i].m.timecode;
+        }
+        return (data[i].m.value);
+    }
+    return (0.0f);
 }

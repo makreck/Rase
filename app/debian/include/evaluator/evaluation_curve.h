@@ -86,7 +86,9 @@ class EvalCurve {
         ProductID* get_device(void);
         double get_timecode(int _index);
         float get_value(int _index);
-        float get_newest_value(void);
+        float get_first_value(void);
+        float get_last_value(void);
+        float get_value_at_timecode(double _timecode, double* _exact_time = nullptr);
         void set_selected(bool _state = true);
         bool set(int _index, double _timecode, float _value, float _x, float _y);
         bool is_selected(void);
