@@ -231,10 +231,6 @@ void LineRecorder::set_found_on_info(double _x, double _y, LRFindResult& result)
     }
 }
 
-const Scale* LineRecorder::get_selected_scale(void) {
-    return (&m.default_scale);
-}
-
 void* LineRecorder::_update_thread(void* _object) {
     (reinterpret_cast<LineRecorder*>(_object))->update_thread();
     return (nullptr);
@@ -311,7 +307,7 @@ bool LineRecorder::find_element(double _x, double _y, LRFindResult* _result) {
         }
     }
 
-    if (_result != nullptr) {
+    if ((found == true) && (_result != nullptr)) {
         _result->set(&result);
     }    
 
@@ -335,6 +331,7 @@ void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result
                         double delta_px = sqrt((dx * dx) + (dy * dy));
                         if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
                             smallest_delta = delta_px;
+                            m.headline = evaluator->get_device_serial_number();
                             result.set_curve_point(curve, i, &pt, delta_px);
                         }
                     }
@@ -351,3 +348,33 @@ bool LineRecorder::select_channel(void) {
     return (true);
 }
 
+Evaluator* LineRecorder::get_evaluator_of_device(const char* _device_serial_number) {
+    for (Evaluator *&evaluator : m.evaluations) {
+        if (evaluator != nullptr)  {
+            const char* device_serial_number = evaluator->get_device_serial_number();
+            if (strncmp(_device_serial_number, device_serial_number, 20) == 0) {
+                return (evaluator);
+            }
+        }
+    }
+    return (nullptr);
+}
+
+const Scale* LineRecorder::get_selected_scale(void) {
+    return (&m.default_scale);
+}
+
+float LineRecorder::get_sel_curve_value_at_top_of_window(void) {
+    Evaluator* evaluator = get_evaluator_of_device(m.event_result.get_device_serial_number());
+    if (evaluator != nullptr) {
+        for (EvalCurve*& curve : evaluator->get_displayed_curves()) {
+            if (curve != nullptr) {
+                if (strcmp(m.default_scale.key, curve->scale.key) == 0) {
+                    float scale_pointer = curve->get_value_at_timecode(m.window.time.end);
+                    return (scale_pointer);
+                }
+            }
+        }
+    }
+    return (m.default_scale.get_value());
+}
