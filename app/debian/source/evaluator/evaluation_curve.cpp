@@ -25,7 +25,7 @@ void EvalCurve::init(size_t _length, int _slot, ProductID* _product_id, Scale* _
     length = (uint32_t)(std::max((size_t)LOG_EVAL_CURVE_LEN_MIN, std::min(_length, (size_t)LOG_EVAL_CURVE_LEN_MAX)) & 0xffff);
     slot   = (uint32_t)(_slot & 0x0f);
     
-    device.set(_product_id);
+    product_id.set(_product_id);
     scale.set(_scale);
 
     size_t size = sizeof(EvalCurvePt) * std::max((size_t)1, get_length());
@@ -160,8 +160,8 @@ Scale* EvalCurve::get_scale(void) {
     return (&scale);
 }
 
-ProductID* EvalCurve::get_device(void) {
-    return (&device);
+ProductID* EvalCurve::get_product_id(void) {
+    return (&product_id);
 }
 
 void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {

@@ -52,7 +52,7 @@ class EvalCurvePt {
 
 class EvalCurve {
     public:
-        ProductID device;
+        ProductID product_id;
         Scale     scale;
         union {
             uint32_t flags;
@@ -83,7 +83,7 @@ class EvalCurve {
         size_t get_length(void);
         PointF* get_point(int _index);
         Scale* get_scale(void);
-        ProductID* get_device(void);
+        ProductID* get_product_id(void);
         double get_timecode(int _index);
         float get_value(int _index);
         float get_first_value(void);
