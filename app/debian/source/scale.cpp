@@ -31,15 +31,13 @@ void Scale::cleanup(void) {
 bool Scale::set_values(const Scale *_source) {
     bool modified = false;
     if (_source != nullptr) {
-        modified   = ((value != _source->value) || (count != _source->count));
+        modified   = (value != _source->value);
         value      = _source->value;
         min        = _source->min;
         max        = _source->max;
         zoom_begin = _source->zoom_begin;
         zoom_end   = _source->zoom_end;
         average    = _source->average;
-        count      = _source->count;
-        sum        = _source->sum;
         color_ref  = _source->color_ref;
         distribute_color(true);
     }
@@ -47,7 +45,6 @@ bool Scale::set_values(const Scale *_source) {
 }
 
 void Scale::set(const Scale *_source) {
-    clear();
     if (_source != nullptr) {
         set_key(_source->key);
         set_name(_source->name);
@@ -64,8 +61,6 @@ void Scale::set(const Scale *_source) {
         zoom_begin = _source->zoom_begin;
         zoom_end   = _source->zoom_end;
         average    = _source->average;
-        count      = _source->count;
-        sum        = _source->sum;
     }
     distribute_color(true);
 }
@@ -90,7 +85,6 @@ void Scale::import(ScaleJson* _source) {
         min       = _source->min;
         max       = _source->max;
         average   = _source->average;
-        count     = _source->count;
     }
     distribute_color(false);
 }
@@ -112,14 +106,10 @@ void Scale::set_defaults(void) {
     zoom_begin =   0.0f;
     zoom_end   = 100.0f;
     average    =   0.0f;
-    count      =      0;
-    sum        =   0.0f;
     distribute_color();
 }
 
 void Scale::reset(void) {
-    sum        =   0.0f;
-    count      =      0;
     value      = bottom;
     zoom_begin = bottom;
     zoom_end   = top;
@@ -244,8 +234,6 @@ float Scale::get_range(void) {
 
 void Scale::set_value(float _value) {
     value = std::max(bottom, std::min(top, _value));
-    sum += value;
-    count += 1.0f;
 }
 
 float Scale::get_value(void) {
@@ -307,14 +295,7 @@ float Scale::get_zoom_range(void) {
 }
 
 float Scale::get_average(void) {
-    if (count > 0) {
-        return (average);
-    }
-    return (bottom);
-}
-
-float Scale::get_count(void) {
-    return (count);
+    return (average);
 }
 
 ScaleFormat* Scale::get_format(void) {

@@ -35,17 +35,16 @@ class Scale {
 
                 float bottom;
                 float top;
+                float step;
                 float value;
+
                 float min;
+                float average;
                 float max;
 
-                float step;
                 float zoom_begin;
                 float zoom_end;
                 
-                float average;
-                float sum;
-                int   count;
 
                 union {
                     struct {
@@ -135,16 +134,17 @@ class Scale {
         void set_top(float _top = 100.0f);
         float get_top(void);
 
+        void set_step(float step);
+        float get_step(void);
+
         void set_value(float _value = 0.0f);
         float get_value(void);
         float get_normalized(void);
         float get_normalized(float _value);
 
-        void set_step(float step);
-        float get_step(void);
-
         float get_range(void);
         float get_min(void);
+        float get_average(void);
         float get_max(void);
                 
         void set_zoom_window(float _zoom_begin, float _zoom_end);
@@ -154,8 +154,6 @@ class Scale {
         float get_zoom_normalized(void);
         float get_zoom_normalized(float _value);
 
-        float get_average(void);
-        float get_count(void);
         
         void distribute_color(bool ref2str = false);
         void set_color(const char* css_color);
