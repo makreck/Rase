@@ -38,7 +38,7 @@ gboolean LineRecorder::_event_handler(GtkWidget* _widget, GdkEvent* _event, gpoi
 }
 void LineRecorder::event_handler(GdkEvent* event) {
     GdkEventBase* event_base = (GdkEventBase*)event;
-    if (find_element((double)(event_base->x), (double)(event_base->y), &m.event_result)) {
+    if (find_element((double)event_base->x, (double)event_base->y)) {
         switch (event->type) {
             case GdkEventType::GDK_MOTION_NOTIFY: {
                 handle_mouse_move_event((GdkEventMotion*)event);;
@@ -83,7 +83,13 @@ bool LineRecorder::process_mouse_clicks(void) {
         }
     } else if ((m.fLeftBtnDown == 1) && (m.fDoubleClick == 1)) {
         if (m.event_result.m.type == LRElementType::scale) {
-            m.default_scale.reset();
+
+            if (m.select.node != nullptr) {
+                m.default_scale.set(m.select.node->get_scale());
+            } else {
+                m.default_scale.reset();    
+            }
+
             init_times();
         }
         resume_autoscroll();
@@ -260,5 +266,87 @@ bool LineRecorder::end_mouse_zoom(void) {
     m.window.level.set(level_begin, level_end);
     m.default_scale.set_zoom_window(level_begin, level_end);
 
+    return (true);
+}
+
+bool LineRecorder::set_found_on_scale(double _x, double _y) {
+    LRFindResult result(_x, _y);
+    result.m.type    = LRElementType::scale;
+    result.m.subtype = LRElementSub::standard;
+    result.m.found_rect.set(m.rc.scale);
+    result.m.found_pt.set(_x - (double)m.rc.scale.x, _y - (double)m.rc.scale.y);
+    result.m.timecode = Times::get_now();
+
+    m.event_result.set(&result);
+    return (true);
+}
+
+bool LineRecorder::set_found_on_info(double _x, double _y) {
+    LRFindResult result(_x, _y);
+
+    result.m.type    = LRElementType::info;
+    result.m.subtype = LRElementSub::standard;
+
+    result.m.found_rect.set(m.rc.info);
+    result.m.found_pt.set(_x - m.rc.info.x, _y - m.rc.info.y);
+    result.m.timecode = Times::get_now();
+
+    if (m.rc.infoFile.is_pt_in_rect(_x, _y)) {
+        result.m.subtype = LRElementSub::info_file;
+        result.m.found_sub.set(&m.rc.infoFile);
+    } else if (m.rc.infoWnd.is_pt_in_rect(_x, _y)) {
+        result.m.subtype = LRElementSub::info_wnd;
+        result.m.found_sub.set(&m.rc.infoWnd);
+    } else if (m.rc.infoSel.is_pt_in_rect(_x, _y)) {
+        result.m.subtype = LRElementSub::info_sel;
+        result.m.found_sub.set(&m.rc.infoSel);
+    }
+
+    m.event_result.set(&result);
+    return (true);
+}
+
+bool LineRecorder::find_element(double _x, double _y) {
+    bool found = false;
+    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
+        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_scale(_x, _y);
+        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_paper(_x, _y);
+        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_info(_x, _y);
+        }
+    }
+    return (found);
+}
+
+bool LineRecorder::set_found_on_paper(double _x, double _y) {
+    LRFindResult result(_x, _y);
+
+    result.set_paper(_x, _y, &m.rc.paper);
+    double smallest_delta = -1.0;
+    
+    for (Evaluator *&evaluator : m.evaluations) {
+        std::vector<EvalCurve*> curves = evaluator->get_displayed_curves();
+        for (EvalCurve*& curve : curves) {
+            if (curve != nullptr) {
+                for (size_t i = 0; i < curve->get_length(); i++) {
+                    PointF* ptr = curve->get_point(i);
+                    if (ptr != nullptr) {
+                        PointF pt(ptr->x * m.rc.paper.width + m.rc.paper.x, ptr->y * m.rc.paper.height + m.rc.paper.y);
+                        double dx = _x - pt.x;
+                        double dy = _y - pt.y;
+                        double delta_px = sqrt((dx * dx) + (dy * dy));
+                        if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
+                            smallest_delta  = delta_px;
+                            result.set_curve_point(evaluator, curve, i, &pt, delta_px);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    m.event_result.set(&result);
     return (true);
 }
