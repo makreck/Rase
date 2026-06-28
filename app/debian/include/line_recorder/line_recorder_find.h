@@ -48,8 +48,8 @@ class LRFindResult {
         struct {
             LRElementType type;
             LRElementSub  subtype;
-            ProductID     device;
-            Scale         scale;
+            Evaluator*    device;
+            EvalCurve*    node;
             PointF        searched_pt;  
             PointF        found_pt;
             RectEx        found_rect;
@@ -74,7 +74,7 @@ class LRFindResult {
         const char* get_SubTypeName(void);
 
         void set(LRFindResult* source);
-        void set_curve_point(EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px);
+        void set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px);
         void set_paper(double _x, double _y, RectEx* _rc_paper);
         void clr(void);
         Scale* get_scale(void);
