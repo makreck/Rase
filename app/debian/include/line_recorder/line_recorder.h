@@ -61,8 +61,13 @@ class LineRecorder {
             cairo_surface_t* surface = nullptr;
 
             Scale default_scale;
-            std::string headline;
             std::vector<ScaleStep> scale_steps;
+
+            struct {
+                Evaluator* device = nullptr;
+                EvalCurve* node   = nullptr;
+                std::string headline;
+            } select;
 
             std::vector<Evaluator*> evaluations;
 
@@ -224,15 +229,15 @@ class LineRecorder {
         void destroy_segment(void);
         void create_gradient_patterns(void);
         void destroy_gradient_patterns(void);
-        bool find_element(double _x, double _y, LRFindResult* _result);
-        void set_found_on_scale(double _x, double _y, LRFindResult& result);
-        void set_found_on_info(double _x, double _y, LRFindResult& result);
-        void set_found_on_paper(double _x, double _y, LRFindResult& result);
+        bool find_element(double _x, double _y);
         void update_segment(void);
         void window_update(void);
         bool select_channel(void);
         Evaluator* get_evaluator_of_device(const char* _device_serial_number);
-        float get_sel_curve_value_at_top_of_window(void);
+
+        bool set_found_on_scale(double _x, double _y);
+        bool set_found_on_info(double _x, double _y);
+        bool set_found_on_paper(double _x, double _y);
 
         void draw_scale(cairo_t* cr);
         void draw_paper(cairo_t* cr);
@@ -252,7 +257,6 @@ class LineRecorder {
         }
 
         GtkWidget* get(void) { return (m.area); }
-        const Scale* get_selected_scale(void);
         
         bool add_evaluation(const char* _path);
 

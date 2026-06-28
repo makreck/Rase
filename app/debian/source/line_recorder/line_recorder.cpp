@@ -69,18 +69,6 @@ void LineRecorder::update(void) {
     }
 }
 
-void LineRecorder::redraw(void) {
-    if (m.surface == nullptr) return;
-
-    cairo_t* cr = cairo_create(m.surface);
-    draw_scale(cr);
-    draw_paper(cr);
-    draw_info(cr);
-    draw_channels(cr);
-    draw_control_helpers(cr);
-    cairo_destroy(cr);
-}
-
 void LineRecorder::init_times(void) {
     Times t(TimeInitializer::now);
     double t2 = t.get_timecode();
@@ -200,37 +188,6 @@ void LineRecorder::draw_function(GtkWidget* area, cairo_t* cr) {
     }
 }
 
-void LineRecorder::set_found_on_scale(double _x, double _y, LRFindResult& result) {
-    result.m.type    = LRElementType::scale;
-    result.m.subtype = LRElementSub::standard;
-
-    result.m.found_rect.set(m.rc.scale);
-    result.m.found_pt.set(_x - (double)m.rc.scale.x, _y - (double)m.rc.scale.y);
-    result.m.timecode = Times::get_now();
-
-    // @todo: Enable scale for found channel and set the scale pointer to the head of recording display.
-}
-
-void LineRecorder::set_found_on_info(double _x, double _y, LRFindResult& result) {
-    result.m.type    = LRElementType::info;
-    result.m.subtype = LRElementSub::standard;
-
-    result.m.found_rect.set(m.rc.info);
-    result.m.found_pt.set(_x - m.rc.info.x, _y - m.rc.info.y);
-    result.m.timecode = Times::get_now();
-
-    if (m.rc.infoFile.is_pt_in_rect(_x, _y)) {
-        result.m.subtype = LRElementSub::info_file;
-        result.m.found_sub.set(&m.rc.infoFile);
-    } else if (m.rc.infoWnd.is_pt_in_rect(_x, _y)) {
-        result.m.subtype = LRElementSub::info_wnd;
-        result.m.found_sub.set(&m.rc.infoWnd);
-    } else if (m.rc.infoSel.is_pt_in_rect(_x, _y)) {
-        result.m.subtype = LRElementSub::info_sel;
-        result.m.found_sub.set(&m.rc.infoSel);
-    }
-}
-
 void* LineRecorder::_update_thread(void* _object) {
     (reinterpret_cast<LineRecorder*>(_object))->update_thread();
     return (nullptr);
@@ -290,62 +247,26 @@ bool LineRecorder::add_evaluation(const char* _path) {
     return (true);
 }
 
-bool LineRecorder::find_element(double _x, double _y, LRFindResult* _result) {
-    bool found = false;
-    LRFindResult result(_x, _y);
-
-    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
-        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
-            set_found_on_scale(_x, _y, result);
-            found = true;
-        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
-            set_found_on_paper(_x, _y, result);
-            found = true;
-        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
-            set_found_on_info(_x, _y, result);
-            found = true;
-        }
-    }
-
-    if ((found == true) && (_result != nullptr)) {
-        _result->set(&result);
-    }    
-
-    return (found);
-}
-
-void LineRecorder::set_found_on_paper(double _x, double _y, LRFindResult& result) {
-    result.set_paper(_x, _y, &m.rc.paper);
-    double smallest_delta = -1.0;
-    
-    for (Evaluator *&evaluator : m.evaluations) {
-        std::vector<EvalCurve*> curves = evaluator->get_displayed_curves();
-        for (EvalCurve*& curve : curves) {
-            if (curve != nullptr) {
-                for (size_t i = 0; i < curve->get_length(); i++) {
-                    PointF* ptr = curve->get_point(i);
-                    if (ptr != nullptr) {
-                        PointF pt(ptr->x * m.rc.paper.width + m.rc.paper.x, ptr->y * m.rc.paper.height + m.rc.paper.y);
-                        double dx = _x - pt.x;
-                        double dy = _y - pt.y;
-                        double delta_px = sqrt((dx * dx) + (dy * dy));
-                        if ((delta_px <= LR_CAPTURE_THRESHOLD_PX) && ((smallest_delta < 0.0) || (delta_px < smallest_delta))) {
-                            smallest_delta = delta_px;
-                            m.headline = evaluator->get_device_serial_number();
-                            result.set_curve_point(curve, i, &pt, delta_px);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 bool LineRecorder::select_channel(void) {
+    bool modified = false;
+
     if (m.event_result.m.subtype == LRElementSub::curve_point) {
-        m.default_scale.set(m.event_result.get_scale());
+        Scale* scale = m.event_result.get_scale();
+        
+        modified = (m.select.device != m.event_result.m.device) ||
+            (strcmp(m.default_scale.get_key(), scale->get_key()) != 0);
+
+        m.default_scale.set(scale);
+        m.select.device  = m.event_result.m.device;
+        m.select.node    = m.event_result.m.node;
+        if (m.select.device != nullptr) {
+            m.select.headline = m.select.device->get_device_serial_number();
+        } else {
+            m.select.headline = "";
+        }
     }
-    return (true);
+
+    return (modified);
 }
 
 Evaluator* LineRecorder::get_evaluator_of_device(const char* _device_serial_number) {
@@ -358,23 +279,4 @@ Evaluator* LineRecorder::get_evaluator_of_device(const char* _device_serial_numb
         }
     }
     return (nullptr);
-}
-
-const Scale* LineRecorder::get_selected_scale(void) {
-    return (&m.default_scale);
-}
-
-float LineRecorder::get_sel_curve_value_at_top_of_window(void) {
-    Evaluator* evaluator = get_evaluator_of_device(m.event_result.get_device_serial_number());
-    if (evaluator != nullptr) {
-        for (EvalCurve*& curve : evaluator->get_displayed_curves()) {
-            if (curve != nullptr) {
-                if (strcmp(m.default_scale.key, curve->scale.key) == 0) {
-                    float scale_pointer = curve->get_value_at_timecode(m.window.time.end);
-                    return (scale_pointer);
-                }
-            }
-        }
-    }
-    return (m.default_scale.get_value());
 }
