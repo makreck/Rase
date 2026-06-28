@@ -148,7 +148,7 @@ void LineRecorder::draw_info(cairo_t* cr) {
     std::string strTimeSpan = Times::format_timespan(m.window.time.get_span());
     draw_info_section(cr, x, y, max_x, "Paper window:", strTimeEnd.c_str(), strTimeBegin.c_str(), strTimeSpan.c_str());
     m.rc.infoWnd.set(x, m.rc.info.y + 4, max_x - x + 4, m.rc.info.height - 8);
-    m.rc.infoWnd.fill(cr, RGBA(0, 0, 255, 15), 0.1f); // ****
+    m.rc.infoWnd.fill(cr, RGBA(0, 0, 255, 15), 0.1f);
 
     x = max_x + 8;
     y = m.rc.info.y;
@@ -180,7 +180,7 @@ void LineRecorder::draw_control_helpers(cairo_t* cr) {
             m.rc_zoom.draw_frame(cr, m.color.paperText, 0.5);
         } else if (m.fZoomScale == 1) {
             m.rc.scaleBox.clip(cr);
-            m.rc_zoom.draw_frame(cr, m.color.paperText, 0.5); // ****
+            m.rc_zoom.draw_frame(cr, m.color.paperText, 0.5);
         }
     }
 
@@ -348,22 +348,33 @@ void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& re
 
     rc.y += 4;
     rc.height -= 8;
-    rc.fill(cr, RGBA(0, 255, 0, 255), 0.1f); // ****
+    rc.fill(cr, RGBA(0, 255, 0, 255), 0.1f);
 
     cairo_restore(cr);
 }
 
 void LineRecorder::draw_scale(cairo_t* cr) {
-    ScaleDrawing* scale = (ScaleDrawing*)get_selected_scale();
-    scale->set_value(get_sel_curve_value_at_top_of_window()); // ***
+    ScaleDrawing* scale = (ScaleDrawing*)&m.default_scale;
 
     scale->draw(ScaleLayout::normal_horizontal, ScalePointerType::pointer,
         cr, &m.rc.scaleBox, &m.rc.scale, m.color.scaleBkg, m.color.scaleText,
-        scale->get_format()->get_color_ref(), m.headline.c_str(), m.scale_steps);
+        scale->get_format()->get_color_ref(), m.select.headline.c_str(), m.scale_steps);
 
     update_segment();
 
     m.rc.scaleBorder.set(cr);
     cairo_set_source(cr, m.pattern.scaleBorder);
     cairo_fill(cr);
+}
+
+void LineRecorder::redraw(void) {
+    if (m.surface == nullptr) return;
+
+    cairo_t* cr = cairo_create(m.surface);
+    draw_scale(cr);
+    draw_paper(cr);
+    draw_info(cr);
+    draw_channels(cr);
+    draw_control_helpers(cr);
+    cairo_destroy(cr);
 }
