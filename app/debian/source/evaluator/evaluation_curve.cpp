@@ -164,6 +164,10 @@ ProductID* EvalCurve::get_product_id(void) {
     return (&product_id);
 }
 
+const char* EvalCurve::get_device_serial_number(void) {
+    return (product_id.device_serial_number);
+}
+
 void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
     const double stopper_dashes[2] = { 8.0, 4.0 };
 

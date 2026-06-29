@@ -84,6 +84,7 @@ class EvalCurve {
         PointF* get_point(int _index);
         Scale* get_scale(void);
         ProductID* get_product_id(void);
+        const char* get_device_serial_number(void);
         double get_timecode(int _index);
         float get_value(int _index);
         float get_first_value(void);
