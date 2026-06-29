@@ -28,7 +28,7 @@ void LineRecorder::set_event_callback(LREventCallback callbackProc, void* user_p
 
 void LineRecorder::notify_event(void) {
     if (m.callback_proc != nullptr) {
-        (*m.callback_proc)(&m.event_result, &m.window, m.user_param);
+        (*m.callback_proc)(&m.event_result, m.user_param);
     }
 }
 
@@ -158,8 +158,8 @@ void LineRecorder::handle_mouse_button_event(GdkEventButton* _btn_event) {
     must_update |= process_mouse_clicks();
 
     if (must_update) {
-        update();
         notify_event();
+        update();
     }
 }
 
@@ -270,26 +270,13 @@ bool LineRecorder::end_mouse_zoom(void) {
 }
 
 bool LineRecorder::set_found_on_scale(double _x, double _y) {
-    LRFindResult result(_x, _y);
-    result.m.type    = LRElementType::scale;
-    result.m.subtype = LRElementSub::standard;
-    result.m.found_rect.set(m.rc.scale);
-    result.m.found_pt.set(_x - (double)m.rc.scale.x, _y - (double)m.rc.scale.y);
-    result.m.timecode = Times::get_now();
-
+    LRFindResult result(_x, _y, LRElementType::scale, LRElementSub::standard, &m.window, &m.rc.scale);
     m.event_result.set(&result);
     return (true);
 }
 
 bool LineRecorder::set_found_on_info(double _x, double _y) {
-    LRFindResult result(_x, _y);
-
-    result.m.type    = LRElementType::info;
-    result.m.subtype = LRElementSub::standard;
-
-    result.m.found_rect.set(m.rc.info);
-    result.m.found_pt.set(_x - m.rc.info.x, _y - m.rc.info.y);
-    result.m.timecode = Times::get_now();
+    LRFindResult result(_x, _y, LRElementType::info, LRElementSub::standard, &m.window, &m.rc.info);
 
     if (m.rc.infoFile.is_pt_in_rect(_x, _y)) {
         result.m.subtype = LRElementSub::info_file;
@@ -306,26 +293,10 @@ bool LineRecorder::set_found_on_info(double _x, double _y) {
     return (true);
 }
 
-bool LineRecorder::find_element(double _x, double _y) {
-    bool found = false;
-    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
-        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
-            found = set_found_on_scale(_x, _y);
-        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
-            found = set_found_on_paper(_x, _y);
-        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
-            found = set_found_on_info(_x, _y);
-        }
-    }
-    return (found);
-}
-
 bool LineRecorder::set_found_on_paper(double _x, double _y) {
-    LRFindResult result(_x, _y);
+    LRFindResult result(_x, _y, LRElementType::paper, LRElementSub::standard, &m.window, &m.rc.paper);
 
-    result.set_paper(_x, _y, &m.rc.paper);
     double smallest_delta = -1.0;
-    
     for (Evaluator *&evaluator : m.evaluations) {
         std::vector<EvalCurve*> curves = evaluator->get_displayed_curves();
         for (EvalCurve*& curve : curves) {
@@ -347,6 +318,25 @@ bool LineRecorder::set_found_on_paper(double _x, double _y) {
         }
     }
 
+// ****
+if (result.m.node != nullptr) {
+    printf("Found: <%s>\n", result.m.node->get_device_serial_number());
+} // ****
+
     m.event_result.set(&result);
     return (true);
+}
+
+bool LineRecorder::find_element(double _x, double _y) {
+    bool found = false;
+    if (m.rc.surface.is_pt_in_rect(_x, _y)) {
+        if (m.rc.scale.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_scale(_x, _y);
+        } else if (m.rc.paper.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_paper(_x, _y);
+        } else if (m.rc.infoBox.is_pt_in_rect(_x, _y)) {
+            found = set_found_on_info(_x, _y);
+        }
+    }
+    return (found);
 }
