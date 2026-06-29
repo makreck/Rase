@@ -49,7 +49,7 @@
 
 #define LR_INIT_TIMESPAN                (1.0 / TC_MINUTES_PER_DAY)
 
-typedef bool (*LREventCallback)(LRFindResult* _event_result, LogWindow* _window, void* _user_param);
+typedef bool (*LREventCallback)(LRFindResult* _event_result, void* _user_param);
 
 class LineRecorder {
     private:
@@ -180,7 +180,7 @@ class LineRecorder {
             };
         } m;
 
-        void init(LREventCallback callbackProc, void* user_param);
+        void init(LREventCallback callback_proc, void* user_param);
         void cleanup(void);
         
         void init_colors(void);
@@ -233,7 +233,6 @@ class LineRecorder {
         void update_segment(void);
         void window_update(void);
         bool select_channel(void);
-        Evaluator* get_evaluator_of_device(const char* _device_serial_number);
 
         bool set_found_on_scale(double _x, double _y);
         bool set_found_on_info(double _x, double _y);

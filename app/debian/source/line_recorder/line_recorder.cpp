@@ -268,15 +268,3 @@ bool LineRecorder::select_channel(void) {
 
     return (modified);
 }
-
-Evaluator* LineRecorder::get_evaluator_of_device(const char* _device_serial_number) {
-    for (Evaluator *&evaluator : m.evaluations) {
-        if (evaluator != nullptr)  {
-            const char* device_serial_number = evaluator->get_device_serial_number();
-            if (strncmp(_device_serial_number, device_serial_number, 20) == 0) {
-                return (evaluator);
-            }
-        }
-    }
-    return (nullptr);
-}

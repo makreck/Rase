@@ -110,8 +110,8 @@ class Application {
         static void _onCommand(GtkApplication* gtk, void* callback_parameter);
         void onCommand(CallbackParameter* p);
 
-        static bool _linRecEventCallback(LRFindResult* eventResult, LogWindow* logWindow, void* user_param);
-        bool linRecEventCallback(LRFindResult* eventResult, LogWindow* logWindow);
+        static bool _linRecEventCallback(LRFindResult* eventResult, void* user_param);
+        bool linRecEventCallback(LRFindResult* eventResult);
 
         static app_err_t _sensor_bus_callback(void* _user_param, SensorBusMessageCode _message, void* _arg1, void* _arg2);
         app_err_t sensor_bus_callback(SensorBusMessageCode message, void* arg1, void* arg2);
