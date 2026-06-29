@@ -29,6 +29,7 @@
 
 class SensorBus;
 class Datalogger;
+class SensorWidget;
 
 class SensorQuery : public MicroJsonObject {
     public:
@@ -67,6 +68,7 @@ class SensorConnection {
             int error_count = 0;
             
             Datalogger* datalogger = nullptr;
+            SensorWidget* widget = nullptr;
         } m;
 
         static void* _query_thread(void* _object);
@@ -87,6 +89,7 @@ class SensorConnection {
         const char* get_path(void);
         const ProductID* get_pid(void);
         bool is_equal_device(SensorConnection* _source);
+        bool is_equal_device(const char* _device_serial_number);
 
         std::vector<Scale*>& get_channels(void);
 
@@ -95,4 +98,5 @@ class SensorConnection {
         int query(void);
         void update(void);
         void set_initial_channel_count(int n);
+        GtkWidget* set_widget(SensorWidget* _item = nullptr);
 };

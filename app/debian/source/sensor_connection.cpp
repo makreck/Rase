@@ -63,6 +63,13 @@ bool SensorConnection::is_equal_device(SensorConnection *_source) {
     return (m.pid.is_equal_device(_source->get_pid()));
 }
 
+bool SensorConnection::is_equal_device(const char* _device_serial_number) {
+    if (_device_serial_number == nullptr) {
+        return (false);
+    }
+    return (strncmp(m.pid.device_serial_number, _device_serial_number, 20) == 0);
+}
+
 void SensorConnection::stop_query(void) {
     if (m.query_thread_handle != 0) {
         pthread_cancel(m.query_thread_handle);
@@ -252,4 +259,13 @@ void SensorConnection::store_channel_data(ScaleJson& json_scale) {
     }
     Scale* new_channel = new Scale(sensor_channel);
     m.channels.push_back(new_channel);
+}
+
+GtkWidget* SensorConnection::set_widget(SensorWidget* _item) {
+    if (_item != nullptr) {
+        m.widget = _item;
+        return (m.widget->get_row());
+    }
+    m.widget = nullptr;
+    return (nullptr);
 }
