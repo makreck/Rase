@@ -29,7 +29,7 @@ void RectEx::operator=(const RectEx* _source) {
     if (_source != nullptr) {
         set(_source->x, _source->y, _source->width, _source->height);
     } else {
-        set(0, 0, 0, 0);
+        clr();
     }
 }
 
@@ -69,7 +69,7 @@ void RectEx::set(RectEx* _source) {
     if (_source != nullptr) {
         set(_source->x, _source->y, _source->width, _source->height);
     } else {
-        set(0, 0, 0, 0);
+        clr();
     }
 }
 
@@ -82,7 +82,7 @@ void RectEx::set(double _x, double _y, double _width, double _height) {
 
 void RectEx::set(GtkWidget* _widget) {
     if (_widget == nullptr) {
-        set(0, 0, 1, 1);
+        clr();
     } else {
         set(0, 0, gtk_widget_get_allocated_width(_widget), gtk_widget_get_allocated_height(_widget));
     }
