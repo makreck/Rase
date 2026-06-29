@@ -28,7 +28,6 @@ class SensorWidget {
     private:
         struct {
             SensorConnection* device         = nullptr;
-            LineRecorder*     recorder       = nullptr;
             SidebarWidget*    sidebar_widget = nullptr;
 
             RectEx rc_widget;
@@ -74,7 +73,7 @@ class SensorWidget {
 
         } m;
 
-        void init(SensorConnection* _device, LineRecorder* _recorder);
+        void init(SensorConnection* _device, int _side_bar_number = 0);
         void cleanup(void);
 
         static gboolean _eventHandler_ChannelWidget(GtkWidget* _widget, GdkEvent* _event, gpointer _data);
@@ -98,19 +97,15 @@ class SensorWidget {
         int  update_channel_list(void);
 
     public:
-        SensorWidget(SensorConnection* _device, LineRecorder* _recorder = nullptr) {
-            init(_device, _recorder);
+        SensorWidget(SensorConnection* _device, int _side_bar_number) {
+            init(_device, _side_bar_number);
         }
         
         ~SensorWidget() {
             cleanup();
         }
 
-        void set_sidebar_number(int _number) {
-            if (m.sidebar_widget != nullptr) {
-                m.sidebar_widget->set_sidebar_number(_number);
-            }
-        }
+        void set_sidebar_number(int _side_bar_number);
 
         GtkWidget* get_row()       { return (m.gtk.row);       }
         GtkWidget* get_grid()      { return (m.gtk.grid);      }

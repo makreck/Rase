@@ -24,9 +24,8 @@
 #define MLI_EVENT_TYPE_SIDEBAR (0)
 #define MLI_EVENT_TYPE_CHANNEL (1)
 
-void SensorWidget::init(SensorConnection* _device, LineRecorder* _recorder) {
+void SensorWidget::init(SensorConnection* _device, int _side_bar_number) {
     m.device   = _device;
-    m.recorder = _recorder;
 
     m.rc_widget.clr();
     m.gtk.row = gtk_list_box_row_new();
@@ -39,6 +38,8 @@ void SensorWidget::init(SensorConnection* _device, LineRecorder* _recorder) {
     int sidebar_width_px  = create_sidebar();
     int label_width_px    = create_label();
     int channels_width_px = create_channel_list();
+
+    set_sidebar_number(_side_bar_number);
 
     int widget_cx = sidebar_width_px + (int)std::max(label_width_px, channels_width_px);
     m.rc_widget.set(0, 0, std::max(widget_cx, SENSOR_LIST_ITEM_WIDTH), SENSOR_LIST_ITEM_HEIGHT);
@@ -178,6 +179,12 @@ int SensorWidget::update_channel_list(void) {
 
     int taskbar_width = n * SENSOR_LIST_ITEM_WIDTH;
     return (taskbar_width);
+}
+
+void SensorWidget::set_sidebar_number(int _side_bar_number) {
+    if (m.sidebar_widget != nullptr) {
+        m.sidebar_widget->set_sidebar_number(_side_bar_number);
+    }
 }
 
 bool SensorWidget::processEventTime(uint32_t timeValue) {
