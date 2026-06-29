@@ -41,7 +41,7 @@ enum class LRElementSub {
 
 class LRFindResult {
     private:
-        void init(double _x, double _y);
+        void init(double _x, double _y, LRElementType _type, LRElementSub _sub, LogWindow* _window, RectEx* _rc);
         void cleanup(void);
 
     public:
@@ -50,6 +50,7 @@ class LRFindResult {
             LRElementSub  subtype;
             Evaluator*    device;
             EvalCurve*    node;
+            LogWindow     window;
             PointF        searched_pt;  
             PointF        found_pt;
             RectEx        found_rect;
@@ -59,8 +60,13 @@ class LRFindResult {
             double        delta_px;
         } m;
 
-        LRFindResult(double _x = 0.0, double _y = 0.0) {
-            init(_x, _y);
+        LRFindResult(void) {
+            init(0.0, 0.0, LRElementType::invalid, LRElementSub::standard, nullptr, nullptr);
+        }
+
+        LRFindResult(double _x, double _y,
+            LRElementType _type, LRElementSub _sub, LogWindow* _window, RectEx* _rc) {
+            init(_x, _y, _type, _sub, _window, _rc);
         }
 
         ~LRFindResult() {
@@ -75,10 +81,10 @@ class LRFindResult {
 
         void set(LRFindResult* source);
         void set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px);
-        void set_paper(double _x, double _y, RectEx* _rc_paper);
         void clr(void);
         Scale* get_scale(void);
         const char* get_device_serial_number(void);
+        bool is_type_of(LRElementType _type, LRElementSub _subtype = LRElementSub::standard);
 };
 
 

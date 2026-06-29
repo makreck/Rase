@@ -21,9 +21,17 @@
 
  #include "includes.h"
 
-void LRFindResult::init(double _x, double _y) {
+void LRFindResult::init(double _x, double _y, LRElementType _type, LRElementSub _sub, LogWindow* _window, RectEx* _rc) {
     clr();
+
+    m.type     = _type;
+    m.subtype  = _sub;
+    m.window.set(_window);
+
+    m.timecode = Times::get_now();
     m.searched_pt.set(_x, _y);
+    m.found_rect.set(_rc);
+    m.found_pt.set(_x - m.found_rect.x, _y - m.found_rect.y);
 }
 
 void LRFindResult::cleanup(void) {
@@ -78,16 +86,6 @@ const char* LRFindResult::get_SubTypeName(void) {
     return (LRFindResult::get_SubTypeName(m.subtype));
 }
 
-void LRFindResult::set_paper(double _x, double _y, RectEx* _rc_paper) {
-    m.type     = LRElementType::paper;
-    m.subtype  = LRElementSub::standard;
-    m.timecode = Times::get_now();
-
-    m.searched_pt.set(_x, _y);
-    m.found_rect.set(_rc_paper);
-    m.found_pt.set(_x - _rc_paper->x, _y - _rc_paper->y);
-}
-
 void LRFindResult::set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px) {
     m.subtype  = LRElementSub::curve_point;
     m.device   = _evaluator;
@@ -115,3 +113,8 @@ const char* LRFindResult::get_device_serial_number(void) {
     }
     return ("");
 }
+
+bool LRFindResult::is_type_of(LRElementType _type, LRElementSub _subtype) {
+    return ((m.type == _type) && ((_subtype == LRElementSub::standard) || (m.subtype == _subtype)));
+}
+
