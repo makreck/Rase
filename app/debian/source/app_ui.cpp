@@ -285,19 +285,13 @@ GtkWidget* Application::display_createDevicelist(void) {
     return (frame);
 }
 
-bool Application::_linRecEventCallback(LRFindResult* eventResult, LogWindow* logWindow, void* user_param) {
-    if ((eventResult != nullptr) && (logWindow != nullptr) && (user_param != nullptr)) {
-        return (APP_PTR(user_param)->linRecEventCallback(eventResult, logWindow));
-    }
-    return (false);
-}
-bool Application::linRecEventCallback(LRFindResult* eventResult, LogWindow* logWindow) {
-// @todo: Handle line recorder events...
-    return (true);
-}
-
 void Application::buildDeviceListWidget(void) {
     std::vector<SensorConnection*> device_list = m.bus->aquire_device_list();
+    for (SensorConnection*& sc : device_list) {
+        if (sc != nullptr) {
+            sc->set_widget();
+        }
+    }
 
     if (m.gtk.devList != nullptr) {
         gtk_container_remove(GTK_CONTAINER(m.gtk.frame_dev), GTK_WIDGET(m.gtk.devList));
@@ -312,9 +306,8 @@ void Application::buildDeviceListWidget(void) {
     int row_index = 0;
     for (SensorConnection*& sc : device_list) {
         if (sc != nullptr) {
-            SensorWidget* list_item = new SensorWidget(sc, m.lineRecorder);
-            list_item->set_sidebar_number(row_index + 1);
-            gtk_list_box_insert(GTK_LIST_BOX(m.gtk.devList), list_item->get_row(), row_index++);
+            gtk_list_box_insert(GTK_LIST_BOX(m.gtk.devList),
+                sc->set_widget(new SensorWidget(sc, row_index + 1)), row_index++);
         }
     }
 
@@ -396,4 +389,40 @@ void Application::post_function_task(int64_t _value, void* _data, size_t _size) 
         default: {
         } break;
     }
+}
+
+bool Application::_linRecEventCallback(LRFindResult* eventResult, void* user_param) {
+    if ((eventResult != nullptr) && (user_param != nullptr)) {
+        return (APP_PTR(user_param)->linRecEventCallback(eventResult));
+    }
+    return (false);
+}
+bool Application::linRecEventCallback(LRFindResult* eventResult) {
+    if (eventResult != nullptr) {
+        std::string device_serial_number;
+        int slot = -1;
+        if (eventResult->m.node != nullptr) {
+            slot = eventResult->m.node->get_slot();
+            device_serial_number = eventResult->m.node->get_device_serial_number();
+        }
+
+        if (eventResult->is_type_of(LRElementType::paper, LRElementSub::curve_point)) {
+
+            std::vector<SensorConnection*> device_list = m.bus->aquire_device_list();
+            for (SensorConnection*& sc : device_list) {
+                if (sc != nullptr) {
+                    if (sc->is_equal_device(device_serial_number.c_str())) {
+printf("Line recorder event: dev: <%s, %s>, slot #%d\n", sc->get_pid()->device_serial_number, device_serial_number.c_str(), slot + 1); // ****
+                        break;
+                    }
+                }
+            }
+            m.bus->release_device_list();
+
+        }
+    }
+
+
+
+    return (true);
 }
