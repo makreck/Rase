@@ -52,7 +52,7 @@ class Evaluator {
 
         void delete_curves(std::vector<EvalCurve*>& _curves);
         bool create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, LogWindow& _window, bool _vertical);
-        void draw_curves(cairo_t* _cr, RectEx& _rect, std::vector<EvalCurve*> _curves);
+        void draw_curves(cairo_t* _cr, RectEx& _rect, ColorRef _paper_color, std::vector<EvalCurve*> _curves);
 
         std::vector<EvalCurve*> get_displayed_curves(void);
 

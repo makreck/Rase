@@ -102,10 +102,10 @@ std::vector<EvalCurve*> Evaluator::get_displayed_curves(void) {
     return (m.displayed_curves);
 }
 
-void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, std::vector<EvalCurve*> _curves) {
+void Evaluator::draw_curves(cairo_t* _cr, RectEx& _rect, ColorRef _paper_color, std::vector<EvalCurve*> _curves) {
     for (EvalCurve *&curve : _curves) {
         if (curve != nullptr) {
-            curve->draw(_cr, _rect, false);
+            curve->draw(_cr, _rect, _paper_color, false);
         }
     }
 
