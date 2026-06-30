@@ -422,7 +422,5 @@ printf("Line recorder event: dev: <%s, %s>, slot #%d\n", sc->get_pid()->device_s
         }
     }
 
-
-
     return (true);
 }

@@ -318,11 +318,6 @@ bool LineRecorder::set_found_on_paper(double _x, double _y) {
         }
     }
 
-// ****
-if (result.m.node != nullptr) {
-    printf("Found: <%s>\n", result.m.node->get_device_serial_number());
-} // ****
-
     m.event_result.set(&result);
     return (true);
 }
