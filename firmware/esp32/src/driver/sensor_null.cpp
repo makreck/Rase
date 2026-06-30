@@ -25,12 +25,12 @@
 //#define DISPLAY_STATE
 
 const SensorProperty SensorNull::null_properties[] = {
-    { "sim_1", "Simulation #1", "X1", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#ff0000", 1001 },
-    { "sim_2", "Simulation #2", "X2", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#24d800", 1002 },
+    { "sim_1", "Simulation #1", "X1", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#bb6a00", 1001 },
+    { "sim_2", "Simulation #2", "X2", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#126e00", 1002 },
     { "sim_3", "Simulation #3", "X3", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#0011ff", 1003 },
-    { "sim_4", "Simulation #4", "X4", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#d9ff00", 1004 },
-    { "sim_5", "Simulation #5", "X5", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#ff00bf", 1005 },
-    { "sim_6", "Simulation #6", "X6", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#7700ff", 1006 },
+    { "sim_4", "Simulation #4", "X4", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#7e9400", 1004 },
+    { "sim_5", "Simulation #5", "X5", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#7f008b", 1005 },
+    { "sim_6", "Simulation #6", "X6", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#2a0481", 1006 },
 };
 
 const SensorProperty* SensorNull::get_properties(void) {
