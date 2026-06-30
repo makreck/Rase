@@ -228,7 +228,7 @@ void LineRecorder::update_segment(void) {
 
     // Scale dividers
     cairo_set_line_width(cr, 0.5);
-    for (ScaleStep& step : m.scale_steps) {
+    for (ScaleStep& step : m.select.scale_steps) {
         if (step.f_main_divider == 1) {
             cairo_stroke(cr);
             _cairo_set_source_rgb(cr, m.color.gridMain);
@@ -354,13 +354,18 @@ void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& re
 }
 
 void LineRecorder::draw_scale(cairo_t* cr) {
-    ScaleDrawing* scale = (ScaleDrawing*)&m.default_scale;
+    ScaleDrawing* scale = (ScaleDrawing*)&m.select.scale;
+
+    EvalCurve* curve = get_curve(m.select.key.c_str());
+    if (curve != nullptr) {
+        scale->set_value(curve->get_value_at_timecode(m.window.time.end));
+    }
 
     ColorRef color_pointer = ScaleDrawing::check_color_on_background(scale->get_color_ref(), m.color.scaleBkg);
 
     scale->draw(ScaleLayout::normal_horizontal, ScalePointerType::pointer,
         cr, &m.rc.scaleBox, &m.rc.scale, m.color.scaleBkg, m.color.scaleText,
-        color_pointer, m.select.headline.c_str(), m.scale_steps);
+        color_pointer, m.select.key.c_str(), m.select.scale_steps);
 
     update_segment();
 
