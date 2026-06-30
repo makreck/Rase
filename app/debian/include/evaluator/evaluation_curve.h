@@ -85,6 +85,7 @@ class EvalCurve {
         Scale* get_scale(void);
         ProductID* get_product_id(void);
         const char* get_device_serial_number(void);
+        const char* get_node_key(void);
         double get_timecode(int _index);
         float get_value(int _index);
         float get_first_value(void);
@@ -101,5 +102,4 @@ class EvalCurve {
         bool set_end(int _index, bool state = true);
         bool set_symbol(int _index, uint8_t _symbol = 0x00);
         bool clean_curve(void);
-
 };

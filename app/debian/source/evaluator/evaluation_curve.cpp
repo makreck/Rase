@@ -168,6 +168,10 @@ const char* EvalCurve::get_device_serial_number(void) {
     return (product_id.device_serial_number);
 }
 
+const char* EvalCurve::get_node_key(void) {
+    return (scale.get_key());
+}
+
 void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
     const double stopper_dashes[2] = { 8.0, 4.0 };
 
