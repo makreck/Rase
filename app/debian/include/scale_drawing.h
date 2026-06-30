@@ -69,6 +69,8 @@ class ScaleDrawing : public Scale {
             ColorRef color_background, ColorRef color_foreground, ColorRef color_pointer, const char* headline, std::vector<ScaleStep> &dividers);
 
     public:
+        static ColorRef check_color_on_background(ColorRef _color_pointer, ColorRef _color_background);
+
         void draw(ScaleLayout layout, ScalePointerType type, cairo_t* cr, RectEx *rc_area, RectEx *rc_scale,
             ColorRef color_background, ColorRef color_foreground, ColorRef color_pointer, const char *headline, std::vector<ScaleStep> &dividers);
 

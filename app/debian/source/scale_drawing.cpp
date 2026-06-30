@@ -421,3 +421,20 @@ void ScaleDrawing::clr_update_request(void) {
     set_update_request(false);
 }
 
+ColorRef ScaleDrawing::check_color_on_background(ColorRef _color_pointer, ColorRef _color_background) {
+    ColorRGBA cptr(_color_pointer);
+    float cptr_brightness = cptr.get_brightness();
+
+    ColorRGBA cbkg(_color_background);
+    float cbkg_brightness = cbkg.get_brightness();
+    
+    if (fabsf(cptr_brightness - cbkg_brightness) < 0.4f) {
+        if (cbkg_brightness > 0.66f) {
+            _color_pointer = cptr.mul(0.66f);
+        } else {
+            _color_pointer = cptr.mul(1.25f);
+        }
+    }
+
+    return (_color_pointer);
+}
