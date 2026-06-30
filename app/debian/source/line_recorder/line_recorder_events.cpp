@@ -83,13 +83,6 @@ bool LineRecorder::process_mouse_clicks(void) {
         }
     } else if ((m.fLeftBtnDown == 1) && (m.fDoubleClick == 1)) {
         if (m.event_result.m.type == LRElementType::scale) {
-
-            if (m.select.node != nullptr) {
-                m.default_scale.set(m.select.node->get_scale());
-            } else {
-                m.default_scale.reset();    
-            }
-
             init_times();
         }
         resume_autoscroll();
@@ -257,14 +250,14 @@ bool LineRecorder::end_mouse_zoom(void) {
     double time_range  = (double)m.rc_zoom.height * time_factor;
     double time_begin  = time_end - time_range;
 
-    double zoom_begin  = m.default_scale.get_zoom_begin();
-    double zoom_range  = m.default_scale.get_zoom_range();
+    double zoom_begin  = m.select.scale.get_zoom_begin();
+    double zoom_range  = m.select.scale.get_zoom_range();
     double level_begin = ((double)(m.rc_zoom.x - m.rc.paper.x) / (double)m.rc.paper.width) * zoom_range + zoom_begin;
     double level_end   = ((double)m.rc_zoom.width * zoom_range / (double)m.rc.paper.width) + level_begin;
     
     m.window.time.set(time_begin, time_end);
     m.window.level.set(level_begin, level_end);
-    m.default_scale.set_zoom_window(level_begin, level_end);
+    m.select.scale.set_zoom_window(level_begin, level_end);
 
     return (true);
 }
