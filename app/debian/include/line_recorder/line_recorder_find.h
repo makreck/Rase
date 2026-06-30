@@ -48,13 +48,12 @@ class LRFindResult {
         struct {
             LRElementType type;
             LRElementSub  subtype;
-            Evaluator*    device;
-            EvalCurve*    node;
             LogWindow     window;
             PointF        searched_pt;  
             PointF        found_pt;
             RectEx        found_rect;
             RectEx        found_sub;
+            char          key[256];
             double        timecode;
             double        value;
             double        delta_px;
@@ -82,8 +81,7 @@ class LRFindResult {
         void set(LRFindResult* source);
         void set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px);
         void clr(void);
-        Scale* get_scale(void);
-        const char* get_device_serial_number(void);
+        const char* get_key(void);
         bool is_type_of(LRElementType _type, LRElementSub _subtype = LRElementSub::standard);
 };
 

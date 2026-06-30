@@ -28,9 +28,8 @@ void LRFindResult::init(double _x, double _y, LRElementType _type, LRElementSub 
     m.subtype  = _sub;
     m.window.set(_window);
 
-    m.timecode = Times::get_now();
-    m.searched_pt.set(_x, _y);
     m.found_rect.set(_rc);
+    m.searched_pt.set(_x, _y);
     m.found_pt.set(_x - m.found_rect.x, _y - m.found_rect.y);
 }
 
@@ -44,12 +43,24 @@ void LRFindResult::set(LRFindResult *source) {
 }
 
 void LRFindResult::clr(void) {
-    memset(&m, 0, sizeof(m));
+
+    m.type     = LRElementType::invalid;
+    m.subtype  = LRElementSub::standard;
+    m.timecode = Times::get_now();
+    m.value    = 0.0;
+
+    m.window.time.begin  = m.timecode - TC_MINUTE;
+    m.window.time.end    = m.timecode;
+    m.window.level.begin = 0.0;
+    m.window.level.end   = 1.0;
+
     m.searched_pt.set(-1.0, -1.0);
     m.found_pt.set(-1.0, -1.0);
-    m.type = LRElementType::invalid;
-    m.subtype = LRElementSub::standard;
+    m.found_rect.clr();
+    m.found_sub.clr();
     m.delta_px = -1.0;
+
+    memset(m.key, 0, sizeof (m.key));
 }
 
 const char* LRFindResult::get_TypeName(LRElementType _type) {
@@ -88,37 +99,22 @@ const char* LRFindResult::get_SubTypeName(void) {
 
 void LRFindResult::set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int _pt_index, PointF* _pt, double _delta_px) {
     m.subtype  = LRElementSub::curve_point;
-    m.device   = _evaluator;
-    m.node     = _curve;
-
+    m.delta_px = _delta_px;
     m.timecode = _curve->get_timecode(_pt_index);
     m.value    = _curve->get_value(_pt_index);
-    m.delta_px = _delta_px;
+
+    memset(m.key, 0, sizeof (m.key));
+    snprintf(m.key, sizeof (m.key) - 1, "%s/%s", _evaluator->get_device_serial_number(), _curve->get_scale()->get_key());
 
     m.found_pt.set(_pt);
     double selecting_range = std::max(4.0, std::min(LR_CAPTURE_THRESHOLD_PX, _delta_px));
     m.found_sub.set(_pt->x - selecting_range, _pt->y - selecting_range, selecting_range * 2.0, selecting_range * 2.0);
 }
 
-Scale* LRFindResult::get_scale(void) {
-    if (m.node != nullptr) {
-        Scale* scale = m.node->get_scale();
-        if (scale != nullptr) {
-            scale->set_value(m.node->get_value_at_timecode(m.window.time.end));
-            return (scale);
-        }
-    }
-    return (nullptr);
-}
-
-const char* LRFindResult::get_device_serial_number(void) {
-    if (m.device != nullptr) {
-        return (m.device->get_device_serial_number());
-    }
-    return ("");
+const char* LRFindResult::get_key(void) {
+    return (m.key);
 }
 
 bool LRFindResult::is_type_of(LRElementType _type, LRElementSub _subtype) {
     return ((m.type == _type) && ((_subtype == LRElementSub::standard) || (m.subtype == _subtype)));
 }
-
