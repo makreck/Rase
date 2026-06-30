@@ -102,7 +102,11 @@ void LRFindResult::set_curve_point(Evaluator* _evaluator, EvalCurve* _curve, int
 
 Scale* LRFindResult::get_scale(void) {
     if (m.node != nullptr) {
-        return (m.node->get_scale());
+        Scale* scale = m.node->get_scale();
+        if (scale != nullptr) {
+            scale->set_value(m.node->get_value_at_timecode(m.window.time.end));
+            return (scale);
+        }
     }
     return (nullptr);
 }
