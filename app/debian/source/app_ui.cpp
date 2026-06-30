@@ -399,26 +399,8 @@ bool Application::_linRecEventCallback(LRFindResult* eventResult, void* user_par
 }
 bool Application::linRecEventCallback(LRFindResult* eventResult) {
     if (eventResult != nullptr) {
-        std::string device_serial_number;
-        int slot = -1;
-        if (eventResult->m.node != nullptr) {
-            slot = eventResult->m.node->get_slot();
-            device_serial_number = eventResult->m.node->get_device_serial_number();
-        }
-
         if (eventResult->is_type_of(LRElementType::paper, LRElementSub::curve_point)) {
-
-            std::vector<SensorConnection*> device_list = m.bus->aquire_device_list();
-            for (SensorConnection*& sc : device_list) {
-                if (sc != nullptr) {
-                    if (sc->is_equal_device(device_serial_number.c_str())) {
-printf("Line recorder event: dev: <%s, %s>, slot #%d\n", sc->get_pid()->device_serial_number, device_serial_number.c_str(), slot + 1); // ****
-                        break;
-                    }
-                }
-            }
-            m.bus->release_device_list();
-
+printf("Line recorder event: <%s>\n", eventResult->get_key()); // ****
         }
     }
 
