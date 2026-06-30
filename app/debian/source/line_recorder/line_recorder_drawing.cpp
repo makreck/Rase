@@ -251,7 +251,7 @@ void LineRecorder::draw_channels(cairo_t* cr) {
     for (Evaluator*& evaluator : m.evaluations) {
         std::vector<EvalCurve*> curves;
         if (evaluator->create_curves(curves, cr, m.window, true)) {
-            evaluator->draw_curves(cr, m.rc.paper, curves);
+            evaluator->draw_curves(cr, m.rc.paper, m.color.paper, curves);
         }
     }
 
@@ -356,9 +356,11 @@ void LineRecorder::draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& re
 void LineRecorder::draw_scale(cairo_t* cr) {
     ScaleDrawing* scale = (ScaleDrawing*)&m.default_scale;
 
+    ColorRef color_pointer = ScaleDrawing::check_color_on_background(scale->get_color_ref(), m.color.scaleBkg);
+
     scale->draw(ScaleLayout::normal_horizontal, ScalePointerType::pointer,
         cr, &m.rc.scaleBox, &m.rc.scale, m.color.scaleBkg, m.color.scaleText,
-        scale->get_format()->get_color_ref(), m.select.headline.c_str(), m.scale_steps);
+        color_pointer, m.select.headline.c_str(), m.scale_steps);
 
     update_segment();
 
