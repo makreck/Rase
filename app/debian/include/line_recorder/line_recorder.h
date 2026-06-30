@@ -60,15 +60,6 @@ class LineRecorder {
             GtkWidget* area = nullptr;
             cairo_surface_t* surface = nullptr;
 
-            Scale default_scale;
-            std::vector<ScaleStep> scale_steps;
-
-            struct {
-                Evaluator* device = nullptr;
-                EvalCurve* node   = nullptr;
-                std::string headline;
-            } select;
-
             std::vector<Evaluator*> evaluations;
 
             cairo_surface_t* segment = nullptr; 
@@ -76,8 +67,14 @@ class LineRecorder {
             double update_speed_s = 0.050;
             LogWindow window;
 
-            float event_time_s = 0.0f;
+            struct {
+                Scale scale;
+                std::vector<ScaleStep> scale_steps;
+                std::string key;
+            } select;
+
             LRFindResult event_result;
+            float event_time_s = 0.0f;
             uint32_t event_timestamp_ms = 0;
             PointF pt_event;
             PointF pt_current;
@@ -245,6 +242,8 @@ class LineRecorder {
         void draw_control_helpers(cairo_t* cr);
         void draw_selection_info(cairo_t *cr, RectEx& rc, LRFindResult& result);
         void draw_info_section(cairo_t* cr, int x, int y, int& max_x, const char* hint, const char* part1, const char* part2, const char* part3);
+        
+        EvalCurve* get_curve(const char* _key = nullptr);
 
     public:
         LineRecorder(LREventCallback _callbackProc, void* _user_param) {

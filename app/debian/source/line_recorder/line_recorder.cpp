@@ -26,7 +26,7 @@ void LineRecorder::init(LREventCallback callback_proc, void* user_param) {
     init_colors();
     init_times();
 
-    m.default_scale.set_defaults();
+    m.select.scale.set_defaults();
     init_drawing_area();
 
     pthread_create(&m.update_thread_handle, nullptr, LineRecorder::_update_thread, this);
@@ -247,24 +247,44 @@ bool LineRecorder::add_evaluation(const char* _path) {
     return (true);
 }
 
+EvalCurve* LineRecorder::get_curve(const char* _key) {
+    if (_key == nullptr) {
+        _key = m.select.key.c_str();
+    }
+
+    char key[256]{ 0 };
+    strncpy(key, _key, sizeof (key) - 1);
+    char* device_key = key;
+    char* node_key = strstr(key, "/");
+    if (node_key != nullptr) {
+        *node_key++ = '\0';
+    }
+
+    for (Evaluator*& evaluator : m.evaluations) {
+        if (evaluator != nullptr) {
+            if (strcmp(evaluator->get_device_serial_number(), device_key) == 0) {
+                for (EvalCurve*& curve : evaluator->get_displayed_curves()) {
+                    if (curve != nullptr) {
+                        if (strcmp(curve->get_node_key(), node_key) == 0) {
+                            return (curve);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return (nullptr);
+}
+
 bool LineRecorder::select_channel(void) {
-    bool modified = false;
-
     if (m.event_result.m.subtype == LRElementSub::curve_point) {
-        Scale* scale = m.event_result.get_scale();
-        
-        modified = (m.select.device != m.event_result.m.device) ||
-            (strcmp(m.default_scale.get_key(), scale->get_key()) != 0);
-
-        m.default_scale.set(scale);
-        m.select.device  = m.event_result.m.device;
-        m.select.node    = m.event_result.m.node;
-        if (m.select.device != nullptr) {
-            m.select.headline = m.select.device->get_device_serial_number();
-        } else {
-            m.select.headline = "";
+        EvalCurve* curve = get_curve(m.event_result.m.key);
+        if (curve != nullptr) {
+            m.select.key = m.event_result.m.key;
+            m.select.scale.set(curve->get_scale());
+            m.select.scale.set_value(curve->get_value_at_timecode(m.window.time.end));
         }
     }
 
-    return (modified);
+    return (true);
 }
