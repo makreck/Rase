@@ -184,10 +184,11 @@ void EvalCurve::draw_stopper(cairo_t *_cr, RectEx& rc, double y) {
     cairo_restore(_cr);
 }
 
-void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, bool _foreground_curve) {
+void EvalCurve::draw(cairo_t *_cr, RectEx& _rc, ColorRef _paper_color, bool _foreground_curve) {
     if (data != nullptr) {
         if (length > 0) {
             ColorRef color = scale.get_color_ref();
+            color = ScaleDrawing::check_color_on_background(color, _paper_color);
             float red   = CR_R(color);
             float green = CR_G(color);
             float blue  = CR_B(color);

@@ -77,7 +77,7 @@ class EvalCurve {
 
         void init(size_t _length, int _slot, ProductID* _product_id, Scale* _scale);
         void cleanup(void);
-        void draw(cairo_t* _cr, RectEx& _rc, bool _foreground_curve = false);
+        void draw(cairo_t* _cr, RectEx& _rc, ColorRef _paper_color, bool _foreground_curve = false);
         void draw_stopper(cairo_t *_cr, RectEx& _rc, double y);
         int  get_slot(void);
         size_t get_length(void);
