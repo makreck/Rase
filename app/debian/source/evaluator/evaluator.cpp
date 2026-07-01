@@ -207,3 +207,25 @@ bool Evaluator::create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, Lo
 
     return (true);
 }
+
+bool Evaluator::parse_key(const char* _key, std::string& _device_key, std::string& _node_key) {
+    if (_key == nullptr) {
+        _device_key = "";
+        _node_key = "";
+        return (false);
+    }
+
+    char key[256]{ 0 };
+    strncpy(key, _key, sizeof (key) - 1);
+    char* device_key = key;
+    char* node_key = strstr(key, "/");
+    if (node_key != nullptr) {
+        *node_key++ = '\0';
+        _node_key = node_key;
+    } else {
+        _node_key = "";
+    } 
+
+    _device_key = device_key;
+    return ((_device_key.length() > 0) && (_node_key.length() > 0));
+}
