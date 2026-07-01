@@ -269,3 +269,21 @@ GtkWidget* SensorConnection::set_widget(SensorWidget* _item) {
     m.widget = nullptr;
     return (nullptr);
 }
+
+SensorWidget* SensorConnection::get_widget(void) {
+    return (m.widget);
+}
+
+int SensorConnection::get_slot(const char* _node_key) {
+    if (_node_key != nullptr) {
+        for (int i = 0; i < m.channels.size(); i++) {
+            Scale* node = m.channels[i];
+            if (node != nullptr) {
+                if (strcmp(node->get_key(), _node_key) == 0) {
+                    return (i);
+                }
+            }
+        }
+    }
+    return (-1);    
+}

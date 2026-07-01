@@ -99,4 +99,6 @@ class SensorConnection {
         void update(void);
         void set_initial_channel_count(int n);
         GtkWidget* set_widget(SensorWidget* _item = nullptr);
+        SensorWidget* get_widget(void);
+        int get_slot(const char* _node_key);
 };
