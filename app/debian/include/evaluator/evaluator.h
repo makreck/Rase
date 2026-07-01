@@ -50,6 +50,8 @@ class Evaluator {
             cleanup();
         }
 
+        static bool parse_key(const char* _key, std::string& _device_key, std::string& _node_key);
+
         void delete_curves(std::vector<EvalCurve*>& _curves);
         bool create_curves(std::vector<EvalCurve*>& _curves, cairo_t* _cr, LogWindow& _window, bool _vertical);
         void draw_curves(cairo_t* _cr, RectEx& _rect, ColorRef _paper_color, std::vector<EvalCurve*> _curves);
