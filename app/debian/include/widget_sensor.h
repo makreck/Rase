@@ -85,12 +85,11 @@ class SensorWidget {
         void handleEnterLeave(int _type, ChannelWidget* _holder, GdkEventCrossing* _event);
         void handleMouseMoveEvent(int _type, ChannelWidget* _holder, GdkEventMotion* _motion_event);
         void processEventState(guint state);
-        void select_all_channels(bool _hilighted, bool _selected, uint8_t _flags = 0x03);
         bool processEventTime(uint32_t timeValue);
         bool processMouseClicks(int type, void* holder);
         bool processKeyStates(GdkEventButton* btnEvent);
         bool handleButtonRelease(void);
-        bool selectChannel(ChannelWidget* holder);
+        bool select_channel(ChannelWidget* holder);
         int  create_label(void);
         int  create_sidebar(void);
         int  create_channel_list(void);
@@ -106,6 +105,7 @@ class SensorWidget {
         }
 
         void set_sidebar_number(int _side_bar_number);
+        void select_channels(int index, bool _hilighted, bool _selected, uint8_t _flags = 0x03);
 
         GtkWidget* get_row()       { return (m.gtk.row);       }
         GtkWidget* get_grid()      { return (m.gtk.grid);      }

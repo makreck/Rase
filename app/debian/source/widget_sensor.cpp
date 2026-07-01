@@ -25,7 +25,7 @@
 #define MLI_EVENT_TYPE_CHANNEL (1)
 
 void SensorWidget::init(SensorConnection* _device, int _side_bar_number) {
-    m.device   = _device;
+    m.device = _device;
 
     m.rc_widget.clr();
     m.gtk.row = gtk_list_box_row_new();
@@ -103,14 +103,14 @@ void SensorWidget::handleScrollEvent(GdkEventScroll* _scroll_event) {
 
 void SensorWidget::handleEnterLeave(int _type, ChannelWidget* _holder, GdkEventCrossing* _event) {
     m.currentPt.set(_event->x, _event->y);
-    select_all_channels(false, false, 0x01);
+    select_channels(-1, false, false, 0x01);
 }
 
 void SensorWidget::handleMouseMoveEvent(int _type, ChannelWidget* _holder, GdkEventMotion* _motion_event) {
     float eventTime_s = std::min(1.0f, std::max(0.0f, (float)(_motion_event->time - m.eventTimeStamp_ms) / 1000.0f));
     m.currentPt.set(_motion_event->x, _motion_event->y);
     if (_type == MLI_EVENT_TYPE_CHANNEL) {
-        select_all_channels(false, false, 0x01);
+        select_channels(-1, false, false, 0x01);
         if (_holder != nullptr) {
             _holder->set_state(true, false, 0x01);
         }
@@ -202,7 +202,7 @@ bool SensorWidget::processMouseClicks(int _type, void* _holder) {
     if ((m.event.group.fAuxKeyDown == 0) && (m.event.group.fMultiClick == 0) && (m.eventTime_s > 0.5f)) {
         if (m.event.flag.fLeftBtnDown == 1) {
             if (_type == MLI_EVENT_TYPE_CHANNEL) {
-                mustUpdate |= selectChannel((ChannelWidget*)_holder);
+                mustUpdate |= select_channel((ChannelWidget*)_holder);
             }
         } else if (m.event.flag.fRightBtnDown == 1) {
 
@@ -216,18 +216,21 @@ bool SensorWidget::processMouseClicks(int _type, void* _holder) {
     return (mustUpdate);
 }
 
-void SensorWidget::select_all_channels(bool _hilighted, bool _selected, uint8_t _flags) {
+void SensorWidget::select_channels(int index, bool _hilighted, bool _selected, uint8_t _flags) {
     std::vector<Scale*> channels = m.device->get_channels();
-    for (Scale*& channel : channels) {
-        ChannelWidget* widget = (ChannelWidget*)channel->get_userdata();
-        if (widget != nullptr) {
-            widget->set_state(_hilighted, _selected, _flags);
+    for (int i = 0; i < channels.size(); i++) {
+        if ((index == i) || (index == -1)) {
+            Scale* channel = channels[i];
+            ChannelWidget* widget = (ChannelWidget*)channel->get_userdata();
+            if (widget != nullptr) {
+                widget->set_state(_hilighted, _selected, _flags);
+            }
         }
     }
 }
 
-bool SensorWidget::selectChannel(ChannelWidget* _holder) {
-    select_all_channels(false, false, 0x02);
+bool SensorWidget::select_channel(ChannelWidget* _holder) {
+    select_channels(-1, false, false, 0x02);
 
     if (_holder != nullptr) {
         _holder->set_state(false, true, 0x02);
