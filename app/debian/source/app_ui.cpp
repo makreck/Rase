@@ -400,9 +400,28 @@ bool Application::_linRecEventCallback(LRFindResult* eventResult, void* user_par
 bool Application::linRecEventCallback(LRFindResult* eventResult) {
     if (eventResult != nullptr) {
         if (eventResult->is_type_of(LRElementType::paper, LRElementSub::curve_point)) {
-printf("Line recorder event: <%s>\n", eventResult->get_key()); // ****
+            select_node(eventResult->get_key());
         }
     }
 
+    return (true);
+}
+
+bool Application::select_node(const char* _key) {
+    std::string device_key;
+    std::string node_key;
+    if (Evaluator::parse_key(_key, device_key, node_key)) {
+        std::vector<SensorConnection*> device_list = m.bus->aquire_device_list();
+        for (SensorConnection *&sc : device_list) {
+            if (sc != nullptr) {
+                sc->get_widget()->select_channels(-1, false, false);
+                if (device_key == sc->get_pid()->device_serial_number) {
+                    int slot = sc->get_slot(node_key.c_str());
+                    sc->get_widget()->select_channels(slot, false, true);
+                }
+            }
+        }
+        m.bus->release_device_list();
+    }
     return (true);
 }

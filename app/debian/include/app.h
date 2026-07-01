@@ -140,7 +140,7 @@ class Application {
         GtkToolbar* create_toolbar(int iconSize_px, const ToolbarItems* itemList, size_t itemListSize, const char** stringList, size_t stringListSize, GCallback cb, void* parameter);
 
         void onMoveOrSize(int x, int y, int width, int height);
-
+        bool select_node(const char* _key);
 
     public:
         Application(int argc, char* argv[]) {
