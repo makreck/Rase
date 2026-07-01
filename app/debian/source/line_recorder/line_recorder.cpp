@@ -252,27 +252,24 @@ EvalCurve* LineRecorder::get_curve(const char* _key) {
         _key = m.select.key.c_str();
     }
 
-    char key[256]{ 0 };
-    strncpy(key, _key, sizeof (key) - 1);
-    char* device_key = key;
-    char* node_key = strstr(key, "/");
-    if (node_key != nullptr) {
-        *node_key++ = '\0';
-    }
-
-    for (Evaluator*& evaluator : m.evaluations) {
-        if (evaluator != nullptr) {
-            if (strcmp(evaluator->get_device_serial_number(), device_key) == 0) {
-                for (EvalCurve*& curve : evaluator->get_displayed_curves()) {
-                    if (curve != nullptr) {
-                        if (strcmp(curve->get_node_key(), node_key) == 0) {
-                            return (curve);
+    std::string device_key;
+    std::string node_key;
+    if (Evaluator::parse_key(_key, device_key, node_key)) {
+        for (Evaluator*& evaluator : m.evaluations) {
+            if (evaluator != nullptr) {
+                if (device_key == evaluator->get_device_serial_number()) {
+                    for (EvalCurve*& curve : evaluator->get_displayed_curves()) {
+                        if (curve != nullptr) {
+                            if (node_key == curve->get_node_key()) {
+                                return (curve);
+                            }
                         }
                     }
                 }
             }
         }
     }
+
     return (nullptr);
 }
 
