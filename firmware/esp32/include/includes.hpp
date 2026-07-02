@@ -111,6 +111,8 @@
 #include <freertos/event_groups.h>
 #include <freertos/queue.h>
 
+#include <mqtt_client.h>
+
 #include <cJSON.h>
 
 #define TAG "-------> RASE ------->"
