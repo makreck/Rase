@@ -54,8 +54,9 @@ class ConfigInterface {
         char rx_buffer[RX_BUFFER_SIZE];
         char tx_buffer[TX_BUFFER_SIZE];
 
-        static void extract_link_pwd(const char* _data, size_t _length, const char* _key, char* _link, size_t _len_link, char* _password, size_t _len_password);
-        
+        static void extract_link_pwd(const char* _data, size_t _length, const char* _key,
+            char* _link, size_t _len_link, char* _username, size_t _len_username, char* _password, size_t _len_password);
+
         static void _communication_handler(void *pvParameters);
         void communication_handler(void);
 

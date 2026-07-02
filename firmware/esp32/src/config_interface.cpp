@@ -102,7 +102,7 @@ void ConfigInterface::handle_wifi_setup(ConfigInterface* instance, int mode, con
 
     char ssid[32]{ 0 };
     char pwd[64]{ 0 };
-    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_WIFI_SETUP, ssid, sizeof (ssid), pwd, sizeof (pwd));
+    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_WIFI_SETUP, ssid, sizeof (ssid), nullptr, 0, pwd, sizeof (pwd));
 
     cfg->set_ssid(ssid);
     cfg->set_password(pwd);
@@ -153,6 +153,15 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
 // @TODO: Reveive device configuration JSON string.
     const char* msg = "Still under construction!\n";
     send(msg, strlen(msg));
+
+// **** For testing only:
+App* app = instance->app;
+SysConfig* cfg = app->get_config();
+if (cfg != nullptr) {
+    cfg->print_parms("/config");
+}
+// ****
+
 }
 
 void ConfigInterface::process_command(const char* data, size_t length) {
@@ -174,10 +183,13 @@ void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, co
     }
 
     char broker[64]{ 0 };
+    char username[32]{ 0 };
     char pwd[64]{ 0 };
-    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_MQTT_BROKER, broker, sizeof (broker), pwd, sizeof (pwd));
+    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_MQTT_BROKER,
+        broker, sizeof (broker), username, sizeof (username), pwd, sizeof (pwd));
 
     cfg->set_mqtt_broker(broker);
+    cfg->set_mqtt_username(username);
     cfg->set_mqtt_password(pwd);
 #ifdef DISPLAY_STATE        
     cfg->print_parms("Config response");
@@ -186,7 +198,9 @@ void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, co
     esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
 }
 
-void ConfigInterface::extract_link_pwd(const char* _data, size_t _length, const char* _key, char* _link, size_t _len_link, char* _password, size_t _len_password) {
+void ConfigInterface::extract_link_pwd(const char* _data, size_t _length, const char* _key,
+    char* _link, size_t _len_link, char* _username, size_t _len_username, char* _password, size_t _len_password) {
+
     char buffer[256]{ 0 };
     _length = MIN(sizeof (buffer) - 1, _length);
     memcpy(buffer, _data, _length);
@@ -198,11 +212,31 @@ void ConfigInterface::extract_link_pwd(const char* _data, size_t _length, const 
         char* p2 = strstr(p1, ":");
         if (p2 != nullptr) {
             *p2++ = 0;
-            if ((_password != nullptr) && (_len_password > 1)) {
-                memset(_password, 0, _len_password);
-                strncpy(_password, p2, _len_password - 1);
+
+            char* user = nullptr;
+            char* pwd  = nullptr;
+
+            char* p3 = strstr(p2, ":");
+            if (p3 == nullptr) {
+                pwd = p2;
+            } else {
+                *p3++ = '\0';
+                user = p2;
+                pwd  = p3;
+            }           
+
+            if ((user != nullptr) && (_username != nullptr) && (_len_username > 1)) {
+                memset(_username, 0, _len_username);
+                strncpy(_username, user, _len_username - 1);
             }
+
+            if ((pwd != nullptr) && (_password != nullptr) && (_len_password > 1)) {
+                memset(_password, 0, _len_password);
+                strncpy(_password, pwd, _len_password - 1);
+            }
+
         }
+
         if ((_link != nullptr) && (_len_link > 1)) {
             memset(_link, 0, _len_link);
             strncpy(_link, p1, _len_link - 1);
