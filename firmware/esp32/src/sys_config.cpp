@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 AppState SysConfig::init(void) {
     init_nvs_flash();
@@ -292,16 +292,54 @@ uint8_t SysConfig::get_display_parameter(void) {
     return (cfg.display_param);
 }
 
+AppState SysConfig::set_mqtt_broker(const char* broker) {
+    if (broker == nullptr) {
+        return (AppState::invalid_arg);
+    }
+    if (!strncmp(cfg.mqtt_broker, broker, sizeof (cfg.mqtt_broker))) {
+        return (AppState::OK);
+    }
+    memset(cfg.mqtt_broker, 0, sizeof(cfg.mqtt_broker));
+    strncpy(cfg.mqtt_broker, broker, sizeof(cfg.mqtt_broker) - 1);
+    modified = true;
+    return (AppState::OK);
+}
+
+const char* SysConfig::get_mqtt_broker(void) {
+    return (cfg.mqtt_broker);
+}
+
+AppState SysConfig::set_mqtt_password(const char* password) {
+    if ((password != nullptr) && (!strncmp(cfg.mqtt_password, password, sizeof (cfg.mqtt_password)))) {
+        return (AppState::OK);
+    }
+    memset(cfg.mqtt_password, 0, sizeof (cfg.mqtt_password));
+    if (password != nullptr) {
+        strncpy(cfg.mqtt_password, password, sizeof (cfg.mqtt_password) - 1);
+    }
+    modified = true;
+    return (AppState::OK);
+}
+
+const char* SysConfig::get_mqtt_password(void) {
+    return (cfg.mqtt_password);
+}
+
 void SysConfig::print_parms(const char* hint) {
 #ifdef DISPLAY_STATE    
     if (hint == nullptr) {
         hint = "Stored system config parameters";
     }
     ESP_LOGI(TAG, "%s: ", hint);
+    ESP_LOGI(TAG, "\t- Size:               %d bytes ", (int)sizeof (cfg));
     ESP_LOGI(TAG, "\t- Magic ID:           0x%-8.8X ", (unsigned int)cfg.magic_id);
+
     ESP_LOGI(TAG, "\t- AP SSID:            <%s> ",     get_ssid());
     ESP_LOGI(TAG, "\t- AP password:        <%s> ",     get_password());
     ESP_LOGI(TAG, "\t- AP channel:         %d ",       get_wifi_channel());
+
+    ESP_LOGI(TAG, "\t- MQTT broker:        <%s> ",     get_mqtt_broker());
+    ESP_LOGI(TAG, "\t- MQTT password:      <%s> ",     get_mqtt_password());
 
     ESP_LOGI(TAG, "\t- Display Layout:     %d ",       (int)get_display_layout());
     ESP_LOGI(TAG, "\t- Display parameter:  %d ",       (int)get_display_parameter());
