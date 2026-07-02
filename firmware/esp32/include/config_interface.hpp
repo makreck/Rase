@@ -28,6 +28,7 @@
 #define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
 #define CFG_KEY_ID_RESPONSE      "/api/id"
 #define CFG_KEY_WIFI_SETUP       "/connect"
+#define CFG_KEY_MQTT_BROKER      "/broker"
 #define CFG_KEY_CONFIG           "/config"
 #define CFG_KEY_INITIALIZE       "/initialize"
 #define CFG_KEY_REBOOT           "/reboot"
@@ -53,6 +54,8 @@ class ConfigInterface {
         char rx_buffer[RX_BUFFER_SIZE];
         char tx_buffer[TX_BUFFER_SIZE];
 
+        static void extract_link_pwd(const char* _data, size_t _length, const char* _key, char* _link, size_t _len_link, char* _password, size_t _len_password);
+        
         static void _communication_handler(void *pvParameters);
         void communication_handler(void);
 
@@ -69,9 +72,11 @@ class ConfigInterface {
         static void handle_sensor_response(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
         static void handle_website_output(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
         static void handle_restart(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_mqtt_broker(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
 
-        const ConfigCB function_tab[7] = {
+        const ConfigCB function_tab[8] = {
             { CFG_KEY_WIFI_SETUP,       ConfigInterface::handle_wifi_setup,      0},
+            { CFG_KEY_MQTT_BROKER,      ConfigInterface::handle_mqtt_broker,     0},
             { CFG_KEY_CONFIG,           ConfigInterface::handle_config_response, 0},
             { CFG_KEY_ID_RESPONSE,      ConfigInterface::handle_id_response,     0},
             { CFG_KEY_SENSOR_RESPONSE,  ConfigInterface::handle_sensor_response, 0},

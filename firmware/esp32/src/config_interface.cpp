@@ -94,38 +94,21 @@ void ConfigInterface::handle_wifi_setup(ConfigInterface* instance, int mode, con
     if (instance == nullptr) {
         return;
     }
-
     App* app = instance->app;
-
-    char buffer[256];
-    memset(buffer, 0, sizeof(buffer));
-    strncpy(buffer, data, sizeof (buffer) - 1);
-    buffer[length] = 0;
-
-    char ssid[32];
-    memset(ssid, 0, sizeof (ssid));
-    char pwd[64];
-    memset(pwd, 0, sizeof (pwd));
-
-    int i = strlen(CFG_KEY_WIFI_SETUP);
-    if (buffer[i] == '=') {
-        char* p1 = &buffer[i + 1];
-        char* p2 = strstr(p1, ":");
-        if (p2 != nullptr) {
-            *p2++ = 0;
-            strncpy(pwd, p2, sizeof (pwd) - 1);
-        }
-        strncpy(ssid, p1, sizeof (ssid) - 1);
-    }
-
     SysConfig* cfg = app->get_config();
-    if (cfg != nullptr) {
-        cfg->set_ssid(ssid);
-        cfg->set_password(pwd);
-#ifdef DISPLAY_STATE        
-        cfg->print_parms("Config response");
-#endif        
+    if (cfg == nullptr) {
+        return;
     }
+
+    char ssid[32]{ 0 };
+    char pwd[64]{ 0 };
+    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_WIFI_SETUP, ssid, sizeof (ssid), pwd, sizeof (pwd));
+
+    cfg->set_ssid(ssid);
+    cfg->set_password(pwd);
+#ifdef DISPLAY_STATE        
+    cfg->print_parms("Config response");
+#endif        
 
     DisplayI2C* display = app->get_display();
     if (display != nullptr) {
@@ -165,7 +148,7 @@ void ConfigInterface::handle_restart(ConfigInterface* instance, int mode, const 
     AppEvent message = (mode == 9) ? AppEvent::factory_reset : AppEvent::reboot;
     esp_event_post(APP_EVENT, (int32_t)message, nullptr, 0, pdMS_TO_TICKS(1));
 }
-
+        
 void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode, const char* data, size_t length) {
 // @TODO: Reveive device configuration JSON string.
     const char* msg = "Still under construction!\n";
@@ -180,3 +163,50 @@ void ConfigInterface::process_command(const char* data, size_t length) {
         }
     }
 }
+void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, const char* data, size_t length) {
+    if (instance == nullptr) {
+        return;
+    }
+    App* app = instance->app;
+    SysConfig* cfg = app->get_config();
+    if (cfg == nullptr) {
+        return;
+    }
+
+    char broker[64]{ 0 };
+    char pwd[64]{ 0 };
+    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_MQTT_BROKER, broker, sizeof (broker), pwd, sizeof (pwd));
+
+    cfg->set_mqtt_broker(broker);
+    cfg->set_mqtt_password(pwd);
+#ifdef DISPLAY_STATE        
+    cfg->print_parms("Config response");
+#endif        
+
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
+}
+
+void ConfigInterface::extract_link_pwd(const char* _data, size_t _length, const char* _key, char* _link, size_t _len_link, char* _password, size_t _len_password) {
+    char buffer[256]{ 0 };
+    _length = MIN(sizeof (buffer) - 1, _length);
+    memcpy(buffer, _data, _length);
+    buffer[_length] = '\0';
+
+    int i = strlen(_key);
+    if (buffer[i] == '=') {
+        char* p1 = &buffer[i + 1];
+        char* p2 = strstr(p1, ":");
+        if (p2 != nullptr) {
+            *p2++ = 0;
+            if ((_password != nullptr) && (_len_password > 1)) {
+                memset(_password, 0, _len_password);
+                strncpy(_password, p2, _len_password - 1);
+            }
+        }
+        if ((_link != nullptr) && (_len_link > 1)) {
+            memset(_link, 0, _len_link);
+            strncpy(_link, p1, _len_link - 1);
+        }
+    }
+}
+
