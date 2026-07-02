@@ -309,6 +309,22 @@ const char* SysConfig::get_mqtt_broker(void) {
     return (cfg.mqtt_broker);
 }
 
+AppState SysConfig::set_mqtt_username(const char* username) {
+    if ((username != nullptr) && (!strncmp(cfg.mqtt_username, username, sizeof (cfg.mqtt_username)))) {
+        return (AppState::OK);
+    }
+    memset(cfg.mqtt_username, 0, sizeof (cfg.mqtt_username));
+    if (username != nullptr) {
+        strncpy(cfg.mqtt_username, username, sizeof (cfg.mqtt_username) - 1);
+    }
+    modified = true;
+    return (AppState::OK);
+}
+
+const char* SysConfig::get_mqtt_username(void) {
+    return (cfg.mqtt_username);
+}
+
 AppState SysConfig::set_mqtt_password(const char* password) {
     if ((password != nullptr) && (!strncmp(cfg.mqtt_password, password, sizeof (cfg.mqtt_password)))) {
         return (AppState::OK);
@@ -339,6 +355,7 @@ void SysConfig::print_parms(const char* hint) {
     ESP_LOGI(TAG, "\t- AP channel:         %d ",       get_wifi_channel());
 
     ESP_LOGI(TAG, "\t- MQTT broker:        <%s> ",     get_mqtt_broker());
+    ESP_LOGI(TAG, "\t- MQTT username:      <%s> ",     get_mqtt_username());
     ESP_LOGI(TAG, "\t- MQTT password:      <%s> ",     get_mqtt_password());
 
     ESP_LOGI(TAG, "\t- Display Layout:     %d ",       (int)get_display_layout());

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#define WCFG_MAGIC               (0x20260702)
+#define WCFG_MAGIC               (0x20260701)
 // #define WCFG_MAGIC               (0x20260410)
 
 #define WCFG_STORAGE_NAMESPACE   SENSOR_ID
@@ -61,6 +61,7 @@
 #define WIFI_AP_NAME_MAX         (32)
 #define WIFI_AP_PASSWD_MAX       (64)
 #define MQTT_BROKER_MAX          (64)
+#define MQTT_USERNAME_MAX        (32)
 #define MQTT_PASSWORD_MAX        (32)
 
 enum class DisplayLayout {
@@ -77,6 +78,7 @@ class SysConfigData {
                 char ssid[WIFI_AP_NAME_MAX];
                 char password[WIFI_AP_PASSWD_MAX];
                 char mqtt_broker[MQTT_BROKER_MAX];
+                char mqtt_username[MQTT_USERNAME_MAX];
                 char mqtt_password[MQTT_PASSWORD_MAX];
                 uint8_t channel;
                 uint8_t display_layout;
@@ -132,12 +134,14 @@ class SysConfig {
         AppState set_ssid(const char* ap_name);
         AppState set_password(const char* password);
         AppState set_mqtt_broker(const char* broker);
+        AppState set_mqtt_username(const char* username);
         AppState set_mqtt_password(const char* password);
         AppState set_sensor_type(SensorType type);
         
         const char* get_ssid(void);
         const char* get_password(void);
         const char* get_mqtt_broker(void);
+        const char* get_mqtt_username(void);
         const char* get_mqtt_password(void);
         
         float get_display_timeout(void);
