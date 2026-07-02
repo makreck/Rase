@@ -126,6 +126,7 @@ int main(int argc, char* argv[]) {
         printf("Supported commands:\n");
 
         printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
+        printf("\t\"/broker=<MQTT broker>:<password>\"\tConfigure a MQTT broker/server link.\n");
         printf("\t\"/config=<JSON>\"\t\tConfigure device by given JSON string.\n");
         printf("\t\"/initialize\"\t\t\tPerform a factory reset.\n");
         printf("\t\"/reboot\"\t\t\tReboot the device.\n");
