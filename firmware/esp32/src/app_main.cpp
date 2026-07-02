@@ -115,7 +115,7 @@ AppState App::init_webserver(void) {
 AppState App::init_mqtt(void) {
     const char* broker = m.cfg->get_mqtt_broker();
     if (strlen(broker) > 0) {
-        m.mqtt = new Mqtt();
+        m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
     }
     return ((m.mqtt != nullptr) ? AppState::OK : AppState::failed);
 }
@@ -262,6 +262,10 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         case AppEvent::web_started: {
             m.flags.b.bWebsiteReady = 1;
             m.display_request++;
+
+            if (m.mqtt != nullptr) {
+                m.mqtt->start();
+            }
         } break;
 
         case AppEvent::web_time_sync: {
