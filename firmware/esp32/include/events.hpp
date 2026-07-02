@@ -45,15 +45,17 @@ enum class AppEvent:uint32_t {
     web_favicon_req   = 305,
     web_time_sync     = 306,
     
-    leds_online       = 400,
-    leds_offline      = 401,
+    mqtt_configure    = 400,
 
-    driver_ready      = 500,
-    measuring_event   = 501,
+    leds_online       = 500,
+    leds_offline      = 501,
 
-    button_ready      = 600,
-    button_event      = 601,
-    button_idle       = 602,
+    driver_ready      = 600,
+    measuring_event   = 601,
+
+    button_ready      = 700,
+    button_event      = 701,
+    button_idle       = 702,
 
     reboot            = 998,
     factory_reset     = 999,
