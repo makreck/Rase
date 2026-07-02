@@ -32,7 +32,8 @@ AppState App::init(void) {
     init_buttons();
     init_wifi();
     init_driver();
-    init_webserver();    
+    init_webserver();
+    init_mqtt();
 
     return (AppState::OK);
 }
@@ -98,21 +99,25 @@ AppState App::init_buttons(void) {
 
 AppState App::init_wifi(void) {
     esp_netif_init();
-    
     const char* ssid = m.cfg->get_ssid();
     const char* pwd = m.cfg->get_password();
     if (strlen(ssid) > 0) {
         m.station = new Wifi_Station(ssid, pwd);
     }
-    
-    AppState state = ((m.station != nullptr) ? AppState::OK : AppState::failed);
-    return (state);
+    return (((m.station != nullptr) ? AppState::OK : AppState::failed));
 }
 
 AppState App::init_webserver(void) {
     m.webserver = new WebServer();
-    AppState state = ((m.webserver != nullptr) ? AppState::OK : AppState::failed);
-    return (state);
+    return ((m.webserver != nullptr) ? AppState::OK : AppState::failed);
+}
+
+AppState App::init_mqtt(void) {
+    const char* broker = m.cfg->get_mqtt_broker();
+    if (strlen(broker) > 0) {
+        m.mqtt = new Mqtt();
+    }
+    return ((m.mqtt != nullptr) ? AppState::OK : AppState::failed);
 }
 
 AppState App::init_driver(void) {

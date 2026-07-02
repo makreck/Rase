@@ -51,6 +51,7 @@
 #include "sensor_node.hpp"
 #include "sensor_device.hpp"
 #include "web_server.hpp"
+#include "mqtt.hpp"
 #include "sys_config.hpp"
 #include "config_interface.hpp"
 #include "app_menu.hpp"
@@ -84,6 +85,7 @@ class App {
             DisplayI2C*      display          = nullptr;
             Wifi_Station*    station          = nullptr;
             WebServer*       webserver        = nullptr;
+            Mqtt*            mqtt             = nullptr;
             SensorDriver*    driver           = nullptr;
             SensorDevice*    sensor           = nullptr;
             ConfigInterface* cmd              = nullptr;
@@ -139,6 +141,7 @@ class App {
         AppState init_wifi(void);
         AppState init_webserver(void);
         AppState init_driver(void);
+        AppState init_mqtt(void);
 
         AppState print_net_Info(void);
         AppState print_measuring_info(uint8_t mode = 0);
