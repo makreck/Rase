@@ -36,6 +36,7 @@
 #define IDM_DISPLAY_OFF         (11)
 #define IDM_ROTATE  	        (12)
 #define IDM_CONFIG_INTERFACE    (13)
+#define IDM_MQTT_CLIENT         (14)
 
 #define IDM_DISPLAY_OFF_BASE    (20)
 #define IDM_DISPLAY_OFF_NEVER   (IDM_DISPLAY_OFF_BASE + 0)

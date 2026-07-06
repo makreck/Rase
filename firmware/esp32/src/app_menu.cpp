@@ -27,11 +27,9 @@ const MenuItem menu_main[] {
     IDM_TITLE,               "Main menu",
     IDM_EXIT,                "1 Exit",
     IDM_LAYOUT,              "2 Layout",
-    IDM_DISPLAY,             "3 Display",
-    IDM_LED_INTENSITY,       "4 LED intensity",
-    IDM_REBOOT,              "5 Reboot system",
-    IDM_FACTORY_RESET,       "6 Factory reset",
-    IDM_CONFIG,              "7 Setup",
+    IDM_CONFIG,              "3 Setup",
+    IDM_REBOOT,              "4 Reboot system",
+    IDM_FACTORY_RESET,       "5 Factory reset",
 };
 const size_t menu_main_size = SIZEOFARRAY(menu_main); 
 
@@ -47,8 +45,11 @@ const size_t menu_display_size = SIZEOFARRAY(menu_display);
 const MenuItem menu_config[] {
     IDM_TITLE,               "Display contrast",
     IDM_MAIN,                "1 Main menu",
-    IDM_CONFIG_INTERFACE,    "2 COM on/off",
-    IDM_SENSOR_SELECT,       "3 Sensor select",
+    IDM_DISPLAY,             "2 Display",
+    IDM_LED_INTENSITY,       "3 LED intensity",
+    IDM_MQTT_CLIENT,         "4 MQTT client",
+    IDM_CONFIG_INTERFACE,    "5 COM interface",
+    IDM_SENSOR_SELECT,       "6 Sensor select",
 };
 const size_t menu_config_size = SIZEOFARRAY(menu_config); 
 
@@ -75,10 +76,10 @@ const MenuItem menu_display_off[] {
     IDM_MAIN,                "1 Main menu",
     IDM_DISPLAY_OFF_NEVER,   "2 Never",
     IDM_DISPLAY_OFF_10SEC,   "3 After 10 sec.",
-    IDM_DISPLAY_OFF_1MIN,    "3 After 1 min.",
-    IDM_DISPLAY_OFF_5MIN,    "4 After 5 min.",
-    IDM_DISPLAY_OFF_15MIN,   "5 After 15 min.",
-    IDM_DISPLAY_OFF_30MIN,   "6 After 30 min.",
+    IDM_DISPLAY_OFF_1MIN,    "4 After 1 min.",
+    IDM_DISPLAY_OFF_5MIN,    "5 After 5 min.",
+    IDM_DISPLAY_OFF_15MIN,   "6 After 15 min.",
+    IDM_DISPLAY_OFF_30MIN,   "7 After 30 min.",
 };
 const size_t menu_display_off_size = SIZEOFARRAY(menu_display_off); 
 static const float display_timeout_times[] = { 0.0f, 10.0f, 60.0f, 300.0f, 900.0f, 1800.0f };
@@ -305,6 +306,10 @@ bool App::exit_Menu(void) {
                 handle_config_interface();
             } return (true);
 
+            case IDM_MQTT_CLIENT: {
+                handle_mqtt_client();
+            } return (true);
+
             case IDM_LAYOUT_VALUE_PAGE: {
                 m.cfg->set_display_layout(DisplayLayout::large_values);
                 request_sys_config_update();
@@ -340,27 +345,35 @@ bool App::exit_Menu(void) {
     return (false);
 }
 
+void App::menu_display_short_message(int wait_ms, const char* line1, const char* line2, const char* line3, const char* line4) {
+    if ((m.display != nullptr) && (wait_ms > 0)) {
+        m.display->clear();
+        m.display->print(0, 0, line1);
+        m.display->print(0, 1, line2);
+        m.display->print(0, 2, line3);
+        m.display->print(0, 3, line4);
+        m.display->update();
+        vTaskDelay(pdMS_TO_TICKS(wait_ms));
+    }
+}
+
 AppState App::handle_config_interface(void) {
     if (m.cmd == nullptr) {
         m.cmd = new ConfigInterface(this);
-        m.cfg->set_config_enable(CONFIG_IFC_ENABLED);
+        m.cfg->set_config_enable(true);
     } else {
         SAFE_DELETE(m.cmd);
-        m.cfg->set_config_enable(CONFIG_IFC_DISABLED);
+        m.cfg->set_config_enable(false);
     }
     request_sys_config_update();
+    menu_display_short_message(1000, "Config interface", (m.cmd == nullptr) ? "is disabled" : "is enabled");
+    return (AppState::OK);
+}
 
-    if (m.display != nullptr) {
-        m.display->clear();
-        m.display->print(0, 1, "Config interface");
-        if (m.cmd == nullptr) {
-            m.display->print(0, 2, "is disabled.");
-        } else {
-            m.display->print(0, 2, "is enabled.");
-        }
-        m.display->update();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-
+AppState App::handle_mqtt_client(void) {
+    m.cfg->set_mqtt_enable(!m.cfg->get_mqtt_enable());
+    request_sys_config_update();
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
+    menu_display_short_message(1000, "MQTT client", m.cfg->get_mqtt_enable() ? "is enabled" : "is disabled");
     return (AppState::OK);
 }
