@@ -47,8 +47,8 @@
     #define DISPLAY_ROTATION_DEFAULT (0)
 #endif
 
-#define CONFIG_IFC_ENABLED       (0x01)
-#define CONFIG_IFC_DISABLED      (0x00)
+#define CONFIG_FLAG_IFC_ENABLE   (0x01)
+#define CONFIG_FLAG_MQTT_ENABLE  (0x02)
 
 #define WIFI_DEFAULT_CHANNEL     (1)
 #define WIFI_MAX_CONNECTION      (10)
@@ -85,7 +85,9 @@ class SysConfigData {
                 uint8_t display_param;
                 uint8_t display_rotation;
                 uint8_t reserved1[2];
-                uint8_t config_interface_enable;
+                uint8_t flags;
+                // uint8_t mqtt_enable;
+                // uint8_t config_interface_enable;
                 uint8_t sensor_type;
                 float display_timeout_s;
                 float led_intensity;
@@ -153,7 +155,9 @@ class SysConfig {
         int get_wifi_channel(void);
         uint8_t get_rotation(void);
         SensorType get_sensor_type(void);
-        uint8_t get_config_enable(void);
-        AppState set_config_enable(uint8_t enable);
         AppState flip_Rotation(void);
+        bool get_config_enable(void);
+        AppState set_config_enable(bool enable);
+        bool get_mqtt_enable(void);
+        AppState set_mqtt_enable(bool enable);
 };

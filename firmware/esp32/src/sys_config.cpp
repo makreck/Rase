@@ -71,7 +71,7 @@ AppState SysConfig::load_defaults(void) {
     cfg.display_rotation        = DISPLAY_ROTATION_DEFAULT;
     cfg.display_timeout_s       = T_APP_DISPLAY_TIMEOUT_S;
     cfg.display_contrast        = DISPLAY_CONTRAST_DEFAULT;
-    cfg.config_interface_enable = CONFIG_IFC_ENABLED;
+    cfg.flags                   = CONFIG_FLAG_IFC_ENABLE | CONFIG_FLAG_MQTT_ENABLE;
     cfg.sensor_type             = SENSOR_TYPE_DEFAULT;
     cfg.led_intensity           = LED_DEFAULT_INTENSITY;
     return (AppState::OK);
@@ -214,13 +214,31 @@ SensorType SysConfig::get_sensor_type(void) {
     return ((SensorType)cfg.sensor_type);
 }
 
-uint8_t SysConfig::get_config_enable(void) {
-    return (cfg.config_interface_enable);
+bool SysConfig::get_config_enable(void) {
+    return ((cfg.flags & CONFIG_FLAG_IFC_ENABLE) != 0);
 }
 
-AppState SysConfig::set_config_enable(uint8_t enable) {
-    modified = (cfg.config_interface_enable != enable);
-    cfg.config_interface_enable = enable;
+AppState SysConfig::set_config_enable(bool enable) {
+    modified = (get_config_enable() != enable);
+    if (enable) {
+        cfg.flags |= CONFIG_FLAG_IFC_ENABLE;
+    } else {
+        cfg.flags &= ~CONFIG_FLAG_IFC_ENABLE;
+    }
+    return (AppState::OK);
+}
+
+bool SysConfig::get_mqtt_enable(void) {
+    return ((cfg.flags & CONFIG_FLAG_MQTT_ENABLE) != 0);
+}
+
+AppState SysConfig::set_mqtt_enable(bool enable) {
+    modified = (get_mqtt_enable() != enable);
+    if (enable) {
+        cfg.flags |= CONFIG_FLAG_MQTT_ENABLE;
+    } else {
+        cfg.flags &= ~CONFIG_FLAG_MQTT_ENABLE;
+    }
     return (AppState::OK);
 }
 
@@ -354,6 +372,7 @@ void SysConfig::print_parms(const char* hint) {
     ESP_LOGI(TAG, "\t- AP password:        <%s> ",     get_password());
     ESP_LOGI(TAG, "\t- AP channel:         %d ",       get_wifi_channel());
 
+    ESP_LOGI(TAG, "\t- MQTT client:        %s ",       (get_mqtt_enable()) ? "enabled" : "disabled");
     ESP_LOGI(TAG, "\t- MQTT broker:        <%s> ",     get_mqtt_broker());
     ESP_LOGI(TAG, "\t- MQTT username:      <%s> ",     get_mqtt_username());
     ESP_LOGI(TAG, "\t- MQTT password:      <%s> ",     get_mqtt_password());
@@ -364,7 +383,7 @@ void SysConfig::print_parms(const char* hint) {
     ESP_LOGI(TAG, "\t- Display timeout:    %.3f s ",   get_display_timeout());
     ESP_LOGI(TAG, "\t- Display contrast:   %.1f ",     get_display_contrast());
 
-    ESP_LOGI(TAG, "\t- Config interface:   %s ",       ((get_config_enable() & CONFIG_IFC_ENABLED) == CONFIG_IFC_ENABLED) ? "enabled" : "disabled");
+    ESP_LOGI(TAG, "\t- Config interface:   %s ",       (get_config_enable()) ? "enabled" : "disabled");
     ESP_LOGI(TAG, "\t- Sensor type ID:     %d ",       (int)get_sensor_type());
 
     ESP_LOGI(TAG, "\t- LED intensity:      %.2f ",     get_LED_intensity());
