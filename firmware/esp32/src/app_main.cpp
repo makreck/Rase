@@ -75,7 +75,7 @@ AppState App::init_watchdog(uint32_t timeout_ms) {
 
 AppState App::init_config(void) {
     m.cfg = new SysConfig();
-    if ((m.cfg->get_config_enable() & CONFIG_IFC_ENABLED) == CONFIG_IFC_ENABLED) {
+    if (m.cfg->get_config_enable()) {
         m.cmd = new ConfigInterface(this);
     }
     return ((m.cfg != nullptr) ? AppState::OK : AppState::failed);
@@ -113,9 +113,11 @@ AppState App::init_webserver(void) {
 }
 
 AppState App::init_mqtt(void) {
-    const char* broker = m.cfg->get_mqtt_broker();
-    if (strlen(broker) > 0) {
-        m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
+    if (m.cfg->get_mqtt_enable()) {
+        const char* broker = m.cfg->get_mqtt_broker();
+        if (strlen(broker) > 0) {
+            m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
+        }
     }
     return ((m.mqtt != nullptr) ? AppState::OK : AppState::failed);
 }
@@ -232,6 +234,8 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
 #endif
             m.flags.b.bWifiConnected = 1;
             m.display_request++;
+
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
         } break;
 
         case AppEvent::driver_ready: {
@@ -245,6 +249,7 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             }
 
             vTaskDelay(pdMS_TO_TICKS(500));
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
             esp_event_post(APP_EVENT, (int32_t)AppEvent::web_start_server, nullptr, 0, pdMS_TO_TICKS(1));
         } break;
 
@@ -262,9 +267,26 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         case AppEvent::web_started: {
             m.flags.b.bWebsiteReady = 1;
             m.display_request++;
+        } break;
 
-            if (m.mqtt != nullptr) {
-                m.mqtt->start();
+        case AppEvent::mqtt_configure: {
+            if ((m.flags.b.bWifiConnected == 0) || (m.flags.b.bDriverReady == 0)) {
+                SAFE_DELETE(m.mqtt);
+                break;
+            }
+
+            if (m.cfg->get_mqtt_enable()) {
+                if (m.mqtt == nullptr) {
+                    const char* broker = m.cfg->get_mqtt_broker();
+                    if (strlen(broker) > 0) {
+                        m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
+                        m.mqtt->start(m.driver);
+                    }
+                }
+            } else {
+                if (m.mqtt != nullptr) {
+                    SAFE_DELETE(m.mqtt);
+                }
             }
         } break;
 

@@ -157,6 +157,7 @@ class App {
         bool     exit_Menu(void);
         void     step_Menu(void);
         size_t   new_DynamicMenu(const char* menu_title);
+        void     menu_display_short_message(int wait_ms = 1000, const char* line1 = nullptr, const char* line2 = nullptr, const char* line3 = nullptr, const char* line4 = nullptr);
 
         AppState select_driver(void);
         AppState switch_driver_to(uint8_t i2c_addr);
@@ -167,6 +168,7 @@ class App {
         AppState handle_menu(void);
         AppState handle_display(void);
         AppState handle_config_interface(void);
+        AppState handle_mqtt_client(void);
 
         AppState reload_screensaver(void);
         AppState check_screensaver(void);
