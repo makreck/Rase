@@ -44,17 +44,10 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
         m.mqtt_cfg.credentials.username                = m.username;
         m.mqtt_cfg.credentials.authentication.password = m.password;
         m.mqtt_cfg.credentials.client_id               = SENSOR_ID;
-
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "Setup MQTT client for URI <%s> user = <%s> pwd = <%s>", m.broker_uri, m.username, m.password);
-#endif
     }
 }
 
 void Mqtt::cleanup(void) {
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "Cleanup MQTT client for URI <%s> user = <%s> pwd = <%s>", m.broker_uri, m.username, m.password);
-#endif
     if (m.task_handle != nullptr) {
         vTaskDelete(m.task_handle);
         m.task_handle = nullptr;
@@ -75,7 +68,6 @@ void Mqtt::start(SensorDriver* _sensor) {
         if (m.client != nullptr) {
             esp_mqtt_client_register_event(m.client, MQTT_EVENT_ANY, Mqtt::_mqtt_event_handler, this);
         } else {
-            ESP_LOGE(TAG, "Failed to create MQTT client");
             return;
         }
     }
@@ -84,9 +76,6 @@ void Mqtt::start(SensorDriver* _sensor) {
         esp_err_t ret = esp_mqtt_client_start(m.client);
         if (ret == ESP_OK) {
             xTaskCreate(Mqtt::_mqtt_task, "MQTTClientTask", TASK_DEFAULT_STACKSIZE, this, TASK_DEFAULT_PRIORITY - 1, &m.task_handle);
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, " MQTT client started for URI <%s> user = <%s> pwd = <%s>", m.broker_uri, m.username, m.password);
-#endif
         }
     }
 }
@@ -106,9 +95,6 @@ void Mqtt::_mqtt_event_handler(void* _handler_args, esp_event_base_t _base, int3
     (reinterpret_cast<Mqtt*>(_handler_args))->mqtt_event_handler(_base, _event_id, _event_data);
 }
 void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "MQTT event base=\"%s\" ID #%d", _base, (unsigned int)_event_id);
-#endif
     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t)_event_data;
 
     esp_mqtt_client_handle_t client = event->client;
@@ -116,18 +102,12 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
 
     switch (event_id) {
         case MQTT_EVENT_CONNECTED: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-#endif
             m.retry_count = 0;
             subscribe_sensor(client);
         }
         break;
 
         case MQTT_EVENT_DISCONNECTED: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
-#endif
             m.retry_count++;
             if (m.retry_count < MQTT_RETRY_MAX) {
                 esp_mqtt_client_reconnect(client);
@@ -137,44 +117,12 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
             }
         } break;
 
-        case MQTT_EVENT_SUBSCRIBED: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-#endif
-        } break;
-
-        case MQTT_EVENT_UNSUBSCRIBED: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
-#endif
-        } break;
-
-        case MQTT_EVENT_PUBLISHED: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
-#endif
-        } break;
-
-        case MQTT_EVENT_DATA: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-#endif
-        } break;
-
-        case MQTT_EVENT_ERROR: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
-            if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
-                ESP_LOGI(TAG, "Last error code reported from tcp transport = 0x%X, last tls stack error number: 0x%X",
-                    event->error_handle->esp_tls_last_esp_err, event->error_handle->esp_tls_stack_err);
-            }
-#endif
-        } break;
-
+        case MQTT_EVENT_SUBSCRIBED:
+        case MQTT_EVENT_UNSUBSCRIBED:
+        case MQTT_EVENT_PUBLISHED:
+        case MQTT_EVENT_DATA:
+        case MQTT_EVENT_ERROR:
         default: {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "Unknown MQTT event");
-#endif
         } break;
 
     }
@@ -190,7 +138,7 @@ void Mqtt::subscribe_sensor(esp_mqtt_client_handle_t _client) {
             const SensorProperty* props = m.sensor->get_properties();
             for (int i = 0; i < count; i++) {
                 char path[256]{ 0 };
-                snprintf(path, sizeof (path) - 1, "/%s/%s", device_serial_number, props[i].key);
+                snprintf(path, sizeof (path) - 1, "/%s/%s/%s", SENSOR_ID, device_serial_number, props[i].key);
                 esp_mqtt_client_subscribe(_client, path, 0);
             }
 
@@ -210,7 +158,7 @@ void Mqtt::perform_publishing(void) {
             const SensorProperty* props = m.sensor->get_properties();
             for (int i = 0; i < count; i++) {
                 char path[256]{ 0 };
-                snprintf(path, sizeof (path) - 1, "/%s/%s", device_serial_number, props[i].key);
+                snprintf(path, sizeof (path) - 1, "/%s/%s/%s", SENSOR_ID, device_serial_number, props[i].key);
                 float value = 0.0f;
                 if (reading->get_Value(props[i].key, value)) {
                     char message[32]{ 0 };
