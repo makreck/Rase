@@ -21,18 +21,28 @@
 
 #pragma once
 
+#define MQTT_RETRY_MAX (5)
+
 class Mqtt {
     private:
         struct {
             char broker_uri[64]{ 0 };
             char username[32]{ 0 };
             char password[32]{ 0 };
+            int retry_count = 0;
             esp_mqtt_client_config_t mqtt_cfg;
             esp_mqtt_client_handle_t client = nullptr;
+            TaskHandle_t task_handle = nullptr;
+            SensorDriver* sensor = nullptr;
         } m;
 
         void init(const char* broker_url, const char* _username, const char* _password);
         void cleanup(void);
+        void subscribe_sensor(esp_mqtt_client_handle_t _client);
+        void perform_publishing(void);
+
+        static void _mqtt_task(void* pvParameters);
+        void mqtt_task(void);;
 
     public:
         Mqtt(const char* _broker_url, const char* _username, const char* _password) {
@@ -46,7 +56,7 @@ class Mqtt {
         static void _mqtt_event_handler(void *_handler_args, esp_event_base_t _base, int32_t _event_id, void* _event_data);
         void mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data);
 
-        void start(void);
+        void start(SensorDriver* _sensor);
         void stop(void);
 
 };
