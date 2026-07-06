@@ -42,6 +42,15 @@ class SensorProperty {
         uint32_t flags;
         const char* color;
         int node_id;
+
+        static void format_value(const SensorProperty* _property, float _value, char* _buffer, size_t _length) {
+            if ((_buffer != nullptr) && (_length > 2)) {
+                int dotnum = (int)(_property->flags & 0x0f);
+                char fmt[32]{ 0 };
+                snprintf(fmt, sizeof (fmt) - 1, "%%%s.%df %%s", ((_property->flags & 0x0100) == 0) ? "" : "+", dotnum);
+                snprintf(_buffer, _length - 1, fmt, _value, _property->unit);
+            }
+        }
 };
 
 class SensorValue {
