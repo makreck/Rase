@@ -128,20 +128,26 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
     }
 }
 
+size_t Mqtt::make_topic(char* _topic, size_t _length, const char* _device_serial_number, const char* _key) {
+    if ((_topic == nullptr) || (_length < 24) || (_device_serial_number == nullptr) || (_key == nullptr)) {
+        return (0);
+    }
+    return (snprintf(_topic, _length - 1, "/%s/%s/%s", SENSOR_ID, _device_serial_number, _key));
+}
+
 void Mqtt::subscribe_sensor(esp_mqtt_client_handle_t _client) {
     if (m.sensor != nullptr) {
         size_t count = m.sensor->get_property_count();
         if (count > 0) {
             char device_serial_number[24]{ 0 };
             Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
-
             const SensorProperty* props = m.sensor->get_properties();
             for (int i = 0; i < count; i++) {
-                char path[256]{ 0 };
-                snprintf(path, sizeof (path) - 1, "/%s/%s/%s", SENSOR_ID, device_serial_number, props[i].key);
-                esp_mqtt_client_subscribe(_client, path, 0);
+                char topic[80]{ 0 };
+                if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
+                    esp_mqtt_client_subscribe(_client, topic, 0);
+                }
             }
-
         }
     }
 }
@@ -157,13 +163,15 @@ void Mqtt::perform_publishing(void) {
 
             const SensorProperty* props = m.sensor->get_properties();
             for (int i = 0; i < count; i++) {
-                char path[256]{ 0 };
-                snprintf(path, sizeof (path) - 1, "/%s/%s/%s", SENSOR_ID, device_serial_number, props[i].key);
-                float value = 0.0f;
-                if (reading->get_Value(props[i].key, value)) {
-                    char message[32]{ 0 };
-                    SensorProperty::format_value(&props[i], value, message, sizeof (message));
-                    esp_mqtt_client_publish(m.client, path, message, 0, 1, 0);
+                char topic[80]{ 0 };
+                if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
+                    float value = 0.0f;
+                    if (reading->get_modified_value(props[i].key, value)) {
+                        char message[32]{ 0 };
+                        SensorProperty::format_value(&props[i], value, message, sizeof (message));
+                        esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
+                        vTaskDelay(pdMS_TO_TICKS(25));
+                    }
                 }
             }
         }

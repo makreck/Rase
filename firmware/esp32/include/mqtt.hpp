@@ -40,9 +40,14 @@ class Mqtt {
         void cleanup(void);
         void subscribe_sensor(esp_mqtt_client_handle_t _client);
         void perform_publishing(void);
+        
+        static size_t make_topic(char* _topic, size_t _length, const char* _device_serial_number, const char* _key);
 
         static void _mqtt_task(void* pvParameters);
         void mqtt_task(void);;
+        
+        static void _mqtt_event_handler(void *_handler_args, esp_event_base_t _base, int32_t _event_id, void* _event_data);
+        void mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data);
 
     public:
         Mqtt(const char* _broker_url, const char* _username, const char* _password) {
@@ -52,9 +57,6 @@ class Mqtt {
         ~Mqtt() {
             cleanup();
         }
-
-        static void _mqtt_event_handler(void *_handler_args, esp_event_base_t _base, int32_t _event_id, void* _event_data);
-        void mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data);
 
         void start(SensorDriver* _sensor);
         void stop(void);
