@@ -40,7 +40,7 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
         memset(&m.mqtt_cfg, 0, sizeof (m.mqtt_cfg));
         m.mqtt_cfg.broker.address.uri                  = m.broker_uri;
         m.mqtt_cfg.broker.address.port                 = 1883;
-        m.mqtt_cfg.session.protocol_ver                = MQTT_PROTOCOL_V_5;
+        m.mqtt_cfg.session.protocol_ver                = MQTT_PROTOCOL_V_3_1_1; // MQTT_PROTOCOL_V_5;
         m.mqtt_cfg.credentials.username                = m.username;
         m.mqtt_cfg.credentials.authentication.password = m.password;
         m.mqtt_cfg.credentials.client_id               = SENSOR_ID;
