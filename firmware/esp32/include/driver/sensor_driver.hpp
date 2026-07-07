@@ -56,11 +56,13 @@ class SensorProperty {
 class SensorValue {
     public:
         const char* key;
-        float value;
+        float       value;
+        bool        modified;
 
         SensorValue(const char* _key, float _initial_value = 0.0f) {
-            key = _key;
-            value = _initial_value;
+            key      = _key;
+            value    = _initial_value;
+            modified = true;
         }
 };
 
@@ -79,20 +81,33 @@ class SensorReading {
             data.clear();
         }
 
-        void set_Value(const char* key, float value) {
+        void set_value(const char* key, float value) {
             for (int i = 0; i < data.size(); i++) {
                 if (!strcmp(data[i]->key, key)) {
+                    data[i]->modified |= (fabsf(data[i]->value - value) >= 0.05);
                     data[i]->value = value;
                     return;
                 }
             }
         }
 
-        bool get_Value(const char* key, float& value) {
+        bool get_value(const char* key, float& value) {
             for (int i = 0; i < data.size(); i++) {
                 if (!strcmp(data[i]->key, key)) {
                     value = data[i]->value;
                     return (true);
+                }
+            }
+            return (false);
+        }
+
+        bool get_modified_value(const char* key, float& value) {
+            for (int i = 0; i < data.size(); i++) {
+                if (!strcmp(data[i]->key, key)) {
+                    value = data[i]->value;
+                    bool state = data[i]->modified;
+                    data[i]->modified = false;
+                    return (state);
                 }
             }
             return (false);
