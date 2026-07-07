@@ -89,12 +89,12 @@ SensorType SensorNull::get_sensor_type() {
 }
 
 esp_err_t SensorNull::update(void) {
-    reading.set_Value("sim_1", sim_value[0]);
-    reading.set_Value("sim_2", sim_value[1]);
-    reading.set_Value("sim_3", sim_value[2]);
-    reading.set_Value("sim_4", sim_value[3]);
-    reading.set_Value("sim_5", sim_value[4]);
-    reading.set_Value("sim_6", sim_value[5]);
+    reading.set_value("sim_1", sim_value[0]);
+    reading.set_value("sim_2", sim_value[1]);
+    reading.set_value("sim_3", sim_value[2]);
+    reading.set_value("sim_4", sim_value[3]);
+    reading.set_value("sim_5", sim_value[4]);
+    reading.set_value("sim_6", sim_value[5]);
     return (ESP_OK);
 }
 

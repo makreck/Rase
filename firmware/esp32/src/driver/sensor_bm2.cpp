@@ -253,13 +253,13 @@ const char* SensorBM2x::get_head(void) {
 }
 
 esp_err_t SensorBM2x::update(void) {
-    reading.set_Value(RK_AP, pressure_hPa);
-    reading.set_Value(RK_T,  temperature_C);
+    reading.set_value(RK_AP, pressure_hPa);
+    reading.set_value(RK_T,  temperature_C);
 
     if (chipID == BME280_CHIP_ID) {
-        reading.set_Value(RK_RH, humidity_RH);
-        reading.set_Value(RK_DP, dewpoint_C);
-        reading.set_Value(RK_AH, humidity_AH);
+        reading.set_value(RK_RH, humidity_RH);
+        reading.set_value(RK_DP, dewpoint_C);
+        reading.set_value(RK_AH, humidity_AH);
     }
 
     return (ESP_OK);

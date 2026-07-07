@@ -196,7 +196,7 @@ void SensorDevice::update(SensorReading* reading) {
     for (size_t i = 0; i < m.node.size(); i++) {
         float value = 0.0f;
         const char* key = m.node[i]->get_key();
-        if (reading->get_Value(key, value)) {
+        if (reading->get_value(key, value)) {
             m.node[i]->add_Measurement(value);
         }
     }

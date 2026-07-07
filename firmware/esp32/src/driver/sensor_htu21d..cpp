@@ -235,10 +235,10 @@ esp_err_t SensorHTU21d::enable(void) {
 }
 
 esp_err_t SensorHTU21d::update(void) {
-    reading.set_Value(RK_T,  temperature_C);
-    reading.set_Value(RK_RH, humidity_RH);
-    reading.set_Value(RK_DP, dewpoint_C);
-    reading.set_Value(RK_AH, humidity_AH);
+    reading.set_value(RK_T,  temperature_C);
+    reading.set_value(RK_RH, humidity_RH);
+    reading.set_value(RK_DP, dewpoint_C);
+    reading.set_value(RK_AH, humidity_AH);
     return (ESP_OK);
 }
 

@@ -218,10 +218,10 @@ uint8_t SensorAHTxx::get_sub_type(void) {
 }
 
 esp_err_t SensorAHTxx::update(void) {
-    reading.set_Value(RK_T,  temperature_C);
-    reading.set_Value(RK_RH, humidity_RH);
-    reading.set_Value(RK_DP, dewpoint_C);
-    reading.set_Value(RK_AH, humidity_AH);
+    reading.set_value(RK_T,  temperature_C);
+    reading.set_value(RK_RH, humidity_RH);
+    reading.set_value(RK_DP, dewpoint_C);
+    reading.set_value(RK_AH, humidity_AH);
 	return (ESP_OK);
 }
 
