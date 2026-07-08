@@ -105,8 +105,7 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
     switch (event_id) {
         case MQTT_EVENT_CONNECTED: {
             m.retry_count = 0;
-            m.message_id = 0;
-            // subscribe_sensor(client);
+            clear_msg_pending();
         }
         break;
 
@@ -129,8 +128,11 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
         } break;
 
         case MQTT_EVENT_PUBLISHED: {
-            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED topic: \"%s\" message: \"%s\", message ID = %d ", "event->topic", "event->data", event->msg_id);
-            m.message_id = 0;
+            if (pop_msg_id(event->msg_id)) {
+                ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED message ID = %d ", event->msg_id);
+            } else {
+                ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED. Error message ID unknown, message ID = %d ", event->msg_id);
+            }
         } break;
 
         case MQTT_EVENT_DATA: {
@@ -154,23 +156,6 @@ size_t Mqtt::make_topic(char* _topic, size_t _length, const char* _device_serial
     return (snprintf(_topic, _length - 1, "/%s/%s/%s", SENSOR_ID, _device_serial_number, _key));
 }
 
-// void Mqtt::subscribe_sensor(esp_mqtt_client_handle_t _client) {
-//     if (m.sensor != nullptr) {
-//         size_t count = m.sensor->get_property_count();
-//         if (count > 0) {
-//             char device_serial_number[24]{ 0 };
-//             Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
-//             const SensorProperty* props = m.sensor->get_properties();
-//             for (int i = 0; i < count; i++) {
-//                 char topic[80]{ 0 };
-//                 if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
-//                     esp_mqtt_client_subscribe(_client, topic, 0);
-//                 }
-//             }
-//         }
-//     }
-// }
-
 void Mqtt::perform_publishing(void) {
     if (m.sensor != nullptr) {
         size_t count = m.sensor->get_property_count();
@@ -188,9 +173,12 @@ void Mqtt::perform_publishing(void) {
                     if (reading->get_modified_value(props[i].key, value)) {
                         char message[64]{ 0 };
                         SensorProperty::format_value(&props[i], value, message, sizeof (message));
-                        m.message_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
-                        ESP_LOGI(TAG, "Sending topic: \"%s\" message: \"%s\", message ID = %d ", "topic", "message", m.message_id);
-                        vTaskDelay(pdMS_TO_TICKS(250));
+                        int msg_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
+                        if (push_msg_id(msg_id)) {
+                            ESP_LOGI(TAG, "Sending topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+                        } else {
+                            ESP_LOGI(TAG, "Error sending topic (too many messages pending), topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+                        }
                     }
                 }
             }
@@ -198,13 +186,45 @@ void Mqtt::perform_publishing(void) {
     }
 }
 
+bool Mqtt::push_msg_id(int _msg_id) {
+    for (int i = 0; i < MQTT_MSG_MAX; i++) {
+        if (m.message_id[i] == 0) {
+            m.message_id[i] = _msg_id;
+            return (true);
+        }
+    }
+    return (false);
+}
+
+bool Mqtt::pop_msg_id(int _msg_id) {
+    for (int i = 0; i < MQTT_MSG_MAX; i++) {
+        if (m.message_id[i] == _msg_id) {
+            m.message_id[i] = 0;
+            return (true);
+        }
+    }
+    return (false);
+}
+
+int Mqtt::get_msg_pending(void) {
+    int count = 0;
+    for (int i = 0; i < MQTT_MSG_MAX; i++) {
+        count += (int)(m.message_id[i] != 0);
+    }
+    return (count);
+}
+
+void Mqtt::clear_msg_pending(void) {
+    memset(m.message_id, 0, sizeof (m.message_id));
+}
+
 void Mqtt::_mqtt_task(void* pvParameters) {
     (reinterpret_cast<Mqtt*>(pvParameters))->mqtt_task();
 }
 void Mqtt::mqtt_task(void) {
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        if (m.message_id == 0) {
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        if (get_msg_pending() == 0) {
             perform_publishing();
         }
     }

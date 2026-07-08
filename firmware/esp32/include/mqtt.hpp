@@ -22,6 +22,7 @@
 #pragma once
 
 #define MQTT_RETRY_MAX (5)
+#define MQTT_MSG_MAX (8)
 
 class Mqtt {
     private:
@@ -30,7 +31,7 @@ class Mqtt {
             char username[32]{ 0 };
             char password[32]{ 0 };
             int retry_count = 0;
-            int message_id = 0;
+            int message_id[MQTT_MSG_MAX]{ 0 };
             esp_mqtt_client_config_t mqtt_cfg;
             esp_mqtt_client_handle_t client = nullptr;
             TaskHandle_t task_handle = nullptr;
@@ -39,7 +40,6 @@ class Mqtt {
 
         void init(const char* broker_url, const char* _username, const char* _password);
         void cleanup(void);
-        // void subscribe_sensor(esp_mqtt_client_handle_t _client);
         void perform_publishing(void);
         
         static size_t make_topic(char* _topic, size_t _length, const char* _device_serial_number, const char* _key);
@@ -49,6 +49,11 @@ class Mqtt {
         
         static void _mqtt_event_handler(void *_handler_args, esp_event_base_t _base, int32_t _event_id, void* _event_data);
         void mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data);
+
+        void clear_msg_pending(void);
+        bool push_msg_id(int _msg_id);
+        bool pop_msg_id(int _msg_id);
+        int  get_msg_pending(void);
 
     public:
         Mqtt(const char* _broker_url, const char* _username, const char* _password) {
