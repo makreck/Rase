@@ -41,9 +41,11 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
         m.mqtt_cfg.broker.address.uri                  = m.broker_uri;
         m.mqtt_cfg.broker.address.port                 = 1883;
         m.mqtt_cfg.session.protocol_ver                = MQTT_PROTOCOL_V_3_1_1; // MQTT_PROTOCOL_V_5;
+        m.mqtt_cfg.session.keepalive                   = 180;
         m.mqtt_cfg.credentials.username                = m.username;
         m.mqtt_cfg.credentials.authentication.password = m.password;
         m.mqtt_cfg.credentials.client_id               = SENSOR_ID;
+        m.mqtt_cfg.network.reconnect_timeout_ms        = 10000;
     }
 }
 
@@ -103,7 +105,8 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
     switch (event_id) {
         case MQTT_EVENT_CONNECTED: {
             m.retry_count = 0;
-            subscribe_sensor(client);
+            m.message_id = 0;
+            // subscribe_sensor(client);
         }
         break;
 
@@ -113,15 +116,31 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
                 esp_mqtt_client_reconnect(client);
                 ESP_LOGI(TAG, "Retrying to connect to the MQTT broker");
             } else {
-                ESP_LOGI(TAG, "Maximum retry attempts reached");
+                ESP_LOGE(TAG, "Maximum retry attempts reached");
             }
         } break;
 
-        case MQTT_EVENT_SUBSCRIBED:
-        case MQTT_EVENT_UNSUBSCRIBED:
-        case MQTT_EVENT_PUBLISHED:
-        case MQTT_EVENT_DATA:
-        case MQTT_EVENT_ERROR:
+        case MQTT_EVENT_SUBSCRIBED: {
+            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");
+        } break;
+
+        case MQTT_EVENT_UNSUBSCRIBED: {
+            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED");
+        } break;
+
+        case MQTT_EVENT_PUBLISHED: {
+            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED");
+            m.message_id = 0;
+        } break;
+
+        case MQTT_EVENT_DATA: {
+            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+        } break;
+
+        case MQTT_EVENT_ERROR: {
+            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        } break;
+
         default: {
         } break;
 
@@ -135,22 +154,22 @@ size_t Mqtt::make_topic(char* _topic, size_t _length, const char* _device_serial
     return (snprintf(_topic, _length - 1, "/%s/%s/%s", SENSOR_ID, _device_serial_number, _key));
 }
 
-void Mqtt::subscribe_sensor(esp_mqtt_client_handle_t _client) {
-    if (m.sensor != nullptr) {
-        size_t count = m.sensor->get_property_count();
-        if (count > 0) {
-            char device_serial_number[24]{ 0 };
-            Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
-            const SensorProperty* props = m.sensor->get_properties();
-            for (int i = 0; i < count; i++) {
-                char topic[80]{ 0 };
-                if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
-                    esp_mqtt_client_subscribe(_client, topic, 0);
-                }
-            }
-        }
-    }
-}
+// void Mqtt::subscribe_sensor(esp_mqtt_client_handle_t _client) {
+//     if (m.sensor != nullptr) {
+//         size_t count = m.sensor->get_property_count();
+//         if (count > 0) {
+//             char device_serial_number[24]{ 0 };
+//             Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
+//             const SensorProperty* props = m.sensor->get_properties();
+//             for (int i = 0; i < count; i++) {
+//                 char topic[80]{ 0 };
+//                 if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
+//                     esp_mqtt_client_subscribe(_client, topic, 0);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void Mqtt::perform_publishing(void) {
     if (m.sensor != nullptr) {
@@ -158,19 +177,19 @@ void Mqtt::perform_publishing(void) {
         if (count > 0) {
             SensorReading* reading = m.sensor->get_reading();
 
-            char device_serial_number[24]{ 0 };
+            char device_serial_number[32]{ 0 };
             Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
 
             const SensorProperty* props = m.sensor->get_properties();
             for (int i = 0; i < count; i++) {
-                char topic[80]{ 0 };
+                char topic[128]{ 0 };
                 if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
                     float value = 0.0f;
                     if (reading->get_modified_value(props[i].key, value)) {
-                        char message[32]{ 0 };
+                        char message[64]{ 0 };
                         SensorProperty::format_value(&props[i], value, message, sizeof (message));
-                        esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
-                        vTaskDelay(pdMS_TO_TICKS(25));
+                        m.message_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
+                        vTaskDelay(pdMS_TO_TICKS(250));
                     }
                 }
             }
@@ -184,6 +203,8 @@ void Mqtt::_mqtt_task(void* pvParameters) {
 void Mqtt::mqtt_task(void) {
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1000));
-        perform_publishing();
+        if (m.message_id == 0) {
+            perform_publishing();
+        }
     }
 }
