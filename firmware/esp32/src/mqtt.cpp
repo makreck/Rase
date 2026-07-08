@@ -41,7 +41,8 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
         m.mqtt_cfg.broker.address.uri                  = m.broker_uri;
         m.mqtt_cfg.broker.address.port                 = 1883;
         m.mqtt_cfg.session.protocol_ver                = MQTT_PROTOCOL_V_3_1_1; // MQTT_PROTOCOL_V_5;
-        m.mqtt_cfg.session.keepalive                   = 180;
+        m.mqtt_cfg.session.keepalive                   = 120;
+        m.mqtt_cfg.session.disable_keepalive           = true;
         m.mqtt_cfg.credentials.username                = m.username;
         m.mqtt_cfg.credentials.authentication.password = m.password;
         m.mqtt_cfg.credentials.client_id               = SENSOR_ID;
@@ -98,7 +99,6 @@ void Mqtt::_mqtt_event_handler(void* _handler_args, esp_event_base_t _base, int3
 }
 void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _event_data) {
     esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t)_event_data;
-
     esp_mqtt_client_handle_t client = event->client;
     esp_mqtt_event_id_t event_id = (esp_mqtt_event_id_t)_event_id;
 
@@ -129,7 +129,7 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
         } break;
 
         case MQTT_EVENT_PUBLISHED: {
-            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED");
+            ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED topic: \"%s\" message: \"%s\", message ID = %d ", "event->topic", "event->data", event->msg_id);
             m.message_id = 0;
         } break;
 
@@ -189,6 +189,7 @@ void Mqtt::perform_publishing(void) {
                         char message[64]{ 0 };
                         SensorProperty::format_value(&props[i], value, message, sizeof (message));
                         m.message_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
+                        ESP_LOGI(TAG, "Sending topic: \"%s\" message: \"%s\", message ID = %d ", "topic", "message", m.message_id);
                         vTaskDelay(pdMS_TO_TICKS(250));
                     }
                 }
