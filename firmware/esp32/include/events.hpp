@@ -57,6 +57,7 @@ enum class AppEvent:uint32_t {
     button_event      = 701,
     button_idle       = 702,
 
+    nvm_update        = 997,
     reboot            = 998,
     factory_reset     = 999,
 };
