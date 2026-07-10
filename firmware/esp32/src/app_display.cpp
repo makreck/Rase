@@ -34,7 +34,7 @@ AppState App::init_display(void) {
 
         m.display->clear();
         m.display->set_contrast(m.cfg->get_display_contrast());
-        m.display->set_rotation(m.cfg->get_rotation());
+        m.display->set_rotation(m.cfg->get_display_rotation());
         m.display->setLogo();
         m.display->update();
         
@@ -335,8 +335,8 @@ AppState App::display_info_page(void) {
 }
 
 void App::flip_display(void) {
-    m.cfg->flip_Rotation();
-    m.display->set_rotation(m.cfg->get_rotation());
+    m.cfg->flip_display_rotation();
+    m.display->set_rotation(m.cfg->get_display_rotation());
     m.display_request++;
 }
 
