@@ -34,4 +34,6 @@ class Tools {
         static AppState get_date(char* buffer, size_t size);
         static const char* get_build_date(void);
         static void get_iso_build_date(char* buffer, size_t size);
+        static size_t json_get(const char* json_data, const char* _key, char* _buffer, size_t _length);
+
 };
