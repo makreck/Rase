@@ -53,7 +53,6 @@
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <poll.h>
 
 #include <string>
