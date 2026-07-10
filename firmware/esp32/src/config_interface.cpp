@@ -150,18 +150,20 @@ void ConfigInterface::handle_restart(ConfigInterface* instance, int mode, const 
 }
         
 void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode, const char* data, size_t length) {
-// @TODO: Reveive device configuration JSON string.
-    const char* msg = "Still under construction!\n";
-    send(msg, strlen(msg));
-
-// **** For testing only:
-App* app = instance->app;
-SysConfig* cfg = app->get_config();
-if (cfg != nullptr) {
-    cfg->print_parms("/config");
-}
-// ****
-
+    App* app = instance->app;
+    SysConfig* cfg = app->get_config();
+    if (cfg != nullptr) {
+        char* p = strstr(data, "/config=");
+        if (p != nullptr) {
+            cfg->import_json(data, length);
+        } else {
+            char* str_json = cfg->get_json();
+            if (str_json != nullptr) {
+                send(str_json, strlen(str_json));
+                free(str_json);
+            }
+        }
+    }
 }
 
 void ConfigInterface::process_command(const char* data, size_t length) {
@@ -191,9 +193,6 @@ void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, co
     cfg->set_mqtt_broker(broker);
     cfg->set_mqtt_username(username);
     cfg->set_mqtt_password(pwd);
-#ifdef DISPLAY_STATE        
-    cfg->print_parms("Config response");
-#endif        
 
     esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
 }
