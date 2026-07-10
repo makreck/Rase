@@ -61,7 +61,7 @@ void ConfigInterface::_communication_handler(void *pvParameters) {
 }
 void ConfigInterface::communication_handler(void) {
     while (true) {
-        int bytes_read = usb_serial_jtag_read_bytes(rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(100));
+        int bytes_read = usb_serial_jtag_read_bytes(rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(500));
         if (bytes_read > 0) {
             process_command(rx_buffer, (size_t)bytes_read);
         }
@@ -156,6 +156,7 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
         char* p = strstr(data, "/config=");
         if (p != nullptr) {
             cfg->import_json(data, length);
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::nvm_update, nullptr, 0, pdMS_TO_TICKS(1));
         } else {
             char* str_json = cfg->get_json();
             if (str_json != nullptr) {
