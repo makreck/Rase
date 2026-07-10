@@ -320,8 +320,8 @@ esp_err_t DisplayOLED128x64::render_large_glyph(int x, int y, char glyphCode) {
     return (ESP_OK);
 }
 
-esp_err_t DisplayOLED128x64::set_rotation(uint8_t mask) {
-    swap_vertical = ((mask & 0x01) != 0);
+esp_err_t DisplayOLED128x64::set_rotation(int _degree) {
+    swap_vertical = (_degree == 180);
     return (ESP_OK);
 }
 

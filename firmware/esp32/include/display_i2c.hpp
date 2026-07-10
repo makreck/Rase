@@ -70,7 +70,7 @@ class DisplayInstance {
         virtual esp_err_t print(int x, int y, const char* text, size_t length = 0) = 0;
         virtual esp_err_t print_large(int x, int y, const char* text, size_t length = 0) = 0;
         virtual esp_err_t invert_row(int row) = 0;
-        virtual esp_err_t set_rotation(uint8_t mask) = 0;
+        virtual esp_err_t set_rotation(int _degree) = 0;
         virtual esp_err_t set_contrast(float value) = 0;
         virtual esp_err_t off(void) = 0;
         virtual esp_err_t on(void) = 0;
@@ -98,7 +98,7 @@ class DisplayLCD16x2 : public DisplayInstance {
         esp_err_t print(int x, int y, const char* text, size_t length = 0) override;
         esp_err_t print_large(int x, int y, const char* text, size_t length = 0) override;
         esp_err_t invert_row(int row) override;
-        esp_err_t set_rotation(uint8_t mask) override;
+        esp_err_t set_rotation(int _degree) override;
         esp_err_t set_contrast(float value) override;
         esp_err_t off(void) override;
         esp_err_t on(void) override;
@@ -140,7 +140,7 @@ class DisplayOLED128x64 : public DisplayInstance {
         esp_err_t print(int x, int y, const char* text, size_t length) override;
         esp_err_t print_large(int x, int y, const char* text, size_t length) override;
         esp_err_t invert_row(int row) override;
-        esp_err_t set_rotation(uint8_t mask) override;
+        esp_err_t set_rotation(int _degree) override;
         esp_err_t set_contrast(float value) override;
         esp_err_t off(void) override;
         esp_err_t on(void) override;
@@ -180,7 +180,7 @@ class DisplayI2C {
 
         esp_err_t clear(void);
         esp_err_t setLogo(void);
-        esp_err_t set_rotation(uint8_t mask);
+        esp_err_t set_rotation(int _degree);
         esp_err_t set_contrast(float value);
         esp_err_t print(int x, int y, const char* text, size_t length = 0);
         esp_err_t print_large(int x, int y, const char* text, size_t length = 0);

@@ -157,10 +157,10 @@ esp_err_t DisplayI2C::on(void) {
     return (ESP_OK);
 }
 
-esp_err_t DisplayI2C::set_rotation(uint8_t mask) {
+esp_err_t DisplayI2C::set_rotation(int _degree) {
     DisplayHandle handle = control;
     for (int i = 0; (i < displayCount) && (handle != nullptr); i++) {
-        handle->set_rotation(mask);
+        handle->set_rotation(_degree);
         handle->update();
     }
     return (ESP_OK);

@@ -168,7 +168,7 @@ esp_err_t DisplayLCD16x2::invert_row(int row) {
     return (ESP_FAIL);
 }
 
-esp_err_t DisplayLCD16x2::set_rotation(uint8_t mask) {
+esp_err_t DisplayLCD16x2::set_rotation(int _degree) {
     return (ESP_FAIL);
 }
 
