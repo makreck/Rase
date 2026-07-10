@@ -180,3 +180,32 @@ void Tools::get_iso_build_date(char* buffer, size_t size) {
         snprintf(buffer, size - 1, "%4.4d-%2.2d-%2.2d", year, month, day);
     }
 }
+
+size_t Tools::json_get(const char* json_data, const char* _key, char* _buffer, size_t _length) {
+    if (_key == nullptr) {
+        return (0);
+    }
+
+    char key[64]{ 0 };
+    snprintf(key, sizeof (key), "\"%s\"", _key);
+
+    char* p = strstr(json_data, key);
+    if (p == nullptr) { return (0); }
+    p += strlen(key);
+
+    p = strstr(p, ":");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    p = strstr(p, "\"");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    size_t i;
+    for (i = 0; (i < (_length - 1)) && (*p != '\"'); i++) {
+        _buffer[i] = *p++;
+    }
+    _buffer[i] = '\0';
+
+    return (i);
+}
