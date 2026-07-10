@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 const char* SysConfig::config_json_format = 
     "{\n"
@@ -533,7 +533,7 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
     if (len > 0) { set_display_timeout(atof(parameter)); }
 
     len = Tools::json_get(_json_string, "display_contrast", parameter, sizeof (parameter));
-    if (len > 0) { set_display_contrast(atoi(parameter)); }
+    if (len > 0) { set_display_contrast(atof(parameter)); }
 
 
     len = Tools::json_get(_json_string, "sensor_type", parameter, sizeof (parameter));
@@ -542,5 +542,5 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
     len = Tools::json_get(_json_string, "led_intensity", parameter, sizeof (parameter));
     if (len > 0) { set_LED_intensity(atof(parameter)); }
 
-    return (save());
+    return (AppState::OK);
 }
