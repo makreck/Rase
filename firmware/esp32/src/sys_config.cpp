@@ -23,6 +23,29 @@
 
 #define DISPLAY_STATE
 
+const char* SysConfig::config_json_format = 
+    "{\n"
+    "\t\"version\": \"0x%-8.8X\",\n"
+    
+    "\t\"ssid\": \"%s\",\n"
+    "\t\"password\": \"%s\",\n"
+    "\t\"wifi_channel\": \"%d\",\n"
+    
+    "\t\"mqtt_broker\": \"%s\",\n"
+    "\t\"mqtt_username\": \"%s\",\n"
+    "\t\"mqtt_password\": \"%s\",\n"
+    "\t\"mqtt_enable\": \"%s\",\n"
+    
+    "\t\"display_layout\": \"%d\",\n"
+    "\t\"display_param\": \"%d\",\n"
+    "\t\"display_rotation\": \"%d\",\n"
+    "\t\"display_timeout\": \"%.3f\",\n"
+    "\t\"display_contrast\": \"%d\",\n"
+
+    "\t\"sensor_type\": \"%d\",\n"
+    "\t\"led_intensity\": \"%d\"\n"
+    "}\n";
+
 AppState SysConfig::init(void) {
     init_nvs_flash();
     load_defaults();
@@ -64,22 +87,26 @@ AppState SysConfig::init_nvs_flash(bool forceInit) {
 
 AppState SysConfig::load_defaults(void) {
     memset(&cfg, 0, sizeof (cfg));
-    cfg.magic_id                = WCFG_MAGIC;
-    cfg.channel                 = WIFI_DEFAULT_CHANNEL;
-    cfg.display_layout          = DISPLAY_LAYOUT_DEFAULT;
-    cfg.display_param           = 0;
-    cfg.display_rotation        = DISPLAY_ROTATION_DEFAULT;
-    cfg.display_timeout_s       = T_APP_DISPLAY_TIMEOUT_S;
-    cfg.display_contrast        = DISPLAY_CONTRAST_DEFAULT;
-    cfg.flags                   = CONFIG_FLAG_IFC_ENABLE | CONFIG_FLAG_MQTT_ENABLE;
-    cfg.sensor_type             = SENSOR_TYPE_DEFAULT;
-    cfg.led_intensity           = LED_DEFAULT_INTENSITY;
+    cfg.version = WCFG_VERSION;
+
+    set_wifi_channel(WIFI_DEFAULT_CHANNEL);
+    set_sensor_type(SENSOR_TYPE_DEFAULT);
+    set_LED_intensity(LED_DEFAULT_INTENSITY);
+    set_config_enable(DEFAULT_IFC_ENABLE);
+    set_mqtt_enable(DEFAULT_MQTT_ENABLE);
+
+    set_display_layout(DISPLAY_LAYOUT_DEFAULT);
+    set_display_parameter(0);
+    set_display_timeout(T_APP_DISPLAY_TIMEOUT_S);
+    set_display_contrast(DISPLAY_CONTRAST_DEFAULT);
+    set_display_rotation(DISPLAY_ROTATION_DEFAULT);
+
     return (AppState::OK);
 }
 
 AppState SysConfig::check(void) {
-    if (cfg.magic_id != WCFG_MAGIC) return (AppState::access_denied);
-    if ((cfg.channel < 1) || (cfg.channel > 12)) return (AppState::invalid_arg);
+    if (cfg.version != WCFG_VERSION) return (AppState::access_denied);
+    if ((cfg.wifi_channel < 1) || (cfg.wifi_channel > 12)) return (AppState::invalid_arg);
     return (AppState::OK);
 }
 
@@ -99,7 +126,7 @@ AppState SysConfig::load(void) {
 }
 
 AppState SysConfig::save(void) {
-    if (cfg.magic_id != WCFG_MAGIC) {
+    if (cfg.version != WCFG_VERSION) {
         return (AppState::access_denied);
     }
     nvs_handle_t handle = 0;
@@ -144,20 +171,20 @@ AppState SysConfig::set_wifi_channel(uint8_t channelNumber) {
     if ((channelNumber < 1) || (channelNumber > 12)) {
         return (AppState::invalid_arg);
     }
-    modified = (cfg.channel != channelNumber);
-    cfg.channel = channelNumber;
+    modified = (cfg.wifi_channel != channelNumber);
+    cfg.wifi_channel = channelNumber;
     return (AppState::OK);
 }
 
 int SysConfig::get_wifi_channel(void) {
-    if (cfg.magic_id != WCFG_MAGIC) {
+    if (cfg.version != WCFG_VERSION) {
         return (-1);
     }
-    return (cfg.channel); 
+    return (cfg.wifi_channel); 
 }
 
 const char* SysConfig::get_ssid(void) { 
-    if (cfg.magic_id != WCFG_MAGIC) {
+    if (cfg.version != WCFG_VERSION) {
         return (nullptr);
     }
     return (cfg.ssid); 
@@ -177,7 +204,7 @@ AppState SysConfig::set_ssid(const char* ap_name) {
 }
 
 const char* SysConfig::get_password(void) {
-    if (cfg.magic_id != WCFG_MAGIC) {
+    if (cfg.version != WCFG_VERSION) {
         return (nullptr);
     }
     return (cfg.password); 
@@ -206,39 +233,27 @@ float SysConfig::get_LED_intensity(void) {
     return (cfg.led_intensity);
 }
 
-uint8_t SysConfig::get_rotation(void) {
-    return (cfg.display_rotation);
-}
-
 SensorType SysConfig::get_sensor_type(void) {
     return ((SensorType)cfg.sensor_type);
 }
 
 bool SysConfig::get_config_enable(void) {
-    return ((cfg.flags & CONFIG_FLAG_IFC_ENABLE) != 0);
+    return (cfg.f_ifc_enable == 1);
 }
 
 AppState SysConfig::set_config_enable(bool enable) {
     modified = (get_config_enable() != enable);
-    if (enable) {
-        cfg.flags |= CONFIG_FLAG_IFC_ENABLE;
-    } else {
-        cfg.flags &= ~CONFIG_FLAG_IFC_ENABLE;
-    }
+    cfg.f_ifc_enable = (uint8_t)((enable) ? 1 : 0);
     return (AppState::OK);
 }
 
 bool SysConfig::get_mqtt_enable(void) {
-    return ((cfg.flags & CONFIG_FLAG_MQTT_ENABLE) != 0);
+    return (cfg.f_mqtt_enable == 1);
 }
 
 AppState SysConfig::set_mqtt_enable(bool enable) {
     modified = (get_mqtt_enable() != enable);
-    if (enable) {
-        cfg.flags |= CONFIG_FLAG_MQTT_ENABLE;
-    } else {
-        cfg.flags &= ~CONFIG_FLAG_MQTT_ENABLE;
-    }
+    cfg.f_mqtt_enable = (uint8_t)((enable) ? 1 : 0);
     return (AppState::OK);
 }
 
@@ -248,18 +263,45 @@ AppState SysConfig::set_sensor_type(SensorType type) {
     return (AppState::OK);
 }
 
-AppState SysConfig::flip_Rotation(void) {
-    cfg.display_rotation ^= 0x01;
-    modified = true;
+AppState SysConfig::flip_display_rotation(void) {
+    return (set_display_rotation(get_display_rotation() + 180));
+}
+
+AppState SysConfig::set_display_rotation(int _degree) {
+    int rot_step = (_degree / 90) & 0x03;
+    if ((rot_step & 1) != 0) {
+        return (AppState::not_implemented);
+    }
+    cfg.f_display_rotoation = (uint8_t)(rot_step);
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_contrast(float value) {
-    float contrast = MIN(1.0f, MAX(0.0f, value));
+int SysConfig::get_display_rotation(void) {
+    if (cfg.f_display_rotoation == 3) {
+        return (270);
+    } else if (cfg.f_display_rotoation == 2) {
+        return (180);
+    } else if (cfg.f_display_rotoation == 1) {
+        return (90);
+    }
+    return (0);
+}
+
+AppState SysConfig::set_display_contrast(float _value) {
+    if ((_value > 1.0f) && (_value <= 100.0f)) {
+        _value /= 100.0f;
+    } else if ((_value > 100.0f) && (_value <= 1000.0f)) {
+        _value /= 1000.0f;
+    } else if (_value > 1000.0f) {
+        return (AppState::invalid_arg);
+    }
+
+    float contrast = MIN(1.0f, MAX(0.0f, _value));
     if (cfg.display_contrast != contrast) {
         cfg.display_contrast = contrast;
         modified = true;
     }
+
     return (AppState::OK);
 }
 
@@ -366,7 +408,7 @@ void SysConfig::print_parms(const char* hint) {
     }
     ESP_LOGI(TAG, "%s: ", hint);
     ESP_LOGI(TAG, "\t- Size:               %d bytes ", (int)sizeof (cfg));
-    ESP_LOGI(TAG, "\t- Magic ID:           0x%-8.8X ", (unsigned int)cfg.magic_id);
+    ESP_LOGI(TAG, "\t- Version:            0x%-8.8X ", (unsigned int)cfg.version);
 
     ESP_LOGI(TAG, "\t- AP SSID:            <%s> ",     get_ssid());
     ESP_LOGI(TAG, "\t- AP password:        <%s> ",     get_password());
@@ -379,7 +421,7 @@ void SysConfig::print_parms(const char* hint) {
 
     ESP_LOGI(TAG, "\t- Display Layout:     %d ",       (int)get_display_layout());
     ESP_LOGI(TAG, "\t- Display parameter:  %d ",       (int)get_display_parameter());
-    ESP_LOGI(TAG, "\t- Display rotation:   %d   ",     (int)get_rotation());
+    ESP_LOGI(TAG, "\t- Display rotation:   %d   ",     (int)get_display_rotation());
     ESP_LOGI(TAG, "\t- Display timeout:    %.3f s ",   get_display_timeout());
     ESP_LOGI(TAG, "\t- Display contrast:   %.1f ",     get_display_contrast());
 
@@ -388,4 +430,117 @@ void SysConfig::print_parms(const char* hint) {
 
     ESP_LOGI(TAG, "\t- LED intensity:      %.2f ",     get_LED_intensity());
 #endif    
+}
+
+char* SysConfig::get_json(void) {
+    size_t length = snprintf(nullptr, 0,
+        config_json_format,
+        (unsigned int)cfg.version,
+        get_ssid(),
+        get_password(),
+        get_wifi_channel(),
+        get_mqtt_broker(),
+        get_mqtt_username(),
+        get_mqtt_password(),
+        (get_mqtt_enable()) ? "enabled" : "disabled",
+        (int)get_display_layout(),
+        (int)get_display_parameter(),
+        (int)get_display_rotation(),
+        (int)get_display_timeout(),
+        (int)get_display_contrast() * 100.0f,
+        (int)get_sensor_type(),
+        (int)(get_LED_intensity() * 100.0f)
+    );
+
+    size_t size = length + 8;
+    char* str_json = (char*)malloc(size);
+    if (str_json != nullptr) {
+        memset(str_json, 0, size);
+        snprintf(str_json, length + 1,
+            config_json_format,
+            (unsigned int)cfg.version,
+            get_ssid(),
+            get_password(),
+            get_wifi_channel(),
+            get_mqtt_broker(),
+            get_mqtt_username(),
+            get_mqtt_password(),
+            (get_mqtt_enable()) ? "enabled" : "disabled",
+            (int)get_display_layout(),
+            (int)get_display_parameter(),
+            (int)get_display_rotation(),
+            (int)get_display_timeout(),
+            (int)get_display_contrast() * 100.0f,
+            (int)get_sensor_type(),
+            (int)(get_LED_intensity() * 100.0f)
+        );
+    }
+
+    return (str_json);
+}
+
+AppState SysConfig::import_json(const char* _json_string, size_t _length) {
+    if ((_json_string == nullptr) || (_length < 16)) {
+        return (AppState::invalid_arg);
+    }
+
+    char parameter[64]{ 0 };
+    size_t len;
+
+    len = Tools::json_get(_json_string, "version", parameter, sizeof (parameter));
+    if (len > 0) {
+        int32_t ver = strtoul(parameter, nullptr, 0);
+        if (ver != WCFG_VERSION) {
+#ifdef DISPLAY_STATE    
+            ESP_LOGE(TAG, "Invalid version number 0x%-8.8X.", (unsigned int)ver);
+#endif
+        }
+    }
+
+    len = Tools::json_get(_json_string, "ssid", parameter, sizeof (parameter));
+    if (len > 0) { set_ssid(parameter); }
+
+    len = Tools::json_get(_json_string, "password", parameter, sizeof (parameter));
+    if (len > 0) { set_password(parameter); }
+
+    len = Tools::json_get(_json_string, "wifi_channel", parameter, sizeof (parameter));
+    if (len > 0) { set_wifi_channel(atoi(parameter)); }
+
+
+    len = Tools::json_get(_json_string, "mqtt_broker", parameter, sizeof (parameter));
+    if (len > 0) { set_mqtt_broker(parameter); }
+
+    len = Tools::json_get(_json_string, "mqtt_username", parameter, sizeof (parameter));
+    if (len > 0) { set_mqtt_username(parameter); }
+
+    len = Tools::json_get(_json_string, "mqtt_password", parameter, sizeof (parameter));
+    if (len > 0) { set_mqtt_password(parameter); }
+
+    len = Tools::json_get(_json_string, "mqtt_enable", parameter, sizeof (parameter));
+    if (len > 0) { set_mqtt_enable(atoi(parameter) != 0); }
+
+
+    len = Tools::json_get(_json_string, "display_layout", parameter, sizeof (parameter));
+    if (len > 0) { set_display_layout((DisplayLayout)atoi(parameter)); }
+
+    len = Tools::json_get(_json_string, "display_param", parameter, sizeof (parameter));
+    if (len > 0) { set_display_parameter((uint8_t)(atoi(parameter) & 0xff)); }
+
+    len = Tools::json_get(_json_string, "display_rotation", parameter, sizeof (parameter));
+    if (len > 0) { set_display_rotation(atoi(parameter)); }
+
+    len = Tools::json_get(_json_string, "display_timeout", parameter, sizeof (parameter));
+    if (len > 0) { set_display_timeout(atof(parameter)); }
+
+    len = Tools::json_get(_json_string, "display_contrast", parameter, sizeof (parameter));
+    if (len > 0) { set_display_contrast(atoi(parameter)); }
+
+
+    len = Tools::json_get(_json_string, "sensor_type", parameter, sizeof (parameter));
+    if (len > 0) { set_sensor_type((SensorType)atoi(parameter)); }
+
+    len = Tools::json_get(_json_string, "led_intensity", parameter, sizeof (parameter));
+    if (len > 0) { set_LED_intensity(atof(parameter)); }
+
+    return (save());
 }

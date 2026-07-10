@@ -21,48 +21,46 @@
 
 #pragma once
 
-#define WCFG_MAGIC               (0x20260701)
-// #define WCFG_MAGIC               (0x20260410)
+#define WCFG_VERSION                 (0x20260710)
+// #define WCFG_VERSION                 (0x20260701)
+// #define WCFG_VERSION                 (0x20260410)
 
-#define WCFG_STORAGE_NAMESPACE   SENSOR_ID
-#define WCFG_STORAGE_CONFIG_KEY  "system-config"
+#define WCFG_STORAGE_NAMESPACE       SENSOR_ID
+#define WCFG_STORAGE_CONFIG_KEY      "system-config"
 
-#define LED_INTENSITY_MAX        (1.00f)
-#define LED_INTENSITY_HIGH       (0.75f)
-#define LED_INTENSITY_MEDIUM     (0.50f)
-#define LED_INTENSITY_LOW        (0.25f)
-#define LED_INTENSITY_VERY_LOW   (0.05f)
-#define LED_INTENSITY_MIN        (0.01f)
-#define LED_INTENSITY_OFF        (0.00f)
-#define LED_DEFAULT_INTENSITY    (LED_INTENSITY_VERY_LOW)
+#define LED_INTENSITY_MAX            (1.00f)
+#define LED_INTENSITY_HIGH           (0.75f)
+#define LED_INTENSITY_MEDIUM         (0.50f)
+#define LED_INTENSITY_LOW            (0.25f)
+#define LED_INTENSITY_VERY_LOW       (0.05f)
+#define LED_INTENSITY_MIN            (0.01f)
+#define LED_INTENSITY_OFF            (0.00f)
+#define LED_DEFAULT_INTENSITY        (LED_INTENSITY_VERY_LOW)
 
-#define DISPLAY_CONTRAST_HIGH    (1.00f)
-#define DISPLAY_CONTRAST_MEDIUM  (0.50f)
-#define DISPLAY_CONTRAST_LOW     (0.01f)
-#define DISPLAY_CONTRAST_DEFAULT (DISPLAY_CONTRAST_HIGH)
+#define DISPLAY_CONTRAST_DEFAULT     (0.80f)
+
+#define DEFAULT_IFC_ENABLE           (true)
+#define DEFAULT_MQTT_ENABLE          (false)
 
 #ifdef ESP32_S3_WROOM_1
-    #define DISPLAY_ROTATION_DEFAULT (1)
+    #define DISPLAY_ROTATION_DEFAULT (180)
 #else
     #define DISPLAY_ROTATION_DEFAULT (0)
 #endif
 
-#define CONFIG_FLAG_IFC_ENABLE   (0x01)
-#define CONFIG_FLAG_MQTT_ENABLE  (0x02)
-
-#define WIFI_DEFAULT_CHANNEL     (1)
-#define WIFI_MAX_CONNECTION      (10)
+#define WIFI_DEFAULT_CHANNEL         (1)
+#define WIFI_MAX_CONNECTION          (10)
 
 // *** Misc default data, later to be defined in their modules:
-#define T_APP_DISPLAY_TIMEOUT_S  (0.0f)
-#define DISPLAY_LAYOUT_DEFAULT   ((uint8_t)(DisplayLayout::large_values))
-#define SENSOR_TYPE_DEFAULT      ((uint8_t)SensorType::autoscan)
+#define T_APP_DISPLAY_TIMEOUT_S      (0.0f)
+#define DISPLAY_LAYOUT_DEFAULT       (DisplayLayout::large_values)
+#define SENSOR_TYPE_DEFAULT          (SensorType::autoscan)
 
-#define WIFI_AP_NAME_MAX         (32)
-#define WIFI_AP_PASSWD_MAX       (64)
-#define MQTT_BROKER_MAX          (64)
-#define MQTT_USERNAME_MAX        (32)
-#define MQTT_PASSWORD_MAX        (32)
+#define WIFI_AP_NAME_MAX             (32)
+#define WIFI_AP_PASSWD_MAX           (64)
+#define MQTT_BROKER_MAX              (64)
+#define MQTT_USERNAME_MAX            (32)
+#define MQTT_PASSWORD_MAX            (32)
 
 enum class DisplayLayout {
     large_values = 0,
@@ -74,21 +72,27 @@ class SysConfigData {
     public:
         union {
             struct {
-                uint32_t magic_id;
+                uint32_t version;
                 char ssid[WIFI_AP_NAME_MAX];
                 char password[WIFI_AP_PASSWD_MAX];
                 char mqtt_broker[MQTT_BROKER_MAX];
                 char mqtt_username[MQTT_USERNAME_MAX];
                 char mqtt_password[MQTT_PASSWORD_MAX];
-                uint8_t channel;
+                uint8_t wifi_channel;
+                uint8_t sensor_type;
                 uint8_t display_layout;
                 uint8_t display_param;
-                uint8_t display_rotation;
-                uint8_t reserved1[2];
-                uint8_t flags;
-                // uint8_t mqtt_enable;
-                // uint8_t config_interface_enable;
-                uint8_t sensor_type;
+                uint8_t reserved1[3];
+                union {
+                    uint8_t flags;
+                    struct {
+                        uint8_t f_display_rotoation : 2;
+                        uint8_t f_ifc_enable        : 1;
+                        uint8_t f_mqtt_enable       : 1;
+                        uint8_t f_reserved          : 4;
+                    };
+                };
+
                 float display_timeout_s;
                 float led_intensity;
                 float display_contrast;
@@ -99,6 +103,8 @@ class SysConfigData {
 
 class SysConfig {
     private:
+        static const char* config_json_format;
+
         SysConfigData cfg;
         bool modified = false;
 
@@ -112,8 +118,6 @@ class SysConfig {
         }
 
         void print_parms(const char* hint = nullptr);
-
-        uint8_t get_channel(void) { return (cfg.channel); }
 
         static AppState get_mac_Address(char* string, size_t size);
         
@@ -139,23 +143,26 @@ class SysConfig {
         AppState set_mqtt_username(const char* username);
         AppState set_mqtt_password(const char* password);
         AppState set_sensor_type(SensorType type);
+        AppState set_display_rotation(int _degree);
         
         const char* get_ssid(void);
         const char* get_password(void);
         const char* get_mqtt_broker(void);
         const char* get_mqtt_username(void);
         const char* get_mqtt_password(void);
-        
+                
         float get_display_timeout(void);
         float get_LED_intensity(void);
         float get_display_contrast(void);
 
+        AppState import_json(const char* _json_string, size_t _length);
+        char* get_json(void);
         DisplayLayout get_display_layout(void);
         uint8_t get_display_parameter(void);
         int get_wifi_channel(void);
-        uint8_t get_rotation(void);
+        int get_display_rotation(void);
+        AppState flip_display_rotation(void);
         SensorType get_sensor_type(void);
-        AppState flip_Rotation(void);
         bool get_config_enable(void);
         AppState set_config_enable(bool enable);
         bool get_mqtt_enable(void);
