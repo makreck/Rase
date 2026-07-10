@@ -297,6 +297,10 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             reload_screensaver();
         } break;
 
+        case AppEvent::nvm_update: {
+            m.flags.b.bNVMUpdateReq = 1;
+        } break;
+
         case AppEvent::factory_reset: {
             handle_reset(true);
         } break;
