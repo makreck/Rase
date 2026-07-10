@@ -24,8 +24,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <termios.h>
 #include "main.h"
 
@@ -81,10 +84,40 @@ void App::run(void) {
         return;
     }
 
+    bool mem_flag = false;
+    char* cmd = argumentsList[1];
+    char* p = strstr(cmd, "/config=");
+    if (p != nullptr) {
+        p = &p[8];
+        char filename[PATH_MAX]{0};
+        for (int i = 0; (i < (PATH_MAX - 1) && (*p > ' ')); i++) {
+            filename[i] = *p++;
+        }
+        struct stat st{ 0 };
+        if (lstat(filename, &st) != -1) {
+            cmd = (char*)malloc(st.st_size + 32);
+            if (cmd != nullptr) {
+                int fdf = open(filename, O_RDONLY);
+                if (fdf != -1) {
+                    strcpy(cmd, "/config=");
+                    read(fdf, &cmd[strlen(cmd)], st.st_size);
+                    close(fdf);
+                    mem_flag = true;
+                    printf("Sending:\n\"\"\"\n%s\"\"\"\n", cmd);
+                } else {
+                    printf("Error opening file <%s>!\n", filename);
+                }
+            } else {
+                printf("Error, unable to alloc %d bytes for file <%s>!\n", (int)(st.st_size + 32), filename);
+            }
+        } else {
+            printf("Error, file <%s> not found!\n", filename);
+        }
+    }
+
     uint8_t dummy_in[4096];
     read(fd, dummy_in, sizeof (dummy_in));
 
-    const char* cmd = argumentsList[1];
     ssize_t len_out = write(fd, cmd, strlen(cmd));
 
     usleep(500000);
@@ -116,6 +149,10 @@ void App::run(void) {
     }
 
     close(fd);
+
+    if (mem_flag) {
+        free(cmd);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -127,7 +164,7 @@ int main(int argc, char* argv[]) {
 
         printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
         printf("\t\"/broker=<MQTT broker>:<username>:<password>\"\tConfigure a MQTT broker/server link.\n");
-        printf("\t\"/config=<JSON>\"\t\tConfigure device by given JSON string.\n");
+        printf("\t\"/config=<JSON.file>\"\t\tConfigure device by given JSON string.\n");
         printf("\t\"/initialize\"\t\t\tPerform a factory reset.\n");
         printf("\t\"/reboot\"\t\t\tReboot the device.\n");
         printf("\t\"/root\"\t\t\t\tQuery the root website source.\n");
