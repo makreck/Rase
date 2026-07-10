@@ -56,9 +56,14 @@ const size_t menu_config_size = SIZEOFARRAY(menu_config);
 const MenuItem menu_contrast[] {
     IDM_TITLE,               "Display contrast",
     IDM_MAIN,                "1 Main menu",
-    IDM_CONTRAST_HIGH,       "2 High",
-    IDM_CONTRAST_MEDIUM,     "3 Medium",
-    IDM_CONTRAST_LOW,        "4 Low",
+    IDM_CONTRAST_100,        "2 100%",
+    IDM_CONTRAST_80,         "3 80%",
+    IDM_CONTRAST_60,         "4 60%",
+    IDM_CONTRAST_40,         "5 50%",
+    IDM_CONTRAST_20,         "6 40%",
+    IDM_CONTRAST_10,         "7 30%",
+    IDM_CONTRAST_20,         "8 20%",
+    IDM_CONTRAST_10,         "9 10%",
 };
 const size_t menu_contrast_size = SIZEOFARRAY(menu_contrast); 
 
@@ -252,6 +257,10 @@ bool App::exit_Menu(void) {
         reload_display_timeout();
         m.display_request++;
         return (true);
+    } else if ((m.menu[m.menuSelect].id >= IDM_CONTRAST_100) && (m.menu[m.menuSelect].id <= IDM_CONTRAST_10)) {
+        float contrast = 1.0f - ((float)(m.menu[m.menuSelect].id - IDM_CONTRAST_100) * 0.1f);
+        set_display_contrast(contrast);
+        return (true);
     } else {
         switch (m.menu[m.menuSelect].id) {
             case IDM_EXIT: {
@@ -325,18 +334,6 @@ bool App::exit_Menu(void) {
                 request_sys_config_update();
             } return (true);
 
-            case IDM_CONTRAST_HIGH: {
-                set_display_contrast(DISPLAY_CONTRAST_HIGH);
-            } return (true);
-
-            case IDM_CONTRAST_MEDIUM: {
-                set_display_contrast(DISPLAY_CONTRAST_MEDIUM);
-            } return (true);
-
-            case IDM_CONTRAST_LOW: {
-                set_display_contrast(DISPLAY_CONTRAST_LOW);
-            } return (true);
-            
             default: {
             } return (true);
         }
