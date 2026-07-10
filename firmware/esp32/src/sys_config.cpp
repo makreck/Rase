@@ -517,7 +517,7 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
     if (len > 0) { set_mqtt_password(parameter); }
 
     len = Tools::json_get(_json_string, "mqtt_enable", parameter, sizeof (parameter));
-    if (len > 0) { set_mqtt_enable(atoi(parameter) != 0); }
+    if (len > 0) { set_mqtt_enable(strstr(parameter, "enabled") != nullptr); }
 
 
     len = Tools::json_get(_json_string, "display_layout", parameter, sizeof (parameter));
