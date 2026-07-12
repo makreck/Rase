@@ -37,6 +37,10 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
             strncpy(m.password, _password, sizeof (m.password) - 1);
         }
 
+        char sernum[24]{ 0 };
+        Tools::get_device_serial_number(sernum, sizeof (sernum));
+        snprintf(m.client_id, sizeof (m.client_id) - 1, "%s_%s", SENSOR_ID, sernum);
+
         memset(&m.mqtt_cfg, 0, sizeof (m.mqtt_cfg));
         m.mqtt_cfg.broker.address.uri                  = m.broker_uri;
         m.mqtt_cfg.broker.address.port                 = 1883;
@@ -45,7 +49,7 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
         m.mqtt_cfg.session.disable_keepalive           = true;
         m.mqtt_cfg.credentials.username                = m.username;
         m.mqtt_cfg.credentials.authentication.password = m.password;
-        m.mqtt_cfg.credentials.client_id               = SENSOR_ID;
+        m.mqtt_cfg.credentials.client_id               = m.client_id;
         m.mqtt_cfg.network.reconnect_timeout_ms        = 10000;
     }
 }

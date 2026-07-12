@@ -30,12 +30,14 @@ class Mqtt {
             char broker_uri[64]{ 0 };
             char username[32]{ 0 };
             char password[32]{ 0 };
+            char client_id[64]{ 0 };
             int retry_count = 0;
             int message_id[MQTT_MSG_MAX]{ 0 };
             esp_mqtt_client_config_t mqtt_cfg;
             esp_mqtt_client_handle_t client = nullptr;
             TaskHandle_t task_handle = nullptr;
             SensorDriver* sensor = nullptr;
+
         } m;
 
         void init(const char* broker_url, const char* _username, const char* _password);
