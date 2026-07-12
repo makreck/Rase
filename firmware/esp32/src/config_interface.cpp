@@ -61,9 +61,15 @@ void ConfigInterface::_communication_handler(void *pvParameters) {
 }
 void ConfigInterface::communication_handler(void) {
     while (true) {
-        int bytes_read = usb_serial_jtag_read_bytes(rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(500));
-        if (bytes_read > 0) {
-            process_command(rx_buffer, (size_t)bytes_read);
+        int len = 0;
+        int bytes_read = usb_serial_jtag_read_bytes(rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(100));
+        while (bytes_read > 0) {
+            len += bytes_read;
+            bytes_read = usb_serial_jtag_read_bytes(&rx_buffer[len], RX_BUFFER_SIZE - len - 1, pdMS_TO_TICKS(100));
+        }
+        if (len > 0) {
+            process_command(rx_buffer, (size_t)len);
+            memset(rx_buffer, 0, RX_BUFFER_SIZE);
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
@@ -155,8 +161,14 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
     if (cfg != nullptr) {
         char* p = strstr(data, "/config=");
         if (p != nullptr) {
-            cfg->import_json(data, length);
-            esp_event_post(APP_EVENT, (int32_t)AppEvent::nvm_update, nullptr, 0, pdMS_TO_TICKS(1));
+            char* buffer = (char*)malloc(length + 8);
+            if (buffer != nullptr) {
+                memset(buffer, 0, length + 8);
+                strncpy(buffer, data, length + 1);
+                cfg->import_json(buffer, length);
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::nvm_update, nullptr, 0, pdMS_TO_TICKS(1));
+                free(buffer);
+            }
         } else {
             char* str_json = cfg->get_json();
             if (str_json != nullptr) {
