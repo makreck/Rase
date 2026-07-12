@@ -59,6 +59,7 @@
 
 enum class SensorType : uint8_t {
     autoscan = 0x00,
+    
     Null     = 0x01,
     SHT2x    = 0x02,
     SHT3x    = 0x03,
@@ -66,5 +67,7 @@ enum class SensorType : uint8_t {
     ATHxx    = 0x05,
     HDC1080  = 0x06,
     BMx280   = 0x07,
+    
+    max      = 0x07,
     invalid  = 0xff,
 };
