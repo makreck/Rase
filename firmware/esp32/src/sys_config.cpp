@@ -23,7 +23,8 @@
 
 // #define DISPLAY_STATE
 
-const char* SysConfig::config_json_format = 
+const char* SysConfig::config_json_format =
+    "\n"
     "{\n"
     "\t\"version\": \"0x%-8.8X\",\n"
     
@@ -40,10 +41,10 @@ const char* SysConfig::config_json_format =
     "\t\"display_param\": \"%d\",\n"
     "\t\"display_rotation\": \"%d\",\n"
     "\t\"display_timeout\": \"%.3f\",\n"
-    "\t\"display_contrast\": \"%d\",\n"
+    "\t\"display_contrast\": \"%.0f\",\n"
 
     "\t\"sensor_type\": \"%d\",\n"
-    "\t\"led_intensity\": \"%d\"\n"
+    "\t\"led_intensity\": \"%.0f\"\n"
     "}\n";
 
 AppState SysConfig::init(void) {
@@ -233,10 +234,6 @@ float SysConfig::get_LED_intensity(void) {
     return (cfg.led_intensity);
 }
 
-SensorType SysConfig::get_sensor_type(void) {
-    return ((SensorType)cfg.sensor_type);
-}
-
 bool SysConfig::get_config_enable(void) {
     return (cfg.f_ifc_enable == 1);
 }
@@ -257,8 +254,12 @@ AppState SysConfig::set_mqtt_enable(bool enable) {
     return (AppState::OK);
 }
 
+SensorType SysConfig::get_sensor_type(void) {
+    return ((SensorType)cfg.sensor_type);
+}
+
 AppState SysConfig::set_sensor_type(SensorType type) {
-    cfg.sensor_type = (uint8_t)type;
+    cfg.sensor_type = ((uint8_t)type & 0xff);
     modified = true;
     return (AppState::OK);
 }
@@ -435,6 +436,7 @@ void SysConfig::print_parms(const char* hint) {
 char* SysConfig::get_json(void) {
     size_t length = snprintf(nullptr, 0,
         config_json_format,
+
         (unsigned int)cfg.version,
         get_ssid(),
         get_password(),
@@ -446,10 +448,10 @@ char* SysConfig::get_json(void) {
         (int)get_display_layout(),
         (int)get_display_parameter(),
         (int)get_display_rotation(),
-        (int)get_display_timeout(),
-        (int)get_display_contrast() * 100.0f,
+        (float)get_display_timeout(),
+        (float)get_display_contrast() * 100.0f,
         (int)get_sensor_type(),
-        (int)(get_LED_intensity() * 100.0f)
+        (float)(get_LED_intensity() * 100.0f)
     );
 
     size_t size = length + 8;
@@ -469,10 +471,10 @@ char* SysConfig::get_json(void) {
             (int)get_display_layout(),
             (int)get_display_parameter(),
             (int)get_display_rotation(),
-            (int)get_display_timeout(),
-            (int)get_display_contrast() * 100.0f,
+            (float)get_display_timeout(),
+            (float)get_display_contrast() * 100.0f,
             (int)get_sensor_type(),
-            (int)(get_LED_intensity() * 100.0f)
+            (float)(get_LED_intensity() * 100.0f)
         );
     }
 
@@ -537,7 +539,11 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
 
 
     len = Tools::json_get(_json_string, "sensor_type", parameter, sizeof (parameter));
-    if (len > 0) { set_sensor_type((SensorType)atoi(parameter)); }
+    if (len > 0) { 
+        uint8_t type = (uint8_t)(strtoul(parameter, nullptr, 0) & 0xff);
+        ESP_LOGI(TAG, "Scanned Sensor Type = %d ", (int)type);
+        set_sensor_type((SensorType)(type));
+    }
 
     len = Tools::json_get(_json_string, "led_intensity", parameter, sizeof (parameter));
     if (len > 0) { set_LED_intensity(atof(parameter)); }
