@@ -60,23 +60,6 @@ void App::run(void) {
     }
 }
 
-
-
-
-
-
-//     if (length < 1) {
-//         printf("No response from device received. Please check, if serial interface is enabled!\n");
-//     } else {
-//         printf("\n%d bytes received.\n", (int)length);
-//     }
-
-
-//     if (mem_flag) {
-//         free(cmd);
-//     }
-// }
-
 int main(int argc, char* argv[]) {
     App* app = new App(argc, argv);
     if (app != nullptr) {

@@ -19,23 +19,34 @@
  * ==============================================================================
  */
 
-#pragma once
+#include "includes.h"
 
-#include <stdio.h>
-#include <cstddef>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <limits.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <termios.h>
+const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
+    
+    { // English
+        "File",
+        "Edit",
+        "Help",
+        "Quit",
+        "Copy",
+        "Paste",
+        "OK",
+        "yes",
+        "no",
+        "cancel",
+        "enabled",
+        "disabled",
+        "Device scan",
+    },
 
-#include "gtk_headers.h"
+};
 
-#include "typedefs.h"
-#include "colors.h"
-#include "resource.h"
-#include "app.h"
+const char* AppString::get(int idLanguage, int64_t idString) {
+    if (idString >= (int64_t)65536) {
+        return ((const char*)(idString));
+    }
+    if (((int)idLanguage < 0) || ((int)idLanguage >= LANGMAX) || (idString < 0) || (idString >= IDS_MAIN_COUNT)) {
+        return (IDS_NO_TEXT);
+    }
+    return (app_strings_main[(int)idLanguage][(int)idString]);
+}

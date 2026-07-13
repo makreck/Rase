@@ -21,6 +21,14 @@
 
 #pragma once
 
+#define TOOLBAR_BUTTON_COUNT_MAX (64)
+
+class ToolbarItems {
+    public:
+        const char* svg;
+        const void* text_id;
+};
+
 class App {
     private:
         struct {
@@ -30,9 +38,37 @@ class App {
             char ifac[32]{ 0 };
             char* command_string = nullptr;
             char* response_data = nullptr;
+
+            GtkApplication* gtkApp = nullptr;
+            struct {
+                GtkWidget* win        = nullptr;
+                GtkWidget* baseVBox   = nullptr;
+                GtkWidget*  menuBar   = nullptr;
+                GtkWidget*  toolbar   = nullptr;
+                GtkWidget*  dialog    = nullptr;
+                GtkWidget*  statusBar = nullptr;
+            } gtk;
+            struct {
+                GdkRectangle client;
+            } rc;
+
+            int toolIconSize = 28;
+
         } m;
 
         static void print_help(void);
+        static GdkPixbuf* svg2image(const char* svg_string, int width_px, int height_px, ColorRef color);
+        static GtkWidget* create_toolbar(const ToolbarItems* itemList, size_t itemListSize,
+            const char** stringList, size_t stringListSize, int iconSize_px, GCallback cb, void* parameter);
+
+        static gboolean _activate(GtkApplication* gtk, void* user_data);
+        void activate(void);
+        static gboolean _configure(GtkWindow* parentWindow, GdkEvent* event, void* user_data);
+        void configure(GdkEvent* event);
+        static gboolean _realize(GtkWidget* widget, void* user_data);
+        void realize(GtkWidget* widget);
+        static void _on_command(GtkApplication* gtk, void* callback_parameter);
+        void on_command(CallbackParameter* p);
 
         void init(int argc, char* argv[]);
         void cleanup(void);
@@ -43,6 +79,15 @@ class App {
         int open_port(const char* ifac, speed_t baudrate);
 
         void run_gui(void);
+        void create_app_window(void);
+        void get_main_window_placing(void);
+        void create_layout(void);
+        void set_main_window_callbacks(void);
+        void on_move_or_size(int x, int y, int width, int height);
+        GtkWidget* create_main_menu(void);
+        GtkWidget* create_main_toolbar(void);
+        GtkWidget* create_dialog(void);
+        GtkWidget* create_statusbar(void);
 
         void run_command(void);
         bool delete_command_string(void);

@@ -21,21 +21,7 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <cstddef>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <limits.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <termios.h>
-
-#include "gtk_headers.h"
-
-#include "typedefs.h"
-#include "colors.h"
-#include "resource.h"
-#include "app.h"
+#include <gtk/gtk.h>
+#include <gtkmm.h>
+#include <cairo.h>
+#include <librsvg/rsvg.h>
