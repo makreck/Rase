@@ -19,24 +19,7 @@
  * ==============================================================================
  */
 
-#pragma once
+#include "includes.h"
 
-class App {
-    public:
-        int argumentsCount = 0;
-        char** argumentsList = nullptr;
-
-        App(int argc, char* argv[]) {
-            init(argc, argv);
-        }
-
-        ~App() {
-            tearDown();
-        }
-
-        void init(int argc, char* argv[]);
-        void tearDown(void);
-        void run(void);
-        int open_port(const char* ifac, speed_t baudrate);
-
-};
+void App::run_gui(void) {
+}
