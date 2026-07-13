@@ -101,6 +101,11 @@ void App::run_command(void) {
         return;
     }
 
+    if (!find_interface()) {
+        printf("No interface (\"ttyACM<n>\" ot \"ttyUSB<n>\") found, plase connect a device!\n");
+        return;
+    }
+
     char* p = strstr(cmd, "/config=");
     if (p != nullptr) {
         if (load_config_json(p)) {
@@ -124,6 +129,10 @@ void App::run_command(void) {
 bool App::transact_command(void) {
     if (m.command_string == nullptr) {
         printf("Error, tranaction not prepared!");
+        return (false);
+    }
+
+    if (!open_interface()) {
         return (false);
     }
 
@@ -202,6 +211,8 @@ bool App::transact_command(void) {
     memset(m.response_data, 0, length + 1);
     strncpy(m.response_data, result, length);
     free(in);
+
+    close_interface();
 
     return (true);
 }

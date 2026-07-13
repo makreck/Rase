@@ -41,6 +41,7 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
     return (false);
 }
 void App::activate(void) {
+    find_interface();
     create_app_window();
     gtk_main();
 }
@@ -68,6 +69,8 @@ void App::get_main_window_placing(void) {
 
     gtk_window_set_geometry_hints(GTK_WINDOW(m.gtk.win), GTK_WIDGET(m.gtk.win), &hints, (GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
     gtk_window_set_default_size(GTK_WINDOW(m.gtk.win), m.rc.client.width, m.rc.client.height);
+    gtk_window_set_resizable(GTK_WINDOW(m.gtk.win), false);
+    gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_CENTER);
 }
 
 void App::create_app_window(void) {
@@ -83,7 +86,6 @@ void App::create_app_window(void) {
     gtk_window_set_title(GTK_WINDOW(m.gtk.win), APP_WINDOW_NAME);
     gtk_window_set_default_size(GTK_WINDOW(m.gtk.win), m.rc.client.width, m.rc.client.height);
     gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_CENTER);
-    gtk_window_move(GTK_WINDOW(m.gtk.win), m.rc.client.x, m.rc.client.y - APP_WINDOW_TITLEBAR_HEIGHT);
 
     create_layout();
     set_main_window_callbacks();
@@ -129,8 +131,8 @@ void App::create_layout(void) {
 
     gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_main_menu(),    FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_main_toolbar(), FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_dialog(),      TRUE,  TRUE,  0);
-    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_statusbar(),   FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_dialog(),       TRUE,  TRUE,  0);
+    gtk_box_pack_end(GTK_BOX(m.gtk.baseVBox),   create_statusbar(),    FALSE, FALSE, 0);
 }
 
 GdkPixbuf* App::svg2image(const char* svg_string, int width_px, int height_px, ColorRef color) {
@@ -225,31 +227,31 @@ GtkWidget* App::create_toolbar(const ToolbarItems* itemList, size_t itemListSize
 GtkWidget* App::create_main_menu(void) {
     m.gtk.menuBar = gtk_menu_bar_new();
 
-    // { // file menu
-    //     GtkWidget* fileMenu = gtk_menu_new();
-    //     GtkWidget* fileMi = gtk_menu_item_new_with_label(APPSTRING(IDS_FILE));
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), fileMi);
-    //     gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
+    { // file menu
+        GtkWidget* fileMenu = gtk_menu_new();
+        GtkWidget* fileMi = gtk_menu_item_new_with_label(APPSTRING(IDS_FILE));
+        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), fileMi);
+        gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
 
-    //     GtkWidget* quitMi = gtk_menu_item_new_with_label(APPSTRING(IDS_QUIT));
-    //     g_signal_connect(G_OBJECT(quitMi), "activate", G_CALLBACK(App::_onCommand), ON_ITEM(IDS_QUIT));
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
-    // }
+        GtkWidget* quitMi = gtk_menu_item_new_with_label(APPSTRING(IDS_QUIT));
+        g_signal_connect(G_OBJECT(quitMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_QUIT));
+        gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
+    }
 
-    // { // edit menu
-    //     GtkWidget* editMenu = gtk_menu_new();
-    //     GtkWidget* editMi = gtk_menu_item_new_with_label(APPSTRING(IDS_EDIT));
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), editMi);
-    //     gtk_menu_item_set_submenu(GTK_MENU_ITEM(editMi), editMenu);
+    { // edit menu
+        GtkWidget* editMenu = gtk_menu_new();
+        GtkWidget* editMi = gtk_menu_item_new_with_label(APPSTRING(IDS_EDIT));
+        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), editMi);
+        gtk_menu_item_set_submenu(GTK_MENU_ITEM(editMi), editMenu);
 
-    //     GtkWidget* copyMi = gtk_menu_item_new_with_label(APPSTRING(IDS_COPY));
-    //     g_signal_connect(G_OBJECT(copyMi), "activate", G_CALLBACK(App::_onCommand), ON_ITEM(IDS_COPY));
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), copyMi);
+        GtkWidget* copyMi = gtk_menu_item_new_with_label(APPSTRING(IDS_COPY));
+        g_signal_connect(G_OBJECT(copyMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_COPY));
+        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), copyMi);
 
-    //     GtkWidget* pasteMi = gtk_menu_item_new_with_label(APPSTRING(IDS_PASTE));
-    //     g_signal_connect(G_OBJECT(pasteMi), "activate", G_CALLBACK(App::_onCommand), ON_ITEM(IDS_PASTE));
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), pasteMi);
-    // }
+        GtkWidget* pasteMi = gtk_menu_item_new_with_label(APPSTRING(IDS_PASTE));
+        g_signal_connect(G_OBJECT(pasteMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_PASTE));
+        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), pasteMi);
+    }
 
     return (m.gtk.menuBar);
 }
@@ -262,18 +264,6 @@ GtkWidget* App::create_main_toolbar(void) {
     return (m.gtk.toolbar);
 }
 
-GtkWidget* App::create_dialog(void) {
-    m.gtk.dialog = gtk_label_new("Dialog."); // **** Dummy
-    return (nullptr);
-}
-
-GtkWidget* App::create_statusbar(void) {
-    m.gtk.statusBar = gtk_label_new("Status bar.");
-    gtk_label_set_xalign(GTK_LABEL(m.gtk.statusBar), 0.0f);
-    gtk_widget_set_hexpand(m.gtk.statusBar, TRUE);
-    gtk_widget_set_size_request(m.gtk.statusBar, -1, 28);
-    return (m.gtk.statusBar);
-}
 void App::_on_command(GtkApplication* gtk, void* callback_parameter) {
     CallbackParameter* cbp = CALLBACK_PARAMETER(callback_parameter);
     OBJ_PTR(App, cbp->get_this())->on_command(cbp);
@@ -298,4 +288,31 @@ void App::on_command(CallbackParameter* p) {
         default: {
         } break;
     }
+}
+
+GtkWidget* App::create_dialog(void) {
+    m.gtk.dialog = gtk_frame_new("Dialog");
+    gtk_frame_set_shadow_type(GTK_FRAME(m.gtk.dialog), GTK_SHADOW_IN);
+    return (m.gtk.dialog);
+}
+
+GtkWidget* App::create_statusbar(void) {
+    m.gtk.statusBar = gtk_label_new("Status bar.");
+    gtk_label_set_xalign(GTK_LABEL(m.gtk.statusBar), 0.0f);
+    gtk_widget_set_hexpand(m.gtk.statusBar, TRUE);
+    gtk_frame_set_shadow_type(GTK_FRAME(m.gtk.statusBar), GTK_SHADOW_IN);
+    gtk_widget_set_size_request(m.gtk.statusBar, -1, 28);
+
+    snprintf(m.status_text, sizeof (m.status_text), "Connected: \"%s\" ", m.ifac);
+    status_update();
+
+    return (m.gtk.statusBar);
+}
+
+void App::status_update(const char* _string) {
+    if (_string != nullptr) {
+        memset(m.status_text, 0, sizeof (m.status_text));
+        strncpy(m.status_text, _string, sizeof (m.status_text) - 1);
+    }
+    gtk_label_set_text(GTK_LABEL(m.gtk.statusBar), m.status_text);
 }

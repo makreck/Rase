@@ -48,11 +48,6 @@ void App::print_help(void) {
 }
 
 void App::run(void) {
-    if (!find_interface()) {
-        printf("No interface (\"ttyACM<n>\" ot \"ttyUSB<n>\") found, plase connect a device!\n");
-        return;
-    }
-
     if (m.argc < 2) {
         run_gui();
     } else {

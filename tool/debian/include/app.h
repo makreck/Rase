@@ -41,19 +41,20 @@ class App {
 
             GtkApplication* gtkApp = nullptr;
             struct {
-                GtkWidget* win        = nullptr;
-                GtkWidget* baseVBox   = nullptr;
-                GtkWidget*  menuBar   = nullptr;
-                GtkWidget*  toolbar   = nullptr;
-                GtkWidget*  dialog    = nullptr;
-                GtkWidget*  statusBar = nullptr;
+                GtkWidget* win          = nullptr;
+                GtkWidget* baseVBox     = nullptr;
+                GtkWidget*  menuBar     = nullptr;
+                GtkWidget*  toolbar     = nullptr;
+                GtkWidget*  dialog      = nullptr;
+                GtkWidget*  statusFrame = nullptr;
+                GtkWidget*   statusBar  = nullptr;
             } gtk;
             struct {
                 GdkRectangle client;
             } rc;
 
             int toolIconSize = 28;
-
+            char status_text[256]{ 0 };
         } m;
 
         static void print_help(void);
@@ -74,6 +75,7 @@ class App {
         void cleanup(void);
 
         bool find_interface(void);
+        bool open_interface(void);
         bool close_interface(void);
 
         int open_port(const char* ifac, speed_t baudrate);
@@ -84,6 +86,7 @@ class App {
         void create_layout(void);
         void set_main_window_callbacks(void);
         void on_move_or_size(int x, int y, int width, int height);
+        void status_update(const char* _string = nullptr);
         GtkWidget* create_main_menu(void);
         GtkWidget* create_main_toolbar(void);
         GtkWidget* create_dialog(void);

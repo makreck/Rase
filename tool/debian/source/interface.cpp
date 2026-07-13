@@ -41,11 +41,24 @@ int App::open_port(const char* ifac, speed_t baudrate) {
     tcsetattr(fd, TCSANOW, &terminal);
     tcflush(fd, TCIOFLUSH);
 
+    return (fd);
+}
+
+bool App::open_interface(void) {
+    if (m.fd > -1) {
+        close(m.fd);
+    }
+    m.fd = open_port(m.ifac, 115200);
+
+    if (m.fd < 0) {
+        return (false);
+    }
+
     // Read possible dirt from the ESP32 Debug Output to avoid interference with commanding data!
     uint8_t dummy_in[4096];
     read(m.fd, dummy_in, sizeof (dummy_in));
 
-    return (fd);
+    return (true);
 }
 
 bool App::close_interface(void) {
@@ -54,7 +67,6 @@ bool App::close_interface(void) {
     }
     close(m.fd);
     m.fd = -1;
-    memset(m.ifac, 0, sizeof (m.ifac));
     return (true);
 }
 
@@ -68,5 +80,11 @@ bool App::find_interface(void) {
         m.fd = open_port(m.ifac, 115200);
         if (m.fd >= 0) break;
     } while (++index < 10);
-    return (m.fd >= 0);
+
+    bool result = (m.fd >= 0);
+
+    close(m.fd);
+    m.fd = -1;
+
+    return (result);
 }

@@ -30,8 +30,8 @@
 #define LANGMAX (1)
 
 #define APP_WINDOW_NAME             "Radio Sensor Config Tool"
-#define APP_WINDOW_MIN_WIDTH        (512)
-#define APP_WINDOW_MIN_HEIGHT       (384)
+#define APP_WINDOW_MIN_WIDTH        (720)
+#define APP_WINDOW_MIN_HEIGHT       (512)
 #define APP_WINDOW_MAX_WIDTH        (8192)
 #define APP_WINDOW_MAX_HEIGHT       (8192)
 #define APP_WINDOW_TITLEBAR_HEIGHT  (24)
