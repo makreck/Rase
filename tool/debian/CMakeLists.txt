@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
-project(fcmd VERSION 1.0.0 LANGUAGES C CXX)
+project(Radio-Sensor-Config-App VERSION 1.0.0 LANGUAGES C CXX)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -J 12")
 
 find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK REQUIRED gtk+-3.0 gtkmm-3.0 librsvg-2.0)
 
 set(CMAKE_BUILD_TYPE Debug) 
 # set(CMAKE_BUILD_TYPE Release)
@@ -19,8 +24,7 @@ INCLUDE_DIRECTORIES(
     "/usr/include/gtk-4.0"
     "/usr/include/librsvg-2.0"
     "./include"
-    "./source"
-    "./")
+    "./source")
 
 target_link_libraries(fcmd udev )
 

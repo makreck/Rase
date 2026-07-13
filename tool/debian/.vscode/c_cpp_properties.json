@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include/gtk-3.0",
+                "/usr/include/gio-unix-2.0",
+                "/usr/include/atk-1.0",
+                "/usr/include/cairo",
+                "/usr/include/gdk-pixbuf-2.0",
+                "/usr/include/glib-2.0",
+                "/usr/include/pango-1.0",
+                "/usr/include/harfbuzz",
+                "/usr/include/freetype2",
+                "/usr/include/libpng16",
+                "/usr/include/libmount",
+                "/usr/include/blkid",
+                "/usr/include/libxml2",
+                "/usr/include/gtk-3.0/gtk",
+                "/usr/include/glib-2.0/glib",
+                "/usr/include/librsvg-2.0",
+                "/usr/include/gtkmm-3.0"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
