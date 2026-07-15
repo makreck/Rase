@@ -41,13 +41,17 @@ class App {
 
             GtkApplication* gtkApp = nullptr;
             struct {
-                GtkWidget* win          = nullptr;
-                GtkWidget* baseVBox     = nullptr;
-                GtkWidget*  menuBar     = nullptr;
-                GtkWidget*  toolbar     = nullptr;
-                GtkWidget*  dialog      = nullptr;
+                GtkWidget* win           = nullptr;
+                GtkWidget* baseVBox      = nullptr;
+                GtkWidget*  menuBar      = nullptr;
+                GtkWidget*  toolbar      = nullptr;
+                
+                GtkWidget*  dialog       = nullptr;
+                GtkWidget*   scrolled   = nullptr;
                 GtkWidget*  statusFrame = nullptr;
                 GtkWidget*   statusBar  = nullptr;
+
+                std::vector<DialogItem*> items;
             } gtk;
             struct {
                 GdkRectangle client;
@@ -55,12 +59,15 @@ class App {
 
             int toolIconSize = 28;
             char status_text[256]{ 0 };
+
+            DevConfig device;
         } m;
 
         static void print_help(void);
         static GdkPixbuf* svg2image(const char* svg_string, int width_px, int height_px, ColorRef color);
         static GtkWidget* create_toolbar(const ToolbarItems* itemList, size_t itemListSize,
             const char** stringList, size_t stringListSize, int iconSize_px, GCallback cb, void* parameter);
+        static int string_combobox_setup(GtkWidget* widget, const char* selected, const char* stringList);
 
         static gboolean _activate(GtkApplication* gtk, void* user_data);
         void activate(void);
@@ -87,6 +94,9 @@ class App {
         void set_main_window_callbacks(void);
         void on_move_or_size(int x, int y, int width, int height);
         void status_update(const char* _string = nullptr);
+        DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _x, int _y, const char* _text, char* _field, size_t _length, const char* _list = nullptr);
+
+        GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);
         GtkWidget* create_main_toolbar(void);
         GtkWidget* create_dialog(void);
