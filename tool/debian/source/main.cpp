@@ -27,9 +27,15 @@ void App::init(int argc, char* argv[]) {
 }
 
 void App::cleanup(void) {
-    close_interface();
-    delete_command_string();
-    delete_response_data();
+    if (m.gtk.items.size() > 0) {
+        for (DialogItem*& item : m.gtk.items) {
+            if (item != nullptr) {
+                delete (item);
+                item = nullptr;
+            }
+        }
+        m.gtk.items.clear();
+    }
 }
 
 void App::print_help(void) {
