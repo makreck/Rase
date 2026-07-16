@@ -37,16 +37,36 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "enabled",
         "disabled",
         "Device scan",
+        "Version",
+        "SSID",
+        "Password",
+        "Channel",
+        "Broker",
+        "Username",
+        "Password",
+        "Enable",
+        "Timeout",
+        "Rotation",
+        "Contrast",
+        "Layout",
+        "Parameter",
+        "LED Intensity",
+        "Sensor type",
+        "Config interface enable",
+        "Wifi configuration",
+        "MQTT configuration",
+        "Display configuration",
+        "Miscellaneous",
     },
 
 };
 
-const char* AppString::get(int idLanguage, int64_t idString) {
-    if (idString >= (int64_t)65536) {
-        return ((const char*)(idString));
+const char* AppString::get(int _language, int64_t _id) {
+    if (_id >= (int64_t)65536) {
+        return ((const char*)(_id));
     }
-    if (((int)idLanguage < 0) || ((int)idLanguage >= LANGMAX) || (idString < 0) || (idString >= IDS_MAIN_COUNT)) {
+    if (((int)_language < 0) || ((int)_language >= LANGMAX) || (_id < 0) || (_id >= IDS_MAIN_COUNT)) {
         return (IDS_NO_TEXT);
     }
-    return (app_strings_main[(int)idLanguage][(int)idString]);
+    return (app_strings_main[(int)_language][(int)_id]);
 }
