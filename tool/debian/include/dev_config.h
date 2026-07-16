@@ -54,6 +54,8 @@
 class DevConfig {
     public:
         struct {
+            char version[NUM_FIELD_LEN]{ 0 };
+            
             char wifi_ssid[WIFI_AP_NAME_MAX]{ 0 };
             char wifi_password[PASSWORD_MAX]{ 0 };
             char wifi_channel[NUM_FIELD_LEN]{ 0 };
