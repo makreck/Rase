@@ -21,25 +21,7 @@
 
 #include "includes.h"
 
-bool App::delete_command_string(void) {
-    if (m.command_string != nullptr) {
-        free(m.command_string);
-        m.command_string = nullptr;
-        return (true);
-    }
-    return (false);
-}
-
-bool App::delete_response_data(void) {
-    if (m.response_data != nullptr) {
-        free(m.response_data);
-        m.response_data = nullptr;
-        return (true);
-    }
-    return (false);
-}
-
-bool App::load_config_json(char* cmd) {
+char* App::load_config_json(char* cmd) {
     char* p = &cmd[8];
     char filename[PATH_MAX]{0};
     for (int i = 0; (i < (PATH_MAX - 1) && (*p > ' ')); i++) {
@@ -49,14 +31,14 @@ bool App::load_config_json(char* cmd) {
     struct stat st{0};
     if (lstat(filename, &st) == -1) {
         printf("Error, file <%s> not found!\n", filename);
-        return (false);
+        return (nullptr);
     }
 
     ssize_t size = st.st_size + 32;
     char* command_string = (char *)malloc(size);
     if (command_string == nullptr) {
         printf("Error, unable to alloc %d bytes for file <%s>!\n", (int)size, filename);
-        return (false);
+        return (nullptr);
     }
     memset(command_string, 0, size);
 
@@ -64,7 +46,7 @@ bool App::load_config_json(char* cmd) {
     if (fdf == -1) {
         free (command_string);
         printf("Error opening file <%s> for input!\n", filename);
-        return (false);
+        return (nullptr);
     }
 
     strcpy(command_string, "/config=");
@@ -73,29 +55,26 @@ bool App::load_config_json(char* cmd) {
     if (length != st.st_size) {
         free (command_string);
         printf("Error reading file, %d of %d bytes read!\n", (int)length, (int)st.st_size);
-        return (false);
+        return (nullptr);
     }
 
-    m.command_string = command_string;
-    return (true);
+    return (command_string);
 }
 
-bool App::alloc_command(char* cmd) {
+char* App::alloc_command(char* cmd) {
     ssize_t size = strlen(cmd) + 2;
     char* command_string = (char *)malloc(size);
     if (command_string == nullptr) {
         printf("Error, unable to alloc %d bytes for command string!\n", (int)size);
-        return (false);
+        return (nullptr);
     }
     memset(command_string, 0, size);
     strncpy(command_string, cmd, size - 1);
 
-    m.command_string = command_string;
-    return (true);
+    return (command_string);
 }
 
 void App::run_command(void) {
-    delete_command_string();
     char* cmd = m.argv[1];
     if (cmd == nullptr) {
         return;
@@ -106,43 +85,47 @@ void App::run_command(void) {
         return;
     }
 
+    if ((strstr(cmd, "--help") != nullptr) || (strstr(cmd, "-H") != nullptr)) {
+        print_help();
+        return;
+    } else if (strlen(cmd) < 1) {
+        run_gui();
+    }
+
+    char* cmd_string = nullptr;
     char* p = strstr(cmd, "/config=");
     if (p != nullptr) {
-        if (load_config_json(p)) {
-            if(transact_command()) {
-                handle_transaction_result();
-            }
-        }
+        cmd_string = load_config_json(p);
     } else if (strstr(cmd, "/") != nullptr) {
-        if (alloc_command(cmd)) {
-            if(transact_command()) {
-                handle_transaction_result();
-            }
+        cmd_string = alloc_command(cmd);
+    }
+
+    if (cmd_string != nullptr) {
+        char* response = transact_command(cmd_string);
+        free(cmd_string);
+
+        if (response != nullptr) {
+            handle_transaction_result(response);
+            free(response);
         }
-    } else if ((strstr(cmd, "--help") != nullptr) || (strstr(cmd, "-H") != nullptr)) {
-        print_help();
-    } else {
-        run_gui();
     }
 }
 
-bool App::transact_command(void) {
-    if (m.command_string == nullptr) {
+char* App::transact_command(const char* cmd) {
+    if (cmd == nullptr) {
         printf("Error, tranaction not prepared!");
-        return (false);
+        return (nullptr);
     }
 
     if (!open_interface()) {
-        return (false);
+        return (nullptr);
     }
 
-    delete_response_data();
-
-    ssize_t size_out = strlen(m.command_string);
-    ssize_t len_out = write(m.fd, m.command_string, size_out);
+    ssize_t size_out = strlen(cmd);
+    ssize_t len_out = write(m.fd, cmd, size_out);
     if (size_out != len_out) {
         printf("Error, unable to transmit %d bytes command string, %d bytes written!\n", (int)size_out, (int)len_out);
-        return (false);
+        return (nullptr);
     }
 
     usleep(500000);
@@ -151,7 +134,7 @@ bool App::transact_command(void) {
     char* in = (char*)malloc(size);
     if (in == nullptr) {
         printf("Error, unable to allocate response data buffer!\n");
-        return (false);
+        return (nullptr);
     }
     memset(in, 0, size);
 
@@ -168,18 +151,18 @@ bool App::transact_command(void) {
 
     if (length == 0) {
         free(in);
-        return (false);
+        return (nullptr);
     }
 
-    char* result = in;
+    char* response = in;
     char* p = strstr(in, "<!DOCTYPE html>");
     if (p != nullptr) {
-        result = p;
+        response = p;
         char* p = strstr(in, "</html>");
         if (p != nullptr) {
             p[7] = '\0';
         }
-        length = strlen(result);
+        length = strlen(response);
     } else {
         int level = -1;
         int i;
@@ -187,7 +170,7 @@ bool App::transact_command(void) {
             if (in[i] == '{') {
                 if (level == -1) {
                     level = 1;
-                    result = &in[i];
+                    response = &in[i];
                 } else {
                     level++;
                 }
@@ -202,25 +185,25 @@ bool App::transact_command(void) {
         length = i;
     }
 
-    m.response_data = (char *)malloc(length + 1);
-    if (m.response_data == nullptr) {
+    char* result = (char *)malloc(length + 1);
+    if (result == nullptr) {
         free(in);
-        printf("Unable to allocate %d bytes for response data!\n", (int)(length + 1));
-        return (false);
+        printf("Unable to allocate %d bytes for result data!\n", (int)(length + 1));
+        return (nullptr);
     }
-    memset(m.response_data, 0, length + 1);
-    strncpy(m.response_data, result, length);
+    memset(result, 0, length + 1);
+    strncpy(result, response, length);
     free(in);
 
     close_interface();
 
-    return (true);
+    return (result);
 }
 
-void App::handle_transaction_result(void) {
-    if (m.response_data == nullptr) {
+void App::handle_transaction_result(char* result) {
+    if (result == nullptr) {
         return;
     }
     printf("\033c");
-    printf("Response data:\n\"\"\"\n%s\"\"\"\n", m.response_data);
+    printf("Response data:\n\"\"\"\n%s\"\"\"\n", result);
 }

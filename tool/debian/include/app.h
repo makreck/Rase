@@ -36,8 +36,6 @@ class App {
             char** argv = nullptr;
             int fd = -1;
             char ifac[32]{ 0 };
-            char* command_string = nullptr;
-            char* response_data = nullptr;
 
             GtkApplication* gtkApp = nullptr;
             struct {
@@ -68,6 +66,7 @@ class App {
         static GtkWidget* create_toolbar(const ToolbarItems* itemList, size_t itemListSize,
             const char** stringList, size_t stringListSize, int iconSize_px, GCallback cb, void* parameter);
         static int string_combobox_setup(GtkWidget* widget, const char* selected, const char* stringList);
+        static size_t json_get(char* json_data, const char* _key, char* _buffer, size_t _length);
 
         static gboolean _activate(GtkApplication* gtk, void* user_data);
         void activate(void);
@@ -94,7 +93,9 @@ class App {
         void set_main_window_callbacks(void);
         void on_move_or_size(int x, int y, int width, int height);
         void status_update(const char* _string = nullptr);
-        DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _x, int _y, const char* _text, char* _field, size_t _length, const char* _list = nullptr);
+        void handle_dialog_items(bool _setup);
+        void import_config(char* _response);
+        DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _width, int _x, int _y, char* _field, size_t _length, const char* _list = nullptr);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);
@@ -103,12 +104,10 @@ class App {
         GtkWidget* create_statusbar(void);
 
         void run_command(void);
-        bool delete_command_string(void);
-        bool delete_response_data(void);
-        bool load_config_json(char* cmd);
-        bool alloc_command(char* cmd);
-        bool transact_command(void);
-        void handle_transaction_result(void);
+        char* load_config_json(char* cmd);
+        char* alloc_command(char* cmd);
+        char* transact_command(const char* cmd);
+        void handle_transaction_result(char* result);
 
     public:
         App(int argc, char* argv[]) {
