@@ -133,7 +133,15 @@ void ConfigInterface::handle_wifi_setup(ConfigInterface* instance, int mode, con
 }
 
 void ConfigInterface::handle_id_response(ConfigInterface* instance, int mode, const char* data, size_t length) {
-    char *device_id_json = Tools::get_device_id_json();
+    const char* ip_addr = nullptr;
+    App* app = instance->app;
+    if (app != nullptr) {
+        if (app->get_station() != nullptr) {
+            ip_addr = app->get_station()->get_ip();
+        }
+    }
+
+    char *device_id_json = Tools::get_device_id_json(ip_addr);
     send(device_id_json, strlen(device_id_json));
     free(device_id_json);
 }

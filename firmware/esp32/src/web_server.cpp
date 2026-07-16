@@ -40,8 +40,11 @@ esp_err_t WebServer::init(void) {
     return (ESP_OK);
 }
 
-esp_err_t WebServer::start(SensorDevice* _sensor) {
+esp_err_t WebServer::start(SensorDevice* _sensor, const char* _ip_addr) {
     m.sensor = _sensor;
+    if (_ip_addr != nullptr) {
+        strncpy(m.ip_addr, _ip_addr, sizeof (m.ip_addr));
+    }
 
     esp_err_t err = httpd_start(&m.server, &m.config);
     if (err != ESP_OK) {
@@ -205,7 +208,8 @@ esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
 #ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "WebServer::api_id_handler() event.");
 #endif
-    char* device_id_json = Tools::get_device_id_json();
+
+    char* device_id_json = Tools::get_device_id_json(m.ip_addr); 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
     free(device_id_json);

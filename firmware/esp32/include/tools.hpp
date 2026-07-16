@@ -23,7 +23,7 @@
 
 class Tools {
     public:
-        static char* get_device_id_json(void);
+        static char* get_device_id_json(const char* _ip_addr);
         static size_t get_device_serial_number(char* buffer, size_t size);
         static AppState get_timestamp(char* buffer, size_t size, char div_char = 'T');
         static void timedate(tm& timeinfo);

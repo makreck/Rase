@@ -48,6 +48,7 @@ class WebServer {
             httpd_config_t config = HTTPD_DEFAULT_CONFIG();
             httpd_handle_t server = nullptr;
             SensorDevice*  sensor = nullptr;
+            char           ip_addr[32]{ 0 };
         } m;
 
         static esp_err_t _root_handler(httpd_req_t *req);
@@ -83,7 +84,7 @@ class WebServer {
             cleanup();
         }
 
-        esp_err_t start(SensorDevice* _sensor);
+        esp_err_t start(SensorDevice* _sensor, const char* ip_addr = "0.0.0.0");
         esp_err_t stop(void);
         esp_err_t update(SensorReading* reading);
 };

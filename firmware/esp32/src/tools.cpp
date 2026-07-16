@@ -36,6 +36,7 @@ const char* device_id_json =
     "\t\"wifi_station_mac\": \"%s\",\n"
     "\t\"wifi_ap_mac\": \"%s\",\n"
     "\t\"bluetooth_mac\": \"%s\",\n"
+    "\t\"ip_addr\": \"%s\",\n"
     "\t\"rssi\": \"%s\",\n"
     "\t\"tx_power\": \"%s\",\n"
     "}\n";
@@ -55,7 +56,7 @@ size_t Tools::get_device_serial_number(char* buffer, size_t size) {
     return (0);
 }
 
-char* Tools::get_device_id_json(void) {
+char* Tools::get_device_id_json(const char* _ip_addr) {
     char device_serial_number[22]{0};
     char firmware_version[16]{0};
     char iso_firmware_date[16]{0};
@@ -64,6 +65,13 @@ char* Tools::get_device_id_json(void) {
     char bt_mac[20]{0};
     char rssi_string[16]{ 0 };
     char tx_power_string[16]{ 0 };
+    char ip_addr[32]{ 0 };
+
+    if (_ip_addr != nullptr) {
+        strncpy(ip_addr, _ip_addr, sizeof (ip_addr) - 1);
+    } else {
+        strncpy(ip_addr, "0.0.0.0", sizeof (ip_addr));
+    }
 
     Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
 
@@ -85,12 +93,12 @@ char* Tools::get_device_id_json(void) {
     Wifi_Station::get_tx_power_dbm(tx_power_string, sizeof (tx_power_string));
 
     size_t length = snprintf(nullptr, 0, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, wifi_sta_mac, wifi_ap_mac, bt_mac, rssi_string, tx_power_string);
+        firmware_version, iso_firmware_date, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string);
 
     char* json_string = (char*)malloc(length + 1);
 
     snprintf(json_string, length + 1, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, wifi_sta_mac, wifi_ap_mac, bt_mac, rssi_string, tx_power_string);
+        firmware_version, iso_firmware_date, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string);
 
     return (json_string);
 }
