@@ -21,10 +21,20 @@
 
 #include "includes.h"
 
+
+// GtkWidget* checkbox = gtk_check_button_new_with_label(hint);
+// g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
+// gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
+
 const char* svg_app    = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"" SVG_STROKE_COLOR "\" stroke-width=\"2\"> <rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"21\"/></svg>\n";
 const char* svg_search = "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" stroke=\"none\" fill=\"" SVG_STROKE_COLOR "\"><path fill-rule=\"evenodd\" d=\"M16.3198574,14.9056439 L21.7071068,20.2928932 L20.2928932,21.7071068 L14.9056439,16.3198574 C13.5509601,17.3729184 11.8487115,18 10,18 C5.581722,18 2,14.418278 2,10 C2,5.581722 5.581722,2 10,2 C14.418278,2 18,5.581722 18,10 C18,11.8487115 17.3729184,13.5509601 16.3198574,14.9056439 Z M10,16 C13.3137085,16 16,13.3137085 16,10 C16,6.6862915 13.3137085,4 10,4 C6.6862915,4 4,6.6862915 4,10 C4,13.3137085 6.6862915,16 10,16 Z\"/></svg>";
 
 const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
+const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
+const char* display_contrast  = "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%";
+const char* display_page      = "Value page\nDetails page\nInfo page";
+const char* display_rotation  = "0°\n180°";
+const char* led_intensity     = "Max. 100%\nHigh 75%\nMedium 50%\nLow 25%\nVery low 5%Min. 1%";
 
 const ToolbarItems mainToolbar[] = {
     { svg_search, (void*)IDS_DEVICE_SCAN },
@@ -43,9 +53,17 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
     return (false);
 }
 void App::activate(void) {
-    find_interface();
-    create_app_window();
-    gtk_main();
+    if (find_interface()) {
+        char* response = transact_command("/config");
+        if (response != nullptr) {
+            import_config(response);
+            free(response);
+
+            create_app_window();
+            handle_dialog_items(true);
+            gtk_main();
+        }
+    }
 }
 
 void App::get_main_window_placing(void) {
@@ -350,24 +368,27 @@ int App::string_combobox_setup(GtkWidget* _widget, const char* _selected, const 
     return (n);
 }
 
-DialogItem* App::add_text_field(GtkWidget* _grid, int _item_id, int _x, int _y, const char* _text, char* _field, size_t _length, const char* _list) {
-    DialogItem* item = new DialogItem(_item_id, _length, _list);
+DialogItem* App::add_text_field(GtkWidget* _grid, int _item_id, int _width, int _x, int _y, char* _field, size_t _length, const char* _list) {
+    DialogItem* item = new DialogItem(_item_id, _field, _length, _list);
 
-    item->label = gtk_label_new(_text);
+    item->label = gtk_label_new(APPSTRING(_item_id));
     gtk_widget_set_size_request(item->label, APP_WINDOW_LABEL_WIDTH, -1);
     gtk_label_set_xalign(GTK_LABEL(item->label), 0.0f);
     gtk_grid_attach(GTK_GRID(_grid), item->label, _x, _y, 1, 1);
 
     if (_list != nullptr) {
         item->widget = gtk_combo_box_text_new();
-        App::string_combobox_setup(item->widget, _field, _list);
+        // App::string_combobox_setup(item->widget, _field, _list);
     } else {
         item->widget = gtk_entry_new();
-        gtk_entry_set_max_length(GTK_ENTRY(item->widget), _length);
-        gtk_entry_set_text(GTK_ENTRY(item->widget), _field);
+        // gtk_entry_set_max_length(GTK_ENTRY(item->widget), _length);
+        // gtk_entry_set_text(GTK_ENTRY(item->widget), _field);
     }
 
-    gtk_widget_set_size_request(item->widget, std::min(320, (int)_length * 8), -1);
+    if (_width <= 0) {
+        _width = (int)_length * 8;
+    }
+    gtk_widget_set_size_request(item->widget, std::min(320, _width), -1);
     g_signal_connect(item->widget, "changed", G_CALLBACK(App::_on_command), ON_ITEM(_item_id));
     gtk_grid_attach(GTK_GRID(_grid), item->widget, _x + 1, _y, 1, 1);
 
@@ -386,29 +407,58 @@ GtkWidget* App::create_dialog(void) {
     GtkWidget* box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(m.gtk.scrolled), box);
 
-    GtkWidget* grid_wifi = add_grid("Wifi configuration", box);
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDC_WIFI_SSID,        0, 0, "SSID",      m.device.m.wifi_ssid,     sizeof (m.device.m.wifi_ssid)));
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDC_WIFI_PASSWORD,    2, 0, "Password",  m.device.m.wifi_password, sizeof (m.device.m.wifi_password)));
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDC_WIFI_PASSWORD,    0, 1, "Channel",   m.device.m.wifi_channel,  sizeof (m.device.m.wifi_channel)));
+    GtkWidget* grid_wifi = add_grid(APPSTRING(IDS_BOX_WIFI_CONFIG), box);
+    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_SSID,        APP_WINDOW_LONG_WIDTH,  0, 0, m.device.m.wifi_ssid,         sizeof (m.device.m.wifi_ssid)));
+    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 0, m.device.m.wifi_password,     sizeof (m.device.m.wifi_password)));
+    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_PASSWORD,    APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.m.wifi_channel,      sizeof (m.device.m.wifi_channel)));
 
-    GtkWidget* grid_mqtt = add_grid("MQTT configuration", box);
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDC_MQTT_BROKER,      0, 0, "Broker",    m.device.m.mqtt_broker,   sizeof (m.device.m.mqtt_broker)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDC_MQTT_BROKER,      2, 0, "Enable",    m.device.m.mqtt_enable,   sizeof (m.device.m.mqtt_enable)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDC_MQTT_USERNAME,    0, 1, "Username",  m.device.m.mqtt_username, sizeof (m.device.m.mqtt_username)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDC_MQTT_PASSWORD,    2, 1, "Password",  m.device.m.mqtt_password, sizeof (m.device.m.mqtt_password)));
+    GtkWidget* grid_mqtt = add_grid(APPSTRING(IDS_BOX_MQTT_CONFIG), box);
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_BROKER,      APP_WINDOW_LONG_WIDTH,  0, 0, m.device.m.mqtt_broker,       sizeof (m.device.m.mqtt_broker)));
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.m.mqtt_enable,       sizeof (m.device.m.mqtt_enable)));
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_USERNAME,    APP_WINDOW_LONG_WIDTH,  0, 1, m.device.m.mqtt_username,     sizeof (m.device.m.mqtt_username)));
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 1, m.device.m.mqtt_password,     sizeof (m.device.m.mqtt_password)));
 
-    GtkWidget* grid_oled = add_grid("Display configuration", box);
-    m.gtk.items.push_back(add_text_field(grid_oled, IDC_DISPLAY_TIMEOUT,  0, 0, "Timeout",   m.device.m.display_timeout_s, sizeof (m.device.m.display_timeout_s)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDC_DISPLAY_CONTRAST, 0, 1, "Contrast",  m.device.m.display_contrast,  sizeof (m.device.m.display_contrast)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDC_DISPLAY_ROTATION, 0, 2, "Rotation",  m.device.m.display_rotoation, sizeof (m.device.m.display_rotoation)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDC_DISPLAY_LAYOUT,   0, 3, "Layout",    m.device.m.display_layout,    sizeof (m.device.m.display_layout)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDC_DISPLAY_PARAM,    2, 3, "Parameter", m.device.m.display_param,     sizeof (m.device.m.display_param)));
+    GtkWidget* grid_oled = add_grid(APPSTRING(IDS_BOX_DISPLAY_CONFIG), box);
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_TIMEOUT,  APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.m.display_timeout_s, sizeof (m.device.m.display_timeout_s), display_timeouts));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.m.display_contrast,  sizeof (m.device.m.display_contrast), display_contrast));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_ROTATION, APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.m.display_rotoation, sizeof (m.device.m.display_rotoation), display_rotation));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.m.display_layout,    sizeof (m.device.m.display_layout), display_page));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_PARAM,    APP_WINDOW_SHORT_WIDTH, 2, 1, m.device.m.display_param,     sizeof (m.device.m.display_param)));
 
-    GtkWidget* grid_misc = add_grid("Display configuration", box);
-    m.gtk.items.push_back(add_text_field(grid_misc, IDC_LED_INTENSITY,    0, 0, "LED intensity", m.device.m.led_intensity, sizeof (m.device.m.led_intensity), nullptr));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDC_SENSOR_TYPE,      0, 1, "Sensor type  ", m.device.m.sensor_type,   sizeof (m.device.m.sensor_type), sensor_types_list));
+    GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.m.led_intensity,     sizeof (m.device.m.led_intensity), led_intensity));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.m.sensor_type,       sizeof (m.device.m.sensor_type), sensor_types_list));
 
     return (m.gtk.dialog);
+}
+
+void App::handle_dialog_items(bool _setup) {
+    for (DialogItem*& item : m.gtk.items) {
+        if (item != nullptr) {
+            if ((item->field != nullptr) && (item->widget != nullptr)) {
+                if (_setup) {
+                    if (item->list == nullptr) {
+                        gtk_entry_set_text(GTK_ENTRY(item->widget), item->field);
+                    } else {
+                        App::string_combobox_setup(item->widget, item->field, item->list);
+                    }
+                } else {
+                    gchar* item_text = nullptr;
+                    if (item->list == nullptr) {
+                        const gchar* item_text = gtk_entry_get_text(GTK_ENTRY(item->widget));
+                    } else {
+                        gchar* item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item->widget));
+                    }
+
+                    if (item_text != nullptr) {
+                        memset(item->field, 0, item->length);
+                        strncpy(item->field, item_text, item->length - 1);
+                        g_free(item_text);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void App::_on_command(GtkApplication* gtk, void* callback_parameter) {
@@ -418,14 +468,17 @@ void App::_on_command(GtkApplication* gtk, void* callback_parameter) {
 void App::on_command(CallbackParameter* p) {
     int64_t item_id = (int64_t)(p->get_pointer());
 
-    DialogItem item;
+    DialogItem* item = nullptr;
     for (DialogItem*& dlg_item : m.gtk.items) {
         if (dlg_item != nullptr) {
             if (dlg_item->id == item_id) {
-                item.set(dlg_item);
+                item = dlg_item;
                 break;
             }
         }
+    }
+    if (item == nullptr) {
+        return;
     }
 
     switch (item_id) {
@@ -442,19 +495,60 @@ void App::on_command(CallbackParameter* p) {
         case IDS_DEVICE_SCAN: {
         } break;
 
-        case IDC_LED_INTENSITY: {
+        case IDS_VERSION: {
         } break;
 
-        case IDC_SENSOR_TYPE: {
-            int selected = gtk_combo_box_get_active(GTK_COMBO_BOX(item.widget));
+        case IDS_WIFI_SSID: {
+        } break;
+
+        case IDS_WIFI_PASSWORD: {
+        } break;
+
+        case IDS_WIFI_CHANNEL: {
+        } break;
+
+        case IDS_MQTT_BROKER: {
+        } break;
+
+        case IDS_MQTT_USERNAME: {
+        } break;
+
+        case IDS_MQTT_PASSWORD: {
+        } break;
+
+        case IDS_MQTT_ENABLE: {
+        } break;
+
+        case IDS_DISPLAY_TIMEOUT: {
+        } break;
+
+        case IDS_DISPLAY_ROTATION: {
+        } break;
+
+        case IDS_DISPLAY_CONTRAST: {
+        } break;
+
+        case IDS_DISPLAY_LAYOUT: {
+        } break;
+
+        case IDS_DISPLAY_PARAM: {
+        } break;
+
+        case IDS_LED_INTENSITY: {
+        } break;
+
+        case IDS_SENSOR_TYPE: {
+            int selected = gtk_combo_box_get_active(GTK_COMBO_BOX(item->widget));
             if (selected >= 0) {
-                gchar* selected_text =  gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item.widget));
+                gchar* selected_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item->widget));
                 if (selected_text != nullptr) {
-printf("Selected text: #%d <%s>\n", selected, selected_text);
+                    printf("Selected text: #%d <%s>\n", selected, selected_text);
                     g_free(selected_text);
                 }
             }
+        } break;
 
+        case IDS_IFC_ENABLE: {
         } break;
 
         default: {
@@ -462,9 +556,69 @@ printf("Selected text: #%d <%s>\n", selected, selected_text);
     }
 }
 
+size_t App::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {
+    if (_key == nullptr) {
+        return (0);
+    }
 
+    char key[64]{ 0 };
+    snprintf(key, sizeof (key), "\"%s\"", _key);
 
-// GtkWidget* checkbox = gtk_check_button_new_with_label(hint);
-// g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
-// gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
+    char* p = strstr(json_data, key);
+    if (p == nullptr) { return (0); }
+    p += strlen(key);
 
+    p = strstr(p, ":");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    p = strstr(p, "\"");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    size_t i;
+    for (i = 0; (i < (_length - 1)) && (*p != '\"'); i++) {
+        _buffer[i] = *p++;
+    }
+    _buffer[i] = '\0';
+
+    return (i);
+}
+
+class KeyList {
+    public:
+        const char* key;
+        char* field;
+        size_t length;
+};
+
+void App::import_config(char* _json_string) {
+    if (_json_string == nullptr) { return; }
+
+    KeyList key_list[] = {
+        { "version",          m.device.m.version,           sizeof (m.device.m.version)           },
+        { "ssid",             m.device.m.wifi_ssid,         sizeof (m.device.m.wifi_ssid)         },
+        { "password",         m.device.m.wifi_password,     sizeof (m.device.m.wifi_password)     },
+        { "wifi_channel",     m.device.m.wifi_channel,      sizeof (m.device.m.wifi_channel)      },
+        { "mqtt_broker",      m.device.m.mqtt_broker,       sizeof (m.device.m.mqtt_broker)       },
+        { "mqtt_username",    m.device.m.mqtt_username,     sizeof (m.device.m.mqtt_username)     },
+        { "mqtt_password",    m.device.m.mqtt_password,     sizeof (m.device.m.mqtt_password)     },
+        { "mqtt_enable",      m.device.m.mqtt_enable,       sizeof (m.device.m.mqtt_enable)       },
+        { "display_layout",   m.device.m.display_layout,    sizeof (m.device.m.display_layout)    },
+        { "display_param",    m.device.m.display_param,     sizeof (m.device.m.display_param)     },
+        { "display_rotation", m.device.m.display_rotoation, sizeof (m.device.m.display_rotoation) },
+        { "display_timeout",  m.device.m.display_timeout_s, sizeof (m.device.m.display_timeout_s) },
+        { "display_contrast", m.device.m.display_contrast,  sizeof (m.device.m.display_contrast)  },
+        { "sensor_type",      m.device.m.sensor_type,       sizeof (m.device.m.sensor_type)       },
+        { "led_intensity",    m.device.m.led_intensity,     sizeof (m.device.m.led_intensity)     },
+    };
+
+    char parameter[64]{ 0 };
+    size_t len;
+    for (int i = 0; i < SIZEOFARRAY(key_list); i++) {
+        len = App::json_get(_json_string, key_list[i].key, parameter, sizeof (parameter));
+        if (len > 0) {
+            strncpy(key_list[i].field, parameter, key_list[i].length - 1);
+        }
+    }
+}
