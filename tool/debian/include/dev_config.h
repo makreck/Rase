@@ -89,6 +89,8 @@ class DevConfig {
             char device_serial_number[22]{ 0 };
             char firmware_version[16]{ 0 };
             char firmware_date[12]{ 0 };
+            char head[16]{ 0 };
+            char head_serial[16]{ 0 };
             char chip_type[32]{ 0 };
             char wifi_station_mac[20]{ 0 };
             char wifi_ap_mac[20]{ 0 };
@@ -96,7 +98,6 @@ class DevConfig {
             char ip_addr[16]{ 0 };
             char rssi[16]{ 0 };
             char tx_power[16]{ 0 };
-            char used_sensor[16]{ 0 };
         } id;
 
         DevConfig() {
