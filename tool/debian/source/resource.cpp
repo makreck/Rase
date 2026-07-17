@@ -37,6 +37,7 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "enabled",
         "disabled",
         "Device scan",
+
         "Version",
         "SSID",
         "Password",
@@ -57,6 +58,22 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "MQTT configuration",
         "Display configuration",
         "Miscellaneous",
+
+        "Device identification data",
+        "Identification",
+        "Manufacturer",
+        "Product",
+        "Serial number",
+        "Firmware version",
+        "Firmware date",
+        "Chip type",
+        "Wifi station mac",
+        "Wifi AP mac",
+        "Bluetooth mac",
+        "IP address",
+        "RSSI",
+        "Tx power",
+        "Used sensor",
     },
 
 };

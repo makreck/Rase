@@ -31,19 +31,22 @@
 #define LANGMAX                     (1)
 
 #define APP_WINDOW_NAME             "Radio Sensor Config Tool"
-#define APP_WINDOW_MIN_WIDTH        (820)
-#define APP_WINDOW_MIN_HEIGHT       (592)
+#define APP_WINDOW_MIN_WIDTH        (320)
+#define APP_WINDOW_MIN_HEIGHT       (200)
+#define APP_WINDOW_DEF_WIDTH        (754)
+#define APP_WINDOW_DEF_HEIGHT       (782) // (524)
 #define APP_WINDOW_MAX_WIDTH        (8192)
 #define APP_WINDOW_MAX_HEIGHT       (8192)
 #define APP_WINDOW_TITLEBAR_HEIGHT  (24)
 
 #define APP_WINDOW_LABEL_WIDTH      (72)
+#define APP_WINDOW_INFO_WIDTH       (230)
 #define APP_WINDOW_LONG_WIDTH       (256)
 #define APP_WINDOW_SHORT_WIDTH      (72)
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (33)
+#define IDS_MAIN_COUNT              (48)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -79,8 +82,22 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_BOX_MQTT_CONFIG         (30)
 #define IDS_BOX_DISPLAY_CONFIG      (31)
 #define IDS_BOX_MISCELLANEOUS       (32)
+#define IDS_BOX_ID                  (33)
 
-#define DLG_MAX_ITEMS               (16)
+#define IDS_IDENTIFICATION          (34)
+#define IDS_MANUFACTURER            (35)
+#define IDS_PRODUCT                 (36)
+#define IDS_SERIAL_NUMBER           (37)
+#define IDS_FIRMWARE_VERSION        (38)
+#define IDS_FIRMWARE_DATE           (39)
+#define IDS_CHIP_TYPE               (40)
+#define IDS_WIFI_STATION_MAC        (41)
+#define IDS_WIFI_AP_MAC             (42)
+#define IDS_BLUETOOTH_MAC           (43)
+#define IDS_IP_ADDRESS              (44)
+#define IDS_WIFI_RSSI               (45)
+#define IDS_WIFI_TX_POWER           (46)
+#define IDS_USED_SENSOR             (47)
 
 #define SVG_STROKE_COLOR "#010203"
 extern const char* svg_app;
