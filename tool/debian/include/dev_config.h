@@ -51,6 +51,13 @@
 #define WIFI_DEFAULT_CHANNEL         (1)
 #define SENSOR_TYPE_DEFAULT          (0)
 
+class KeyList {
+    public:
+        const char* key;
+        char*       field;
+        size_t      length;
+};
+
 class DevConfig {
     public:
         struct {
@@ -73,7 +80,24 @@ class DevConfig {
             
             char led_intensity[NUM_FIELD_LEN]{ 0 };
             char sensor_type[NUM_FIELD_LEN]{ 0 };
-        } m;
+        } cfg;
+
+        struct {
+            char identification[8]{ 0 };
+            char manufacturer[32]{ 0 };
+            char product[32]{ 0 };
+            char device_serial_number[22]{ 0 };
+            char firmware_version[16]{ 0 };
+            char firmware_date[12]{ 0 };
+            char chip_type[32]{ 0 };
+            char wifi_station_mac[20]{ 0 };
+            char wifi_ap_mac[20]{ 0 };
+            char bluetooth_mac[20]{ 0 };
+            char ip_addr[16]{ 0 };
+            char rssi[16]{ 0 };
+            char tx_power[16]{ 0 };
+            char used_sensor[16]{ 0 };
+        } id;
 
         DevConfig() {
             clear();
@@ -83,7 +107,8 @@ class DevConfig {
         }
 
         void clear(void) {
-            memset(&m, 0, sizeof (m));
+            memset(&cfg, 0, sizeof (cfg));
+            memset(&id,  0, sizeof (id));
         }
 
 };
