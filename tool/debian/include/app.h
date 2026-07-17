@@ -40,14 +40,14 @@ class App {
             GtkApplication* gtkApp = nullptr;
             struct {
                 GtkWidget* win           = nullptr;
-                GtkWidget* baseVBox      = nullptr;
-                GtkWidget*  menuBar      = nullptr;
-                GtkWidget*  toolbar      = nullptr;
+                GtkWidget* base_v_box    = nullptr;
+                GtkWidget*  menu_bar     = nullptr;
+                GtkWidget*  tool_bar     = nullptr;
                 
                 GtkWidget*  dialog       = nullptr;
                 GtkWidget*   scrolled    = nullptr;
-                GtkWidget*  statusFrame  = nullptr;
-                GtkWidget*   statusBar   = nullptr;
+                GtkWidget*  status_frame = nullptr;
+                GtkWidget*   status_bar  = nullptr;
 
                 std::vector<DialogItem*> items;
             } gtk;
@@ -74,7 +74,9 @@ class App {
         
         static void _on_command(GtkApplication* gtk, void* callback_parameter);
         void on_command(CallbackParameter* p);
-
+        static gboolean _idle_task(gpointer _callback_parameter);
+        void idle_task(CallbackParameter* p);
+        
         void init(int argc, char* argv[]);
         void cleanup(void);
 
@@ -97,6 +99,11 @@ class App {
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
         bool read_config(void);
         bool read_id(void);
+        void on_command_scan(void);
+        void on_command_program(void);
+        void on_command_reset(void);
+        void on_command_initialize(void);
+        void on_reload_data(void);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);

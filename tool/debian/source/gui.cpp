@@ -26,7 +26,7 @@
 // g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
 // gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
 
-
+const char* enable_list       = "disabled\nenabled";
 const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
 const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
 const char* display_contrast  = "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%";
@@ -35,9 +35,10 @@ const char* display_rotation  = "0°\n180°";
 const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
 
 const ToolbarItems mainToolbar[] = {
-    { svg_search, (void*)IDS_DEVICE_SCAN },
-    { svg_upload, (void*)IDS_WRITE_DATA },
-    { svg_reset,  (void*)IDS_RESET_DEVICE },
+    { svg_search, (void*)IDS_DEVICE_SCAN       },
+    { svg_upload, (void*)IDS_PROGRAM_DEV       },
+    { svg_reload, (void*)IDS_RELOAD_DATA       },
+    { svg_reset,  (void*)IDS_RESET_DEVICE      },
     { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
 };
 const size_t sizeOf_mainToolbar = SIZEOFARRAY(mainToolbar);
@@ -53,62 +54,6 @@ void App::run_gui(void) {
             }
         }
     }
-}
-
-bool App::read_config(void) {
-    char* config_json = transact_command("/config");
-    if (config_json != nullptr) {
-
-        KeyList key_list[] = {
-            { "version",              m.device.cfg.version,             sizeof (m.device.cfg.version)           },
-            { "ssid",                 m.device.cfg.wifi_ssid,           sizeof (m.device.cfg.wifi_ssid)         },
-            { "password",             m.device.cfg.wifi_password,       sizeof (m.device.cfg.wifi_password)     },
-            { "wifi_channel",         m.device.cfg.wifi_channel,        sizeof (m.device.cfg.wifi_channel)      },
-            { "mqtt_broker",          m.device.cfg.mqtt_broker,         sizeof (m.device.cfg.mqtt_broker)       },
-            { "mqtt_username",        m.device.cfg.mqtt_username,       sizeof (m.device.cfg.mqtt_username)     },
-            { "mqtt_password",        m.device.cfg.mqtt_password,       sizeof (m.device.cfg.mqtt_password)     },
-            { "mqtt_enable",          m.device.cfg.mqtt_enable,         sizeof (m.device.cfg.mqtt_enable)       },
-            { "display_layout",       m.device.cfg.display_layout,      sizeof (m.device.cfg.display_layout)    },
-            { "display_param",        m.device.cfg.display_param,       sizeof (m.device.cfg.display_param)     },
-            { "display_rotation",     m.device.cfg.display_rotoation,   sizeof (m.device.cfg.display_rotoation) },
-            { "display_timeout",      m.device.cfg.display_timeout_s,   sizeof (m.device.cfg.display_timeout_s) },
-            { "display_contrast",     m.device.cfg.display_contrast,    sizeof (m.device.cfg.display_contrast)  },
-            { "sensor_type",          m.device.cfg.sensor_type,         sizeof (m.device.cfg.sensor_type)       },
-            { "led_intensity",        m.device.cfg.led_intensity,       sizeof (m.device.cfg.led_intensity)     },
-        };
-        import_data(config_json, key_list, SIZEOFARRAY(key_list));
-
-        free(config_json);
-        return (true);
-    }
-    return (false);
-}
-
-bool App::read_id(void) {
-    char* id_json = transact_command("/api/id");
-    if (id_json != nullptr) {
-
-        KeyList key_list[] = {
-            { "identification",       m.device.id.identification,       sizeof (m.device.id.identification)       },
-            { "manufacturer",         m.device.id.manufacturer,         sizeof (m.device.id.manufacturer)         },
-            { "product",              m.device.id.product,              sizeof (m.device.id.product)              },
-            { "device_serial_number", m.device.id.device_serial_number, sizeof (m.device.id.device_serial_number) },
-            { "firmware_version",     m.device.id.firmware_version,     sizeof (m.device.id.firmware_version)     },
-            { "firmware_date",        m.device.id.firmware_date,        sizeof (m.device.id.firmware_date)        },
-            { "chip_type",            m.device.id.chip_type,            sizeof (m.device.id.chip_type)            },
-            { "wifi_station_mac",     m.device.id.wifi_station_mac,     sizeof (m.device.id.wifi_station_mac)     },
-            { "wifi_ap_mac",          m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac)          },
-            { "bluetooth_mac",        m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac)        },
-            { "ip_addr",              m.device.id.ip_addr,              sizeof (m.device.id.ip_addr)              },
-            { "rssi",                 m.device.id.rssi,                 sizeof (m.device.id.rssi)                 },
-            { "tx_power",             m.device.id.tx_power,             sizeof (m.device.id.tx_power)             },
-        };
-        import_data(id_json, key_list, SIZEOFARRAY(key_list));
-
-        free(id_json);
-        return (true);
-    }
-    return (false);
 }
 
 gboolean App::_activate(GtkApplication* gtk, void* user_data) {
@@ -190,13 +135,13 @@ printf("%d,%d %d,%d\n", x, y, width, height); // ****
 }
 
 void App::create_layout(void) {
-    m.gtk.baseVBox = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(m.gtk.win), m.gtk.baseVBox);
+    m.gtk.base_v_box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(m.gtk.win), m.gtk.base_v_box);
 
-    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_main_menu(),    FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_main_toolbar(), FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), create_dialog(),       TRUE,  TRUE,  0);
-    gtk_box_pack_end(GTK_BOX(m.gtk.baseVBox),   create_statusbar(),    FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(m.gtk.base_v_box), create_main_menu(),    FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(m.gtk.base_v_box), create_main_toolbar(), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(m.gtk.base_v_box), create_dialog(),       TRUE,  TRUE,  0);
+    gtk_box_pack_end(GTK_BOX(m.gtk.base_v_box),   create_statusbar(),    FALSE, FALSE, 0);
 }
 
 GdkPixbuf* App::svg2image(const char* _svg_string, int _width, int _height, ColorRef _color) {
@@ -255,9 +200,9 @@ GtkWidget* App::create_toolbar(const ToolbarItems* _item_list, size_t _item_list
         return (nullptr);
     }
 
-    GtkToolbar* toolbar = (GtkToolbar*)gtk_toolbar_new();
-    gtk_toolbar_set_style(toolbar, GtkToolbarStyle::GTK_TOOLBAR_ICONS);
-    gtk_toolbar_set_icon_size(toolbar, GtkIconSize::GTK_ICON_SIZE_LARGE_TOOLBAR);
+    GtkToolbar* tool_bar = (GtkToolbar*)gtk_toolbar_new();
+    gtk_toolbar_set_style(tool_bar, GtkToolbarStyle::GTK_TOOLBAR_ICONS);
+    gtk_toolbar_set_icon_size(tool_bar, GtkIconSize::GTK_ICON_SIZE_LARGE_TOOLBAR);
 
     for (size_t i = 0; i < _item_list_size; i++) {
         GdkPixbuf* pixbuf = App::svg2image(_item_list[i].svg, _icon_size, _icon_size, C_WHITE);        
@@ -281,20 +226,20 @@ GtkWidget* App::create_toolbar(const ToolbarItems* _item_list, size_t _item_list
                 g_signal_connect(G_OBJECT(item), "clicked", G_CALLBACK(cb), new CallbackParameter(_user_par, (void*)_item_list[i].text_id));
             }
 
-            gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
+            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), item, -1);
         }
     }
 
-    return ((GtkWidget*)toolbar);
+    return ((GtkWidget*)tool_bar);
 }
 
 GtkWidget* App::create_main_menu(void) {
-    m.gtk.menuBar = gtk_menu_bar_new();
+    m.gtk.menu_bar = gtk_menu_bar_new();
 
     { // file menu
         GtkWidget* fileMenu = gtk_menu_new();
         GtkWidget* fileMi = gtk_menu_item_new_with_label(APPSTRING(IDS_FILE));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), fileMi);
+        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menu_bar), fileMi);
         gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
 
         GtkWidget* quitMi = gtk_menu_item_new_with_label(APPSTRING(IDS_QUIT));
@@ -305,7 +250,7 @@ GtkWidget* App::create_main_menu(void) {
     { // edit menu
         GtkWidget* editMenu = gtk_menu_new();
         GtkWidget* editMi = gtk_menu_item_new_with_label(APPSTRING(IDS_EDIT));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), editMi);
+        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menu_bar), editMi);
         gtk_menu_item_set_submenu(GTK_MENU_ITEM(editMi), editMenu);
 
         GtkWidget* copyMi = gtk_menu_item_new_with_label(APPSTRING(IDS_COPY));
@@ -317,27 +262,28 @@ GtkWidget* App::create_main_menu(void) {
         gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), pasteMi);
     }
 
-    return (m.gtk.menuBar);
+    return (m.gtk.menu_bar);
 }
 
 GtkWidget* App::create_main_toolbar(void) {
-    m.gtk.toolbar = App::create_toolbar(mainToolbar, sizeOf_mainToolbar, 
+    m.gtk.tool_bar = App::create_toolbar(mainToolbar, sizeOf_mainToolbar, 
                                         &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
                                         m.toolIconSize, G_CALLBACK(App::_on_command), this);
-    gtk_widget_set_hexpand(m.gtk.toolbar, TRUE);
-    return (m.gtk.toolbar);
+    gtk_widget_set_hexpand(m.gtk.tool_bar, TRUE);
+    return (m.gtk.tool_bar);
 }
 
 GtkWidget* App::create_statusbar(void) {
-    m.gtk.statusBar = gtk_label_new("Status bar.");
-    gtk_label_set_xalign(GTK_LABEL(m.gtk.statusBar), 0.0f);
-    gtk_widget_set_hexpand(m.gtk.statusBar, TRUE);
-    gtk_widget_set_size_request(m.gtk.statusBar, -1, 28);
+    m.gtk.status_bar = gtk_label_new("Status bar.");
+    gtk_label_set_xalign(GTK_LABEL(m.gtk.status_bar), 0.0f);
+    gtk_widget_set_hexpand(m.gtk.status_bar, TRUE);
+    gtk_widget_set_size_request(m.gtk.status_bar, -1, 28);
 
-    snprintf(m.status_text, sizeof (m.status_text), "Connected: \"%s\" ", m.ifac);
-    status_update();
+    char string[256]{ 0 };
+    snprintf(string, sizeof (string), "\"%s\"", m.ifac);
+    status_update(string);
 
-    return (m.gtk.statusBar);
+    return (m.gtk.status_bar);
 }
 
 void App::status_update(const char* _string) {
@@ -345,7 +291,9 @@ void App::status_update(const char* _string) {
         memset(m.status_text, 0, sizeof (m.status_text));
         strncpy(m.status_text, _string, sizeof (m.status_text) - 1);
     }
-    gtk_label_set_text(GTK_LABEL(m.gtk.statusBar), m.status_text);
+    gtk_label_set_text(GTK_LABEL(m.gtk.status_bar), m.status_text);
+    gtk_widget_queue_draw(m.gtk.status_bar);
+    gtk_widget_show_all(m.gtk.win);
 }
 
 GtkWidget* App::add_grid(const char* _label, GtkWidget* _parent) {
@@ -468,20 +416,20 @@ GtkWidget* App::create_dialog(void) {
 
     GtkWidget* grid_mqtt = add_grid(APPSTRING(IDS_BOX_MQTT_CONFIG), box);
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_BROKER,      APP_WINDOW_LONG_WIDTH,  0, 0, m.device.cfg.mqtt_broker,       sizeof (m.device.cfg.mqtt_broker)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.mqtt_enable,       sizeof (m.device.cfg.mqtt_enable)));
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.mqtt_enable,       sizeof (m.device.cfg.mqtt_enable),       enable_list));
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_USERNAME,    APP_WINDOW_LONG_WIDTH,  0, 1, m.device.cfg.mqtt_username,     sizeof (m.device.cfg.mqtt_username)));
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 1, m.device.cfg.mqtt_password,     sizeof (m.device.cfg.mqtt_password)));
 
     GtkWidget* grid_oled = add_grid(APPSTRING(IDS_BOX_DISPLAY_CONFIG), box);
     m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_TIMEOUT,  APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.display_timeout_s, sizeof (m.device.cfg.display_timeout_s), display_timeouts));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.display_contrast,  sizeof (m.device.cfg.display_contrast), display_contrast));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.display_contrast,  sizeof (m.device.cfg.display_contrast),  display_contrast));
     m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_ROTATION, APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.cfg.display_rotoation, sizeof (m.device.cfg.display_rotoation), display_rotation));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.display_layout,    sizeof (m.device.cfg.display_layout), display_page));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.display_layout,    sizeof (m.device.cfg.display_layout),    display_page));
     m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_PARAM,    APP_WINDOW_SHORT_WIDTH, 2, 1, m.device.cfg.display_param,     sizeof (m.device.cfg.display_param)));
 
     GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity), led_intensity));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type), sensor_types_list));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     led_intensity));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       sensor_types_list));
 
     GtkWidget* item;
     item = get_item(IDS_WIFI_PASSWORD);
@@ -507,14 +455,16 @@ GtkWidget* App::create_dialog(void) {
     m.gtk.items.push_back(add_text_field(grid_id, IDS_IP_ADDRESS,       APP_WINDOW_INFO_WIDTH, 0, 3, m.device.id.ip_addr,              sizeof (m.device.id.ip_addr),              nullptr));
     m.gtk.items.push_back(add_text_field(grid_id, IDS_CHIP_TYPE,        APP_WINDOW_INFO_WIDTH, 2, 3, m.device.id.chip_type,            sizeof (m.device.id.chip_type),            nullptr));
 
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_RSSI,        APP_WINDOW_INFO_WIDTH, 0, 4, m.device.id.rssi,                 sizeof (m.device.id.rssi),                 nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_TX_POWER,    APP_WINDOW_INFO_WIDTH, 2, 4, m.device.id.tx_power,             sizeof (m.device.id.tx_power),             nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_SENSOR_HEAD,      APP_WINDOW_INFO_WIDTH, 0, 4, m.device.id.head,                 sizeof (m.device.id.head),                 nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_HEAD_SERIAL_NO,   APP_WINDOW_INFO_WIDTH, 2, 4, m.device.id.head_serial,          sizeof (m.device.id.head_serial),          nullptr));
 
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_STATION_MAC, APP_WINDOW_INFO_WIDTH, 0, 5, m.device.id.wifi_station_mac,     sizeof (m.device.id.wifi_station_mac),     nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 5, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_RSSI,        APP_WINDOW_INFO_WIDTH, 0, 5, m.device.id.rssi,                 sizeof (m.device.id.rssi),                 nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_TX_POWER,    APP_WINDOW_INFO_WIDTH, 2, 5, m.device.id.tx_power,             sizeof (m.device.id.tx_power),             nullptr));
+
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_STATION_MAC, APP_WINDOW_INFO_WIDTH, 0, 6, m.device.id.wifi_station_mac,     sizeof (m.device.id.wifi_station_mac),     nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 6, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
     
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 6, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_USED_SENSOR,      APP_WINDOW_INFO_WIDTH, 2, 6, m.device.id.used_sensor,          sizeof (m.device.id.used_sensor),          nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 7, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
 
     return (m.gtk.dialog);
 }
@@ -541,17 +491,19 @@ void App::handle_dialog_items(bool _setup) {
                         App::string_combobox_setup(item->widget, item->field, item->list);
                     }
                 } else {
-                    gchar* item_text = nullptr;
                     if (item->list == nullptr) {
                         const gchar* item_text = gtk_entry_get_text(GTK_ENTRY(item->widget));
+                        if (item_text != nullptr) {
+                            memset(item->field, 0, item->length);
+                            strncpy(item->field, item_text, item->length - 1);
+                        }
                     } else {
                         gchar* item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item->widget));
-                    }
-
-                    if (item_text != nullptr) {
-                        memset(item->field, 0, item->length);
-                        strncpy(item->field, item_text, item->length - 1);
-                        g_free(item_text);
+                        if (item_text != nullptr) {
+                            memset(item->field, 0, item->length);
+                            strncpy(item->field, item_text, item->length - 1);
+                            g_free(item_text);
+                        }
                     }
                 }
             }
@@ -566,19 +518,6 @@ void App::_on_command(GtkApplication* gtk, void* callback_parameter) {
 void App::on_command(CallbackParameter* p) {
     int64_t item_id = (int64_t)(p->get_pointer());
 
-    DialogItem* item = nullptr;
-    for (DialogItem*& dlg_item : m.gtk.items) {
-        if (dlg_item != nullptr) {
-            if (dlg_item->id == item_id) {
-                item = dlg_item;
-                break;
-            }
-        }
-    }
-    if (item == nullptr) {
-        return;
-    }
-
     switch (item_id) {
         case IDS_QUIT: {
             gtk_main_quit();
@@ -591,37 +530,120 @@ void App::on_command(CallbackParameter* p) {
         } break;
 
         case IDS_DEVICE_SCAN: {
+            on_command_scan();
         } break;
 
-        case IDS_VERSION:
-        case IDS_WIFI_SSID:
-        case IDS_WIFI_PASSWORD:
-        case IDS_WIFI_CHANNEL:
-        case IDS_MQTT_BROKER:
-        case IDS_MQTT_USERNAME:
-        case IDS_MQTT_PASSWORD:
-        case IDS_MQTT_ENABLE:
-        case IDS_DISPLAY_TIMEOUT:
-        case IDS_DISPLAY_ROTATION:
-        case IDS_DISPLAY_CONTRAST:
-        case IDS_DISPLAY_LAYOUT:
-        case IDS_DISPLAY_PARAM:
-        case IDS_LED_INTENSITY:
-        case IDS_SENSOR_TYPE: {
-            // int selected = gtk_combo_box_get_active(GTK_COMBO_BOX(item->widget));
-            // if (selected >= 0) {
-            //     gchar* selected_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item->widget));
-            //     if (selected_text != nullptr) {
-            //         printf("Selected text: #%d <%s>\n", selected, selected_text);
-            //         g_free(selected_text);
-            //     }
-            // }
+        case IDS_PROGRAM_DEV: {
+            on_command_program();
         } break;
 
-        case IDS_IFC_ENABLE: {
+        case IDS_RELOAD_DATA: {
+            on_reload_data();
+        } break;
+
+        case IDS_RESET_DEVICE: {
+            on_command_reset();
+        } break;
+
+        case IDS_INITIALIZE_DEVICE: {
+            on_command_initialize();
         } break;
 
         default: {
+            // DialogItem* item = get_item(item_id);
+            // if (item == nullptr) {
+            //     return;
+            // }
+
+            // switch (item_id) {
+            //     case IDS_VERSION:
+            //     case IDS_WIFI_SSID:
+            //     case IDS_WIFI_PASSWORD:
+            //     case IDS_WIFI_CHANNEL:
+            //     case IDS_MQTT_BROKER:
+            //     case IDS_MQTT_USERNAME:
+            //     case IDS_MQTT_PASSWORD:
+            //     case IDS_MQTT_ENABLE:
+            //     case IDS_DISPLAY_TIMEOUT:
+            //     case IDS_DISPLAY_ROTATION:
+            //     case IDS_DISPLAY_CONTRAST:
+            //     case IDS_DISPLAY_LAYOUT:
+            //     case IDS_DISPLAY_PARAM:
+            //     case IDS_LED_INTENSITY:
+            //     case IDS_SENSOR_TYPE:
+            //     case IDS_IFC_ENABLE: {
+            //     } break;
+            // }
+        } break;
+    }
+}
+
+void App::on_command_scan(void) {
+printf("on_command_scan()\n"); // ****
+    status_update(APPSTRING(IDS_SCANNING));
+    if (find_interface()) {
+        on_reload_data();
+    } else {
+        status_update(APPSTRING(IDS_NOT_CONNECTED));
+    }
+}
+
+void App::on_command_program(void) {
+printf("on_command_program()\n"); // ****
+}
+
+void App::on_reload_data(void) {
+printf("on_reload_data()\n"); // ****
+    char string[256]{0};
+    snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_LOADING));
+    status_update(string);
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM(IDS_LOADING));
+}
+
+void App::on_command_reset(void) {
+    char* response = transact_command("/reboot");
+    if (response != nullptr) {
+        free(response);
+    }
+}
+
+void App::on_command_initialize(void) {
+    char string[256]{0};
+    snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_INITIALIZING));
+    status_update(string);
+
+    char *response = transact_command("/initialize");
+    if (response != nullptr) {
+        free(response);
+    }
+}
+
+gboolean App::_idle_task(gpointer _callback_parameter) {
+    CallbackParameter* cbp = CALLBACK_PARAMETER(_callback_parameter);
+    OBJ_PTR(App, cbp->get_this())->idle_task(cbp);
+    return ((gboolean)false);
+}
+void App::idle_task(CallbackParameter* p) {
+    int64_t item_id = (int64_t)(p->get_pointer());
+    switch(item_id) {
+        case IDS_LOADING: {
+            if (read_id()) {
+                if (read_config()) {
+                    handle_dialog_items(true);
+                    char string[256]{ 0 };
+                    snprintf(string, sizeof (string), "\"%s\"", m.ifac);
+                    status_update(string);
+                }
+            }
+        } break;
+
+        case IDS_PROGRAM_DEV: {
+        } break;
+
+        case IDS_RESET_DEVICE: {
+        } break;
+
+        case IDS_INITIALIZE_DEVICE: {
         } break;
     }
 }
