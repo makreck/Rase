@@ -34,7 +34,7 @@
 #define APP_WINDOW_MIN_WIDTH        (320)
 #define APP_WINDOW_MIN_HEIGHT       (200)
 #define APP_WINDOW_DEF_WIDTH        (754)
-#define APP_WINDOW_DEF_HEIGHT       (786) // (524)
+#define APP_WINDOW_DEF_HEIGHT       (816) // (524)
 #define APP_WINDOW_MAX_WIDTH        (8192)
 #define APP_WINDOW_MAX_HEIGHT       (8192)
 #define APP_WINDOW_TITLEBAR_HEIGHT  (24)
@@ -46,7 +46,7 @@
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (51)
+#define IDS_MAIN_COUNT              (57)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -97,11 +97,17 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_IP_ADDRESS              (44)
 #define IDS_WIFI_RSSI               (45)
 #define IDS_WIFI_TX_POWER           (46)
-#define IDS_USED_SENSOR             (47)
+#define IDS_SENSOR_HEAD             (47)
+#define IDS_HEAD_SERIAL_NO          (48)
 
-#define IDS_WRITE_DATA              (48)
-#define IDS_RESET_DEVICE            (49)
-#define IDS_INITIALIZE_DEVICE       (50)
+#define IDS_PROGRAM_DEV             (49)
+#define IDS_RESET_DEVICE            (50)
+#define IDS_INITIALIZE_DEVICE       (51)
+#define IDS_LOADING                 (52)
+#define IDS_NOT_CONNECTED           (53)
+#define IDS_SCANNING                (54)
+#define IDS_INITIALIZING            (55)
+#define IDS_RELOAD_DATA             (56)
 
 #define SVG_STROKE_COLOR "#010203"
 extern const char* svg_app;
@@ -109,6 +115,7 @@ extern const char* svg_search;
 extern const char* svg_upload;
 extern const char* svg_reset;
 extern const char* svg_init;
+extern const char* svg_reload;
 
 class AppString {
     public:
