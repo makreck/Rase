@@ -207,3 +207,44 @@ void App::handle_transaction_result(char* result) {
     printf("\033c");
     printf("Response data:\n\"\"\"\n%s\"\"\"\n", result);
 }
+
+size_t App::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {
+    if (_key == nullptr) {
+        return (0);
+    }
+
+    char key[64]{ 0 };
+    snprintf(key, sizeof (key), "\"%s\"", _key);
+
+    char* p = strstr(json_data, key);
+    if (p == nullptr) { return (0); }
+    p += strlen(key);
+
+    p = strstr(p, ":");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    p = strstr(p, "\"");
+    if (p == nullptr) { return (0); }
+    p += 1;
+    
+    size_t i;
+    for (i = 0; (i < (_length - 1)) && (*p != '\"'); i++) {
+        _buffer[i] = *p++;
+    }
+    _buffer[i] = '\0';
+
+    return (i);
+}
+
+void App::import_data(char* _json_string, KeyList* _key_list, size_t _size) {
+    char _user_par[64]{ 0 };
+    size_t len;
+    for (int i = 0; i < _size; i++) {
+        len = App::json_get(_json_string, _key_list[i].key, _user_par, sizeof (_user_par));
+        if (len > 0) {
+            strncpy(_key_list[i].field, _user_par, _key_list[i].length - 1);
+        }
+    }
+}
+
