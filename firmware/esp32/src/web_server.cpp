@@ -209,7 +209,7 @@ esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "WebServer::api_id_handler() event.");
 #endif
 
-    char* device_id_json = Tools::get_device_id_json(m.ip_addr); 
+    char* device_id_json = Tools::get_device_id_json(m.ip_addr, m.sensor->get_driver()); 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
     free(device_id_json);
