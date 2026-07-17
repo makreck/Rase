@@ -96,11 +96,11 @@ const MenuItem menu_led[] {
     IDM_LED_INTENSITY_75,   "3 High 75%",
     IDM_LED_INTENSITY_50,   "4 Medium 50%",
     IDM_LED_INTENSITY_25,   "5 Low 25%",
-    IDM_LED_INTENSITY_10,   "6 Very low 5%",
+    IDM_LED_INTENSITY_10,   "6 Very low 10%",
     IDM_LED_INTENSITY_1,    "7 Min. 1%",
 };
 const size_t menu_led_size = SIZEOFARRAY(menu_led); 
-static const float LED_Intensity_List[] = { 1.0f, 0.75f, 0.5f, 0.25f, 0.05f, 0.01f, };
+static const float LED_Intensity_List[] = { 1.0f, 0.75f, 0.5f, 0.25f, 0.10f, 0.01f, };
 
 AppState App::print_Menu(void) {
     int menu_max = 0;
