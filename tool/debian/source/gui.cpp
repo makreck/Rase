@@ -26,8 +26,6 @@
 // g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
 // gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
 
-const char* svg_app    = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"" SVG_STROKE_COLOR "\" stroke-width=\"2\"> <rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"21\"/></svg>\n";
-const char* svg_search = "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" stroke=\"none\" fill=\"" SVG_STROKE_COLOR "\"><path fill-rule=\"evenodd\" d=\"M16.3198574,14.9056439 L21.7071068,20.2928932 L20.2928932,21.7071068 L14.9056439,16.3198574 C13.5509601,17.3729184 11.8487115,18 10,18 C5.581722,18 2,14.418278 2,10 C2,5.581722 5.581722,2 10,2 C14.418278,2 18,5.581722 18,10 C18,11.8487115 17.3729184,13.5509601 16.3198574,14.9056439 Z M10,16 C13.3137085,16 16,13.3137085 16,10 C16,6.6862915 13.3137085,4 10,4 C6.6862915,4 4,6.6862915 4,10 C4,13.3137085 6.6862915,16 10,16 Z\"/></svg>";
 
 const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
 const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
@@ -38,6 +36,9 @@ const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
 
 const ToolbarItems mainToolbar[] = {
     { svg_search, (void*)IDS_DEVICE_SCAN },
+    { svg_upload, (void*)IDS_WRITE_DATA },
+    { svg_reset,  (void*)IDS_RESET_DEVICE },
+    { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
 };
 const size_t sizeOf_mainToolbar = SIZEOFARRAY(mainToolbar);
 

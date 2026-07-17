@@ -46,7 +46,7 @@
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (48)
+#define IDS_MAIN_COUNT              (51)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -99,9 +99,16 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_WIFI_TX_POWER           (46)
 #define IDS_USED_SENSOR             (47)
 
+#define IDS_WRITE_DATA              (48)
+#define IDS_RESET_DEVICE            (49)
+#define IDS_INITIALIZE_DEVICE       (50)
+
 #define SVG_STROKE_COLOR "#010203"
 extern const char* svg_app;
 extern const char* svg_search;
+extern const char* svg_upload;
+extern const char* svg_reset;
+extern const char* svg_init;
 
 class AppString {
     public:
