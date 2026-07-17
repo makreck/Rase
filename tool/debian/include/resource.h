@@ -34,7 +34,7 @@
 #define APP_WINDOW_MIN_WIDTH        (320)
 #define APP_WINDOW_MIN_HEIGHT       (200)
 #define APP_WINDOW_DEF_WIDTH        (754)
-#define APP_WINDOW_DEF_HEIGHT       (782) // (524)
+#define APP_WINDOW_DEF_HEIGHT       (786) // (524)
 #define APP_WINDOW_MAX_WIDTH        (8192)
 #define APP_WINDOW_MAX_HEIGHT       (8192)
 #define APP_WINDOW_TITLEBAR_HEIGHT  (24)
