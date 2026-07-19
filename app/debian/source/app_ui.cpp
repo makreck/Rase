@@ -21,15 +21,15 @@
 
 #include "includes.h"
 
-const ToolbarItems mainToolbar[] = {
+const ToolbarItems main_toolbar[] = {
     { svg_search,       (void*)IDS_DEVICE_SCAN },
 
 };
-const size_t sizeOf_mainToolbar = SIZEOFARRAY(mainToolbar);
+const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
 
 
 app_err_t Application::startUI(void) {
-    gtk_init(&m.argumentsCount, &m.argumentsList);
+    gtk_init(&m.argc, &m.argv);
     m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
     g_signal_connect(m.gtkApp, "activate", G_CALLBACK(Application::_activate), this);
     return (AppState::ok);
@@ -224,7 +224,7 @@ GtkWidget* Application::createMainMenu(void) {
 }
 
 GtkWidget* Application::createMainToolbar(void) {
-    m.gtk.toolbar = GtkTool::create_toolbar( mainToolbar, sizeOf_mainToolbar, 
+    m.gtk.toolbar = GtkTool::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
                                             &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
                                             m.toolIconSize, G_CALLBACK(Application::_onCommand), this);
     gtk_widget_set_hexpand(m.gtk.toolbar, TRUE);
