@@ -30,8 +30,6 @@ void LineRecorder::init(LREventCallback callback_proc, void* user_param) {
     init_drawing_area();
 
     pthread_create(&m.update_thread_handle, nullptr, LineRecorder::_update_thread, this);
-
-    gtk_widget_queue_draw(m.area);
 }
 
 void LineRecorder::cleanup(void) {
@@ -193,6 +191,7 @@ void* LineRecorder::_update_thread(void* _object) {
     return (nullptr);
 }
 void LineRecorder::update_thread(void) {
+    Times::delay_ms(100);
     while (true) {
         Times::delay_ms((uint64_t)(m.update_speed_s * 1000.0));
         if (m.update_pending == false) {
