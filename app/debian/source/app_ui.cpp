@@ -352,6 +352,7 @@ void* Application::_updateThreadProc(void* object) {
     return (nullptr);
 }
 void Application::updateThreadProc(void) {
+    Times::delay_ms(100);
     while (!m.fTerminate) {
         Times::delay_ms(250);
         gdk_threads_add_idle(Application::_idle_update_task, this);
