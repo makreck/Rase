@@ -22,8 +22,8 @@
 #include "includes.h"
 
 app_err_t Application::init(int argc, char* argv[]) {
-    m.argumentsCount = argc;
-    m.argumentsList = argv;
+    m.argc = argc;
+    m.argv = argv;
 
     m.cfg = new Config();
     m.bus = new SensorBus(Application::_sensor_bus_callback, this);
@@ -60,7 +60,7 @@ app_err_t Application::cleanup(void) {
 }
 
 app_err_t Application::run(void) {
-    return ((app_err_t)g_application_run(G_APPLICATION(m.gtkApp), m.argumentsCount, m.argumentsList));
+    return ((app_err_t)g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv));
 }
 
 void Application::start_update(void) {
