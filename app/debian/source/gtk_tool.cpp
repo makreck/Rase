@@ -55,6 +55,9 @@ GtkWidget* GtkTool::create_toolbar(const ToolbarItems* itemList, size_t itemList
             }
 
             gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
+        } else if ((_item_list[i].svg == nullptr) && (_item_list[i].text_id == nullptr)) {
+            GtkToolItem* seperator = gtk_separator_tool_item_new();
+            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), seperator, -1);
         }
     }
 
