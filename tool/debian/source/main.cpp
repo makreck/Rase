@@ -39,9 +39,11 @@ void App::cleanup(void) {
 }
 
 void App::print_help(void) {
-    printf("Rase Sensor Commander, V0.0.1, (C)2026\n");
+    printf("Rase Sensor Commander, V%d.%d.%d.%d, %s\n", VS_HIGH, VS_LOW, VS_REV, VS_BUILD, VERSION_COPYRIGHT);
     printf("*** Important: Please ensure, that sensor's serial interface is enabled by sensor setup! ***\n");
-    printf("Usage: fcmd [options] command\n");
+    printf("Usage:\n");
+    printf("\tGUI: \"./fcmd\" without options or command line\n");
+    printf("\tCmd: \"./fcmd [options] command\"\n");
     printf("Supported commands:\n");
     printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
     printf("\t\"/broker=<MQTT broker>:<username>:<password>\"\tConfigure a MQTT broker/server link.\n");
