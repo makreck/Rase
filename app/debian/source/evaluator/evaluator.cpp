@@ -25,15 +25,17 @@ void Evaluator::init(const char* _path) {
     m.path = _path;
     pthread_mutex_init(&m.task_mutex, nullptr);
 
-    if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
-        if (Files::read_data_from(m.fd, LOG_FILE_POS_HEADER, &m.header, sizeof(LogHeader))) {
-            if (strlen(get_device_serial_number()) > 0) {
-                for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
-                    m.evaluation_task[i] = new EvaluationTask(this, i);
+    pthread_mutex_lock(&m.task_mutex); {
+        if (Files::open_file(m.fd, m.path.c_str(), O_RDWR)) {
+            if (Files::read_data_from(m.fd, LOG_FILE_POS_HEADER, &m.header, sizeof(LogHeader))) {
+                if (strlen(get_device_serial_number()) > 0) {
+                    for (int i = 0; i < SIZEOFARRAY(m.evaluation_task); i++) {
+                        m.evaluation_task[i] = new EvaluationTask(this, i);
+                    }
                 }
             }
         }
-    }
+    } pthread_mutex_unlock(&m.task_mutex);
 }
 
 void Evaluator::cleanup(void) {
@@ -87,7 +89,11 @@ void Evaluator::set_window(LogWindow _window) {
     LogWindow ext_window = _window;
     ext_window.expand(LOG_DISPLAY_WINDOW_EXPAND_FACTOR);
     int next_task = (m.active_task + 1) % (int)SIZEOFARRAY(m.evaluation_task);
-    m.evaluation_task[next_task]->set_window(&ext_window);
+    if (m.evaluation_task[next_task] != nullptr) {
+        m.evaluation_task[next_task]->set_window(&ext_window);
+    } else {
+        printf("Invalid evaluator #%d !\n", next_task);
+    }
 }
 
 void Evaluator::set_active(int _task_index) {
