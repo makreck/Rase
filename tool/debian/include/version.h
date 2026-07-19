@@ -1,7 +1,7 @@
 /*
  * ==============================================================================
  *
- *  PROJECT:     "Rase" Radio Sensor Project,      Preliminary Configuration Tool
+ *  PROJECT:     "Rase" Radio Sensor Project,    Measuring and Config Application
  *  COPYRIGHT:   (C)2025-2026 KKS-Elektronik,  M. Kreck, <makreck@googlemail.com>
  *
  *  This program is free software: you can redistribute it and/or modify it under
@@ -21,23 +21,23 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <cstddef>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <limits.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <termios.h>
+#define VS_HIGH                (0)
+#define VS_LOW                 (0)
+#define VS_REV                 (1)
+#define VS_BUILD               (0)
 
-#include "gtk_headers.h"
+#define VERSION_BUILD          (((VS_HIGH  << 24) & 0xff000000) | \
+                                ((VS_LOW   << 16) & 0x00ff0000) | \
+                                ((VS_REV   <<  8) & 0x0000ff00) | \
+                                ((VS_BUILD <<  0) & 0x000000ff))
 
-#include "version.h"
-#include "typedefs.h"
-#include "colors.h"
-#include "resource.h"
-#include "dev_config.h"
-#include "app.h"
+#define VERSION_BUILD_SHORT    (((VS_HIGH  << 12) & 0xf000) | \
+                                ((VS_LOW   <<  8) & 0x0f00) | \
+                                ((VS_REV   <<  4) & 0x00f0) | \
+                                ((VS_BUILD <<  0) & 0x000f))
+
+#define VERSION_BUILD_DATE     (__DATE__)
+
+#define VERSION_NAME           "fcmd" 
+
+#define VERSION_COPYRIGHT      "(C)2026"

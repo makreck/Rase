@@ -36,6 +36,8 @@
                                 ((VS_REV   <<  4) & 0x00f0) | \
                                 ((VS_BUILD <<  0) & 0x000f))
 
+#define VERSION_BUILD_DATE     (__DATE__)
+
 #define VERSION_NAME           "rase" 
 
 #define PRODUCT_IDENTIFIER     "\"identification\": \"RASE\""
