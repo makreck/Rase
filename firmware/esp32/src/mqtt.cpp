@@ -117,34 +117,46 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
             m.retry_count++;
             if (m.retry_count < MQTT_RETRY_MAX) {
                 esp_mqtt_client_reconnect(client);
+#ifdef DISPLAY_STATE
                 ESP_LOGI(TAG, "Retrying to connect to the MQTT broker");
+#endif                
             } else {
                 ESP_LOGE(TAG, "Maximum retry attempts reached");
             }
         } break;
 
         case MQTT_EVENT_SUBSCRIBED: {
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");
+#endif                
         } break;
 
         case MQTT_EVENT_UNSUBSCRIBED: {
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED");
+#endif                
         } break;
 
         case MQTT_EVENT_PUBLISHED: {
             if (pop_msg_id(event->msg_id)) {
+#ifdef DISPLAY_STATE
                 ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED message ID = %d ", event->msg_id);
+#endif
             } else {
-                ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED. Error message ID unknown, message ID = %d ", event->msg_id);
+                ESP_LOGE(TAG, "MQTT_EVENT_PUBLISHED. Error message ID unknown, message ID = %d ", event->msg_id);
             }
         } break;
 
         case MQTT_EVENT_DATA: {
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+#endif
         } break;
 
         case MQTT_EVENT_ERROR: {
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+#endif
         } break;
 
         default: {
@@ -179,9 +191,11 @@ void Mqtt::perform_publishing(void) {
                         SensorProperty::format_value(&props[i], value, message, sizeof (message));
                         int msg_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
                         if (push_msg_id(msg_id)) {
+#ifdef DISPLAY_STATE
                             ESP_LOGI(TAG, "Sending topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+#endif
                         } else {
-                            ESP_LOGI(TAG, "Error sending topic (too many messages pending), topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+                            ESP_LOGE(TAG, "Error sending topic (too many messages pending), topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
                         }
                     }
                 }
