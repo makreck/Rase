@@ -56,8 +56,8 @@ class ToolbarItems {
 
 class GtkTool {
     public:
-        static GtkWidget* create_toolbar(const ToolbarItems* itemList, size_t itemListSize,
-            const char** stringList, size_t stringListSize, int iconSize_px, GCallback cb, void* parameter);
+        static GtkWidget* create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size,
+            const char** _string_list, size_t _string_list_size, int _icon_size, GCallback _callback, void* _parameter);
 
         static GtkWidget* create_empty_pixbuf(int width_px, int height_px, ColorRef background_color, gboolean has_alpha = true);
         static GdkPixbuf* svg2image(const char* svg_string, int width_px, int height_px, ColorRef color);

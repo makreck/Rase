@@ -21,10 +21,10 @@
 
 #include "includes.h"
 
-GtkWidget* GtkTool::create_toolbar(const ToolbarItems* itemList, size_t itemListSize,
-    const char** stringList, size_t stringListSize, int iconSize_px, GCallback cb, void* parameter) {
+GtkWidget* GtkTool::create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size,
+    const char** _string_list, size_t _string_list_size, int _icon_size, GCallback _callback, void* _parameter) {
 
-    if ((itemList == nullptr) || (itemListSize < 1) || (itemListSize > TOOLBAR_BUTTON_COUNT_MAX)) {
+    if ((_item_list == nullptr) || (_item_list_size < 1) || (_item_list_size > TOOLBAR_BUTTON_COUNT_MAX)) {
         return (nullptr);
     }
 
@@ -32,32 +32,32 @@ GtkWidget* GtkTool::create_toolbar(const ToolbarItems* itemList, size_t itemList
     gtk_toolbar_set_style(toolbar, GtkToolbarStyle::GTK_TOOLBAR_ICONS);
     gtk_toolbar_set_icon_size(toolbar, GtkIconSize::GTK_ICON_SIZE_LARGE_TOOLBAR);
 
-    for (size_t i = 0; i < itemListSize; i++) {
-        GdkPixbuf* pixbuf = GtkTool::svg2image(itemList[i].svg, iconSize_px, iconSize_px, C_WHITE);        
+    for (size_t i = 0; i < _item_list_size; i++) {
+        GdkPixbuf* pixbuf = GtkTool::svg2image(_item_list[i].svg, _icon_size, _icon_size, C_WHITE);        
         if (pixbuf != nullptr) {
             GtkWidget* image = gtk_image_new_from_pixbuf(pixbuf);
             g_object_unref(pixbuf);
             const char* name = nullptr;
-            if ((uint64_t)(itemList[i].text_id) > 255) {
-                name = (const char*)itemList[i].text_id;
+            if ((uint64_t)(_item_list[i].text_id) > 255) {
+                name = (const char*)_item_list[i].text_id;
             } else {
-                int stringIndex = (int)(((uint64_t)itemList[i].text_id) & 0xff);
-                if ((stringIndex > 0) && (stringIndex < stringListSize)) {
-                    name = stringList[stringIndex];
+                int stringIndex = (int)(((uint64_t)_item_list[i].text_id) & 0xff);
+                if ((stringIndex > 0) && (stringIndex < _string_list_size)) {
+                    name = _string_list[stringIndex];
                 }
             }
 
             GtkToolItem* item = (GtkToolItem *)gtk_tool_button_new(image, name);
             gtk_tool_item_set_tooltip_text(item, name);
 
-            if (cb != nullptr) {
-                g_signal_connect(G_OBJECT(item), "clicked", G_CALLBACK(cb), new CallbackParameter(parameter, (void*)itemList[i].text_id));
+            if (_callback != nullptr) {
+                g_signal_connect(G_OBJECT(item), "clicked", G_CALLBACK(_callback), new CallbackParameter(_parameter, (void*)_item_list[i].text_id));
             }
 
             gtk_toolbar_insert(GTK_TOOLBAR(toolbar), item, -1);
         } else if ((_item_list[i].svg == nullptr) && (_item_list[i].text_id == nullptr)) {
             GtkToolItem* seperator = gtk_separator_tool_item_new();
-            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), seperator, -1);
+            gtk_toolbar_insert(GTK_TOOLBAR(toolbar), seperator, -1);
         }
     }
 
