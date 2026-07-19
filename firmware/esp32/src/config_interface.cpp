@@ -37,7 +37,8 @@ void ConfigInterface::cleanup(void) {
 
 void ConfigInterface::setup(void) {
     // Avoid conflicts with JTAG interface during boot sequence!
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    usb_serial_jtag_driver_uninstall();
+    vTaskDelay(pdMS_TO_TICKS(250));
 
     uart_config_t uart_config;
     uart_config.baud_rate  = 115200;
