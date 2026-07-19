@@ -34,14 +34,16 @@ const char* display_page      = "Value page\nDetails page\nInfo page";
 const char* display_rotation  = "0°\n180°";
 const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
 
-const ToolbarItems mainToolbar[] = {
+const ToolbarItems main_toolbar[] = {
     { svg_search, (void*)IDS_DEVICE_SCAN       },
-    { svg_upload, (void*)IDS_PROGRAM_DEV       },
+    { nullptr,    (void*)nullptr               },
     { svg_reload, (void*)IDS_RELOAD_DATA       },
+    { svg_upload, (void*)IDS_PROGRAM_DEV       },
+    { nullptr,    (void*)nullptr               },
     { svg_reset,  (void*)IDS_RESET_DEVICE      },
     { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
 };
-const size_t sizeOf_mainToolbar = SIZEOFARRAY(mainToolbar);
+const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
 
 void App::run_gui(void) {
     if (find_interface()) {
@@ -227,6 +229,9 @@ GtkWidget* App::create_toolbar(const ToolbarItems* _item_list, size_t _item_list
             }
 
             gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), item, -1);
+        } else if ((_item_list[i].svg == nullptr) && (_item_list[i].text_id == nullptr)) {
+            GtkToolItem* seperator = gtk_separator_tool_item_new();
+            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), seperator, -1);
         }
     }
 
@@ -266,7 +271,7 @@ GtkWidget* App::create_main_menu(void) {
 }
 
 GtkWidget* App::create_main_toolbar(void) {
-    m.gtk.tool_bar = App::create_toolbar(mainToolbar, sizeOf_mainToolbar, 
+    m.gtk.tool_bar = App::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
                                         &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
                                         m.toolIconSize, G_CALLBACK(App::_on_command), this);
     gtk_widget_set_hexpand(m.gtk.tool_bar, TRUE);

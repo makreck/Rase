@@ -41,8 +41,8 @@
 class Application {
     private:
         struct {
-            int argumentsCount = 0;
-            char** argumentsList = nullptr;
+            int argc = 0;
+            char** argv = nullptr;
 
             Config* cfg = nullptr;
             SensorBus* bus = nullptr;
