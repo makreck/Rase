@@ -60,6 +60,8 @@ class KeyList {
 
 class DevConfig {
     public:
+        static const char* config_json_format;
+
         struct {
             char version[NUM_FIELD_LEN]{ 0 };
             
@@ -107,9 +109,18 @@ class DevConfig {
         ~DevConfig() {
         }
 
-        void clear(void) {
-            memset(&cfg, 0, sizeof (cfg));
-            memset(&id,  0, sizeof (id));
-        }
+        static size_t json_get(char* json_data, const char* _key, char* _buffer, size_t _length);
+        static void import_data(char* _json_string, KeyList* _key_list, size_t _size);
+        static int open_port(const char* _ifac, speed_t _baudrate);
+        static char* allocate_command(char* _cmd);
+        static char* transact_command(const char* _ifac, const char* _cmd);
+        static bool find_interface(char* _ifac, size_t _length);
+        static bool open_interface(const char* _ifac, int& _fd);
+        static bool close_interface(int& _fd);
+        
+        void clear(void);
+        bool read_data(const char* _ifac);
+        bool read_config(const char* _ifac);
+        bool read_id(const char* _ifac);
 
 };
