@@ -50,16 +50,14 @@ void App::run_gui(void) {
 
     const gchar* error_text = nullptr;
 
-    if (find_interface()) {
-        if (read_id()) {
-            if (read_config()) {
-                m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
-                g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
-                g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
-                return;
-            } else {
-                error_text = APPSTRING(IDS_ERROR_CFG_READ_ERROR);
-            }
+    if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
+        if (m.device.read_data(m.ifac)) {
+            m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
+            g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
+            g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
+            return;
+        } else {
+            error_text = APPSTRING(IDS_ERROR_CFG_READ_ERROR);
         }
     } else {
         error_text = APPSTRING(IDS_ERROR_NO_DEV_CONNECTED);
@@ -600,7 +598,7 @@ void App::on_command(CallbackParameter* p) {
 void App::on_command_scan(void) {
 printf("on_command_scan()\n"); // ****
     status_update(APPSTRING(IDS_SCANNING));
-    if (find_interface()) {
+    if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
         on_reload_data();
     } else {
         status_update(APPSTRING(IDS_NOT_CONNECTED));
@@ -620,7 +618,7 @@ printf("on_reload_data()\n"); // ****
 }
 
 void App::on_command_reset(void) {
-    char* response = transact_command("/reboot");
+    char* response = DevConfig::transact_command(m.ifac, "/reboot");
     if (response != nullptr) {
         free(response);
     }
@@ -631,7 +629,7 @@ void App::on_command_initialize(void) {
     snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_INITIALIZING));
     status_update(string);
 
-    char *response = transact_command("/initialize");
+    char *response = DevConfig::transact_command(m.ifac, "/initialize");
     if (response != nullptr) {
         free(response);
     }
@@ -646,13 +644,11 @@ void App::idle_task(CallbackParameter* p) {
     int64_t item_id = (int64_t)(p->get_pointer());
     switch(item_id) {
         case IDS_LOADING: {
-            if (read_id()) {
-                if (read_config()) {
-                    handle_dialog_items(true);
-                    char string[256]{ 0 };
-                    snprintf(string, sizeof (string), "\"%s\"", m.ifac);
-                    status_update(string);
-                }
+            if (m.device.read_data(m.ifac)) {
+                handle_dialog_items(true);
+                char string[256]{0};
+                snprintf(string, sizeof(string), "\"%s\"", m.ifac);
+                status_update(string);
             }
         } break;
 
