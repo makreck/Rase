@@ -46,7 +46,7 @@
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (57)
+#define IDS_MAIN_COUNT              (66)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -109,7 +109,19 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_INITIALIZING            (55)
 #define IDS_RELOAD_DATA             (56)
 
-#define SVG_STROKE_COLOR "#010203"
+#define IDS_ERROR_NO_DEV_CONNECTED  (57)
+#define IDS_ERROR_CFG_READ_ERROR    (58)
+
+#define IDS_LIST_ENABLE_DISABLE     (59)
+#define IDS_LIST_SENSOR_TYPES       (60)
+#define IDS_LIST_DISPLAY_TIMEOUTS   (61)
+#define IDS_LIST_DISPLAY_CONTRAST   (62)
+#define IDS_LIST_DISPLAY_PAGE       (63)
+#define IDS_LIST_DISPLAY_ROTATION   (64)
+#define IDS_LIST_LED_INTENSITY      (65)
+
+#define SVG_STROKE_COLOR            "#010203"
+
 extern const char* svg_app;
 extern const char* svg_search;
 extern const char* svg_upload;

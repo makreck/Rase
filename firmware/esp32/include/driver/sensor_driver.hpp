@@ -169,6 +169,7 @@ class SensorDriver {
         SensorType identify_at_adr_0x40(SwI2CBus& bus);
         uint32_t get_head_serial_number(void);
 
+        static const char* get_driver_name(SensorType _type);
         static SensorDriver* create_driver_by_address(uint8_t bus_addr);
         static uint8_t get_bus_addr_by_type(SensorType type);
         static SensorDriver* auto_scan(SensorType selected = SensorType::autoscan);

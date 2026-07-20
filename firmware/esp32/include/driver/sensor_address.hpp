@@ -71,3 +71,5 @@ enum class SensorType : uint8_t {
     max      = 0x07,
     invalid  = 0xff,
 };
+
+extern const char* str_sensor_types[8];

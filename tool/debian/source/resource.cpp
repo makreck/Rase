@@ -91,6 +91,17 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Scanning ports ...",
         "Initializing ...",
         "Reload data",
+
+        "No connected device found!\n\nPlease connect a device first and ensure\nthat the config interface is enabled.",
+        "Unable to read config data from device!\n\nPlease ensure that the config interface\nis enabled.",
+
+        "disabled\nenabled",
+        "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280",
+        "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.",
+        "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%",
+        "Value page\nDetails page\nInfo page",
+        "0°\n180°",
+        "100%\n75%\n50%\n25%\n10%\n1%",
     },
 
 };

@@ -72,6 +72,8 @@ enum class DisplayPage {
     value_page   = 3,
 };
 
+extern const char* str_display_layout[3];
+
 class App {
     private:
 
@@ -190,6 +192,8 @@ class App {
         ~App() {
             cleanup();
         }
+
+        static const char* get_display_layout_name(DisplayLayout __layout);
 
         AppState init(void);
         AppState run(void);

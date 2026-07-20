@@ -74,12 +74,7 @@ char* App::alloc_command(char* cmd) {
     return (command_string);
 }
 
-void App::run_command(void) {
-    char* cmd = m.argv[1];
-    if (cmd == nullptr) {
-        return;
-    }
-
+void App::run_command(char* cmd) {
     if (!find_interface()) {
         printf("No interface (\"ttyACM<n>\" ot \"ttyUSB<n>\") found, plase connect a device!\n");
         return;
@@ -204,8 +199,8 @@ void App::handle_transaction_result(char* result) {
     if (result == nullptr) {
         return;
     }
-    printf("\033c");
-    printf("Response data:\n\"\"\"\n%s\"\"\"\n", result);
+    // printf("\033c");
+    printf("\nResponse data:\n\"\"\"\n%s\"\"\"\n", result);
 }
 
 size_t App::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {

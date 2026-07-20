@@ -111,7 +111,7 @@ class App {
         GtkWidget* create_dialog(void);
         GtkWidget* create_statusbar(void);
 
-        void run_command(void);
+        void run_command(char* cmd);
         char* load_config_json(char* cmd);
         char* alloc_command(char* cmd);
         char* transact_command(const char* cmd);

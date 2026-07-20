@@ -37,15 +37,62 @@ const char* SysConfig::config_json_format =
     "\t\"mqtt_password\": \"%s\",\n"
     "\t\"mqtt_enable\": \"%s\",\n"
     
-    "\t\"display_layout\": \"%d\",\n"
+    "\t\"display_layout\": \"%s\",\n"
     "\t\"display_param\": \"%d\",\n"
     "\t\"display_rotation\": \"%d\",\n"
-    "\t\"display_timeout\": \"%.3f\",\n"
+    "\t\"display_timeout\": \"%.0f\",\n"
     "\t\"display_contrast\": \"%.0f\",\n"
 
-    "\t\"sensor_type\": \"%d\",\n"
+    "\t\"sensor_type\": \"%s\",\n"
     "\t\"led_intensity\": \"%.0f\"\n"
     "}\n";
+
+char* SysConfig::get_json(void) {
+    size_t length = snprintf(nullptr, 0,
+        config_json_format,
+        (unsigned int)cfg.version,
+        get_ssid(),
+        get_password(),
+        get_wifi_channel(),
+        get_mqtt_broker(),
+        get_mqtt_username(),
+        get_mqtt_password(),
+        (get_mqtt_enable()) ? "enabled" : "disabled",
+        App::get_display_layout_name(get_display_layout()),
+        (int)get_display_parameter(),
+        (int)get_display_rotation(),
+        (float)get_display_timeout(),
+        (float)get_display_contrast() * 100.0f,
+        SensorDriver::get_driver_name(get_sensor_type()),
+        (float)(get_LED_intensity() * 100.0f)
+    );
+
+    size_t size = length + 8;
+    char* str_json = (char*)malloc(size);
+    if (str_json != nullptr) {
+        memset(str_json, 0, size);
+        snprintf(str_json, length + 1,
+            config_json_format,
+            (unsigned int)cfg.version,
+            get_ssid(),
+            get_password(),
+            get_wifi_channel(),
+            get_mqtt_broker(),
+            get_mqtt_username(),
+            get_mqtt_password(),
+            (get_mqtt_enable()) ? "enabled" : "disabled",
+            App::get_display_layout_name(get_display_layout()),
+            (int)get_display_parameter(),
+            (int)get_display_rotation(),
+            (float)get_display_timeout(),
+            (float)get_display_contrast() * 100.0f,
+            SensorDriver::get_driver_name(get_sensor_type()),
+            (float)(get_LED_intensity() * 100.0f)
+        );
+    }
+
+    return (str_json);
+}
 
 AppState SysConfig::init(void) {
     init_nvs_flash();
@@ -427,58 +474,10 @@ void SysConfig::print_parms(const char* hint) {
     ESP_LOGI(TAG, "\t- Display contrast:   %.1f ",     get_display_contrast());
 
     ESP_LOGI(TAG, "\t- Config interface:   %s ",       (get_config_enable()) ? "enabled" : "disabled");
-    ESP_LOGI(TAG, "\t- Sensor type ID:     %d ",       (int)get_sensor_type());
+    ESP_LOGI(TAG, "\t- Sensor type ID:     %d <%s>",   (int)get_sensor_type(), SensorDriver::get_driver_name(get_sensor_type()));
 
     ESP_LOGI(TAG, "\t- LED intensity:      %.2f ",     get_LED_intensity());
 #endif    
-}
-
-char* SysConfig::get_json(void) {
-    size_t length = snprintf(nullptr, 0,
-        config_json_format,
-
-        (unsigned int)cfg.version,
-        get_ssid(),
-        get_password(),
-        get_wifi_channel(),
-        get_mqtt_broker(),
-        get_mqtt_username(),
-        get_mqtt_password(),
-        (get_mqtt_enable()) ? "enabled" : "disabled",
-        (int)get_display_layout(),
-        (int)get_display_parameter(),
-        (int)get_display_rotation(),
-        (float)get_display_timeout(),
-        (float)get_display_contrast() * 100.0f,
-        (int)get_sensor_type(),
-        (float)(get_LED_intensity() * 100.0f)
-    );
-
-    size_t size = length + 8;
-    char* str_json = (char*)malloc(size);
-    if (str_json != nullptr) {
-        memset(str_json, 0, size);
-        snprintf(str_json, length + 1,
-            config_json_format,
-            (unsigned int)cfg.version,
-            get_ssid(),
-            get_password(),
-            get_wifi_channel(),
-            get_mqtt_broker(),
-            get_mqtt_username(),
-            get_mqtt_password(),
-            (get_mqtt_enable()) ? "enabled" : "disabled",
-            (int)get_display_layout(),
-            (int)get_display_parameter(),
-            (int)get_display_rotation(),
-            (float)get_display_timeout(),
-            (float)get_display_contrast() * 100.0f,
-            (int)get_sensor_type(),
-            (float)(get_LED_intensity() * 100.0f)
-        );
-    }
-
-    return (str_json);
 }
 
 AppState SysConfig::import_json(const char* _json_string, size_t _length) {

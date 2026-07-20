@@ -26,13 +26,13 @@
 // g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
 // gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
 
-const char* enable_list       = "disabled\nenabled";
-const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
-const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
-const char* display_contrast  = "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%";
-const char* display_page      = "Value page\nDetails page\nInfo page";
-const char* display_rotation  = "0°\n180°";
-const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
+// const char* enable_list       = "disabled\nenabled";
+// const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
+// const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
+// const char* display_contrast  = "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%";
+// const char* display_page      = "Value page\nDetails page\nInfo page";
+// const char* display_rotation  = "0°\n180°";
+// const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
 
 const ToolbarItems main_toolbar[] = {
     { svg_search, (void*)IDS_DEVICE_SCAN       },
@@ -46,15 +46,29 @@ const ToolbarItems main_toolbar[] = {
 const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
 
 void App::run_gui(void) {
+    gtk_init(&m.argc, &m.argv);
+
+    const gchar* error_text = nullptr;
+
     if (find_interface()) {
         if (read_id()) {
             if (read_config()) {
-                gtk_init(&m.argc, &m.argv);
                 m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
                 g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
                 g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
+                return;
+            } else {
+                error_text = APPSTRING(IDS_ERROR_CFG_READ_ERROR);
             }
         }
+    } else {
+        error_text = APPSTRING(IDS_ERROR_NO_DEV_CONNECTED);
+    }
+
+    if (error_text != nullptr) {
+        GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", error_text);
+        gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
     }
 }
 
@@ -421,20 +435,20 @@ GtkWidget* App::create_dialog(void) {
 
     GtkWidget* grid_mqtt = add_grid(APPSTRING(IDS_BOX_MQTT_CONFIG), box);
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_BROKER,      APP_WINDOW_LONG_WIDTH,  0, 0, m.device.cfg.mqtt_broker,       sizeof (m.device.cfg.mqtt_broker)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.mqtt_enable,       sizeof (m.device.cfg.mqtt_enable),       enable_list));
+    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.mqtt_enable,       sizeof (m.device.cfg.mqtt_enable),       APPSTRING(IDS_LIST_ENABLE_DISABLE)));
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_USERNAME,    APP_WINDOW_LONG_WIDTH,  0, 1, m.device.cfg.mqtt_username,     sizeof (m.device.cfg.mqtt_username)));
     m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 1, m.device.cfg.mqtt_password,     sizeof (m.device.cfg.mqtt_password)));
 
     GtkWidget* grid_oled = add_grid(APPSTRING(IDS_BOX_DISPLAY_CONFIG), box);
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_TIMEOUT,  APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.display_timeout_s, sizeof (m.device.cfg.display_timeout_s), display_timeouts));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.display_contrast,  sizeof (m.device.cfg.display_contrast),  display_contrast));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_ROTATION, APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.cfg.display_rotoation, sizeof (m.device.cfg.display_rotoation), display_rotation));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.display_layout,    sizeof (m.device.cfg.display_layout),    display_page));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_TIMEOUT,  APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.display_timeout_s, sizeof (m.device.cfg.display_timeout_s), APPSTRING(IDS_LIST_DISPLAY_TIMEOUTS)));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.display_contrast,  sizeof (m.device.cfg.display_contrast),  APPSTRING(IDS_LIST_DISPLAY_CONTRAST)));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_ROTATION, APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.cfg.display_rotoation, sizeof (m.device.cfg.display_rotoation), APPSTRING(IDS_LIST_DISPLAY_ROTATION)));
+    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.display_layout,    sizeof (m.device.cfg.display_layout),    APPSTRING(IDS_LIST_DISPLAY_PAGE)));
     m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_PARAM,    APP_WINDOW_SHORT_WIDTH, 2, 1, m.device.cfg.display_param,     sizeof (m.device.cfg.display_param)));
 
     GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     led_intensity));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       sensor_types_list));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     APPSTRING(IDS_LIST_LED_INTENSITY)));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       APPSTRING(IDS_LIST_SENSOR_TYPES)));
 
     GtkWidget* item;
     item = get_item(IDS_WIFI_PASSWORD);

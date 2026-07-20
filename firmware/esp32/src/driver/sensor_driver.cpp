@@ -45,6 +45,17 @@ static const SensorType i2c_driver_type_list[] = {
     SensorType::BMx280,
 };
 
+const char* str_sensor_types[8] = {
+    "autoscan",
+    "Null",
+    "SHT2x",
+    "SHT3x",
+    "HTU21d",
+    "ATHxx",
+    "HDC1080",
+    "BMx280",
+};
+
 void SensorDriver::send_measuring_event(void) {
     esp_event_post(APP_EVENT, (int32_t)AppEvent::measuring_event, &reading, sizeof(reading), pdMS_TO_TICKS(0));
 }
@@ -246,4 +257,12 @@ size_t SensorDriver::search(size_t length, const char* result[], uint8_t* adr_li
     }
     suspended = false;
     return (n);
+}
+
+const char* SensorDriver::get_driver_name(SensorType _type) {
+    int index = (int)_type;
+    if ((index >= 0) && (index < SIZEOFARRAY(str_sensor_types))) {
+        return (str_sensor_types[index]);
+    }
+    return ("invalid");
 }

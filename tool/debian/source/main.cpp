@@ -59,7 +59,9 @@ void App::run(void) {
     if (m.argc < 2) {
         run_gui();
     } else {
-        run_command();
+        for (int i = 1; i < m.argc; i++) {
+            run_command(m.argv[i]);
+        }
     }
 }
 
