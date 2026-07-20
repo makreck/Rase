@@ -30,7 +30,7 @@
 #define MQTT_BROKER_MAX              (64)
 #define USERNAME_MAX                 (32)
 #define PASSWORD_MAX                 (32)
-#define NUM_FIELD_LEN                (8)
+#define NUM_FIELD_LEN                (16)
 
 #define LED_INTENSITY_MAX            (1.00f)
 #define LED_INTENSITY_HIGH           (0.75f)
@@ -122,5 +122,5 @@ class DevConfig {
         bool read_data(const char* _ifac);
         bool read_config(const char* _ifac);
         bool read_id(const char* _ifac);
-
+        char* get_config_json(size_t* _length = nullptr);
 };

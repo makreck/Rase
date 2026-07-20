@@ -24,11 +24,11 @@
 const char* DevConfig::config_json_format =
     "\n"
     "{\n"
-    "\t\"version\": \"0x%-8.8X\",\n"
+    "\t\"version\": \"%s\",\n"
     
     "\t\"ssid\": \"%s\",\n"
     "\t\"password\": \"%s\",\n"
-    "\t\"wifi_channel\": \"%d\",\n"
+    "\t\"wifi_channel\": \"%s\",\n"
     
     "\t\"mqtt_broker\": \"%s\",\n"
     "\t\"mqtt_username\": \"%s\",\n"
@@ -36,13 +36,13 @@ const char* DevConfig::config_json_format =
     "\t\"mqtt_enable\": \"%s\",\n"
     
     "\t\"display_layout\": \"%s\",\n"
-    "\t\"display_param\": \"%d\",\n"
-    "\t\"display_rotation\": \"%d\",\n"
-    "\t\"display_timeout\": \"%.0f\",\n"
-    "\t\"display_contrast\": \"%.0f\",\n"
+    "\t\"display_param\": \"%s\",\n"
+    "\t\"display_rotation\": \"%s\",\n"
+    "\t\"display_timeout\": \"%s\",\n"
+    "\t\"display_contrast\": \"%s\",\n"
 
     "\t\"sensor_type\": \"%s\",\n"
-    "\t\"led_intensity\": \"%.0f\"\n"
+    "\t\"led_intensity\": \"%s\"\n"
     "}\n";
 
 void DevConfig::clear(void) {
@@ -333,4 +333,31 @@ bool DevConfig::read_id(const char* _ifac) {
         return (true);
     }
     return (false);
+}
+
+char* DevConfig::get_config_json(size_t* _length) {
+    size_t length = snprintf(nullptr, 0, config_json_format,
+        cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
+        cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
+        cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,
+        cfg.sensor_type, cfg.led_intensity);
+
+    size_t size = length + 8;
+    char* json_string = (char*)malloc(size);
+    if (json_string == nullptr) {
+        return (nullptr);
+    }
+    memset(json_string, 0, size);
+
+    snprintf(json_string, length + 1, config_json_format,
+        cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
+        cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
+        cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,
+        cfg.sensor_type, cfg.led_intensity);
+
+    if (_length != nullptr) {
+        *_length = length;
+    }
+
+    return (json_string);
 }

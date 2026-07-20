@@ -607,6 +607,7 @@ printf("on_command_scan()\n"); // ****
 
 void App::on_command_program(void) {
 printf("on_command_program()\n"); // ****
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM(IDS_PROGRAM_DEV));
 }
 
 void App::on_reload_data(void) {
@@ -653,6 +654,12 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_PROGRAM_DEV: {
+            size_t length = 0;
+            char* json_string = m.device.get_config_json(&length);
+            if (json_string != nullptr) {
+                printf("Config JSON:\n\"\"\"%s\"\"\"\n", json_string); // ****
+                free(json_string);
+            }
         } break;
 
         case IDS_RESET_DEVICE: {
