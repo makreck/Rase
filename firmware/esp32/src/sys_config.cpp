@@ -39,12 +39,12 @@ const char* SysConfig::config_json_format =
     
     "\t\"display_layout\": \"%s\",\n"
     "\t\"display_param\": \"%d\",\n"
-    "\t\"display_rotation\": \"%d\",\n"
-    "\t\"display_timeout\": \"%.0f\",\n"
-    "\t\"display_contrast\": \"%.0f\",\n"
+    "\t\"display_rotation\": \"%d°\",\n"
+    "\t\"display_timeout\": \"%s\",\n"
+    "\t\"display_contrast\": \"%.0f%%\",\n"
 
     "\t\"sensor_type\": \"%s\",\n"
-    "\t\"led_intensity\": \"%.0f\"\n"
+    "\t\"led_intensity\": \"%.0f%%\"\n"
     "}\n";
 
 char* SysConfig::get_json(void) {
@@ -61,7 +61,7 @@ char* SysConfig::get_json(void) {
         App::get_display_layout_name(get_display_layout()),
         (int)get_display_parameter(),
         (int)get_display_rotation(),
-        (float)get_display_timeout(),
+        get_display_timeout_str(),
         (float)get_display_contrast() * 100.0f,
         SensorDriver::get_driver_name(get_sensor_type()),
         (float)(get_LED_intensity() * 100.0f)
@@ -84,7 +84,7 @@ char* SysConfig::get_json(void) {
             App::get_display_layout_name(get_display_layout()),
             (int)get_display_parameter(),
             (int)get_display_rotation(),
-            (float)get_display_timeout(),
+            get_display_timeout_str(),
             (float)get_display_contrast() * 100.0f,
             SensorDriver::get_driver_name(get_sensor_type()),
             (float)(get_LED_intensity() * 100.0f)
@@ -207,12 +207,41 @@ float SysConfig::get_display_timeout(void) {
     return (cfg.display_timeout_s);
 }
 
-AppState SysConfig::set_display_timeout(float timeout_s) {
-    if ((cfg.display_timeout_s != timeout_s) && (timeout_s >= 0.0f)) {
-        cfg.display_timeout_s = timeout_s;
+const char* SysConfig::get_display_timeout_str(void) {
+    if (cfg.display_timeout_s <= 0.0f) {
+        return ("Never");
+    }
+    memset(this->format, 0, sizeof (this->format));
+    if (cfg.display_timeout_s >= 3600.0f) {
+        snprintf(this->format, sizeof (this->format) - 1, "%.2f h", cfg.display_timeout_s / 3600.0f);
+    } else if (cfg.display_timeout_s >= 60.0f) {
+        snprintf(this->format, sizeof (this->format) - 1, "%.0f min", cfg.display_timeout_s / 60.0f);
+    } else {
+        snprintf(this->format, sizeof (this->format) - 1, "%.0f s", cfg.display_timeout_s);
+    }
+    return ((const char*)this->format);
+}
+
+AppState SysConfig::set_display_timeout(float _timeout_s) {
+    if ((cfg.display_timeout_s != _timeout_s) && (_timeout_s >= 0.0f)) {
+        cfg.display_timeout_s = _timeout_s;
         modified = true;
     }
     return (AppState::OK);
+}
+
+AppState SysConfig::set_display_timeout_str(char* _str) {
+    float value = 0.0f;
+    if (strstr(_str, "Never") == nullptr) {
+        if (strstr(_str, " min") != nullptr) {
+            value = atof(_str) * 60.0f;
+        } else if (strstr(_str, " h") != nullptr) {
+            value = atof(_str) * 3600.0f;
+        } else {
+            value = atof(_str);
+        }
+    }
+    return (set_display_timeout(value));
 }
 
 AppState SysConfig::set_wifi_channel(uint8_t channelNumber) {
@@ -531,7 +560,7 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
     if (len > 0) { set_display_rotation(atoi(parameter)); }
 
     len = Tools::json_get(_json_string, "display_timeout", parameter, sizeof (parameter));
-    if (len > 0) { set_display_timeout(atof(parameter)); }
+    if (len > 0) { set_display_timeout_str(parameter); }
 
     len = Tools::json_get(_json_string, "display_contrast", parameter, sizeof (parameter));
     if (len > 0) { set_display_contrast(atof(parameter)); }

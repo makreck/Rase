@@ -107,6 +107,7 @@ class SysConfig {
 
         SysConfigData cfg;
         bool modified = false;
+        char format[32]{ 0 };
 
     public:
         SysConfig(void) {
@@ -132,7 +133,8 @@ class SysConfig {
         AppState perform_factory_reset(void);
 
         AppState set_wifi_channel(uint8_t channelNumber);
-        AppState set_display_timeout(float timeout_s);
+        AppState set_display_timeout(float _timeout_s);
+        AppState set_display_timeout_str(char* _str);
         AppState set_LED_intensity(float intensity);
         AppState set_display_contrast(float value);
         AppState set_display_layout(DisplayLayout layout);
@@ -150,11 +152,11 @@ class SysConfig {
         const char* get_mqtt_broker(void);
         const char* get_mqtt_username(void);
         const char* get_mqtt_password(void);
+        const char* get_display_timeout_str(void);
                 
         float get_display_timeout(void);
         float get_LED_intensity(void);
         float get_display_contrast(void);
-
         AppState import_json(const char* _json_string, size_t _length);
         char* get_json(void);
         DisplayLayout get_display_layout(void);
