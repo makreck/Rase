@@ -23,21 +23,6 @@
 
 // #define DISPLAY_STATE
 
-const char* str_display_layout[3] = {
-    "Value page",
-    "Details page",
-    "Info page",
-};
-
-const char* App::get_display_layout_name(DisplayLayout __layout) {
-    int index = (int)(__layout);
-    if ((index >= 0) && (index < SIZEOFARRAY(str_display_layout))) {
-        return (str_display_layout[index]);
-    }
-
-    return ("Invalid");
-}
-
 AppState App::init_display(void) {
 #ifdef _ENABLE_LCD
     m.display = new DisplayI2C();
