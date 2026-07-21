@@ -19,11 +19,12 @@
  * ==============================================================================
  */
 
+ #define ENABLE_FILTER
+ 
 #include "includes.h"
 
-const char* DevConfig::config_json_format =
-    "\n"
-    "{\n"
+const char* DevConfig::config_json_cmd_format =
+    "%s{\n"
     "\t\"version\": \"%s\",\n"
     
     "\t\"ssid\": \"%s\",\n"
@@ -229,6 +230,7 @@ char* DevConfig::transact_command(const char* _ifac, const char* _cmd) {
             p[7] = '\0';
         }
         length = strlen(response);
+#ifdef ENABLE_FILTER
     } else {
         int level = -1;
         int i;
@@ -249,6 +251,7 @@ char* DevConfig::transact_command(const char* _ifac, const char* _cmd) {
         in[i++] = '\n';
         in[i] = '\0';
         length = i;
+#endif        
     }
 
     char* result = (char *)malloc(length + 1);
@@ -335,8 +338,13 @@ bool DevConfig::read_id(const char* _ifac) {
     return (false);
 }
 
-char* DevConfig::get_config_json(size_t* _length) {
-    size_t length = snprintf(nullptr, 0, config_json_format,
+char* DevConfig::get_config_json(const char* _command, size_t* _length) {
+    if (_command == nullptr) {
+        _command = "\0";
+    }
+
+    size_t length = snprintf(nullptr, 0, config_json_cmd_format,
+        _command,
         cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
         cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
         cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,
@@ -349,7 +357,8 @@ char* DevConfig::get_config_json(size_t* _length) {
     }
     memset(json_string, 0, size);
 
-    snprintf(json_string, length + 1, config_json_format,
+    snprintf(json_string, length + 1, config_json_cmd_format,
+        _command,
         cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
         cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
         cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,

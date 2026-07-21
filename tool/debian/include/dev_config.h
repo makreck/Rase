@@ -60,7 +60,7 @@ class KeyList {
 
 class DevConfig {
     public:
-        static const char* config_json_format;
+        static const char* config_json_cmd_format;
 
         struct {
             char version[NUM_FIELD_LEN]{ 0 };
@@ -122,5 +122,5 @@ class DevConfig {
         bool read_data(const char* _ifac);
         bool read_config(const char* _ifac);
         bool read_id(const char* _ifac);
-        char* get_config_json(size_t* _length = nullptr);
+        char* get_config_json(const char* _command = nullptr, size_t* _length = nullptr);
 };
