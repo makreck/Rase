@@ -22,6 +22,8 @@
 #include "includes.hpp"
 #include "app.hpp"
 
+#define DISPLAY_STATE
+
 const char* intrinsic_date_month_names[] = { "not-a-month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
 
 const char* device_id_json =
@@ -228,4 +230,56 @@ size_t Tools::json_get(const char* json_data, const char* _key, char* _buffer, s
     _buffer[i] = '\0';
 
     return (i);
+}
+
+float Tools::string2number(const char* _string) {
+    if (_string == nullptr) {
+        return (0.0f);
+    }
+
+    char format[32]{ 0 };
+    strncpy(format, _string, sizeof (format) - 1);
+    int len = (int)strlen(format);
+
+    char decimal = '\0';
+    for (int i = (len - 1); (i >= 0) && (decimal == '\0'); i--) {
+        if ((format[i] == '.') && (decimal == '\0')) { decimal = format[i]; }
+        if ((format[i] == ',') && (decimal == '\0')) { decimal = format[i]; }
+    }
+
+    const char* valid_num = "0123456789ABCDEFabcdefx+-";
+    int k = 0;
+    char c[2]{ 0 };
+    for (int i = 0; i < len; i++) {
+        c[0] = format[i];
+        if ((strstr(valid_num, c) == nullptr) && (c[0] != decimal)) {
+            continue;
+        }
+        if (i != k) {
+            if (c[0] == decimal) {
+                format[k] = '.';
+            } else {
+                format[k] = format[i];
+            }
+        }
+        k++;
+    }
+    format[k] = '\0';
+
+    float value = 0.0f;
+    if (decimal != '\0') {
+        value = atof(format);
+    } else {
+        if (strstr(format, "0x")) {
+            value = (float)strtoul(format, nullptr, 0);
+        } else {
+            value = (float)atoi(format);
+        }
+    }
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "Tools::string2number(\"%s\" -> \"%s\" = %g ", _string, format, value);
+#endif
+
+    return (value);
 }
