@@ -141,6 +141,8 @@ class SensorDriver {
         void driverTask(void);
 
     public:
+        static const char* str_sensor_types[8];
+
         SensorDriver() {
         }
 

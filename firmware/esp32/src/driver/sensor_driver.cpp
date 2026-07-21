@@ -45,7 +45,7 @@ static const SensorType i2c_driver_type_list[] = {
     SensorType::BMx280,
 };
 
-const char* str_sensor_types[8] = {
+const char* SensorDriver::str_sensor_types[8] = {
     "autoscan",
     "Null",
     "SHT2x",
