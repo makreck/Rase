@@ -448,14 +448,14 @@ GtkWidget* App::create_dialog(void) {
     m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     APPSTRING(IDS_LIST_LED_INTENSITY)));
     m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       APPSTRING(IDS_LIST_SENSOR_TYPES)));
 
-    GtkWidget* item;
+    DialogItem* item;
     item = get_item(IDS_WIFI_PASSWORD);
     if (item != nullptr) {
-        gtk_entry_set_visibility(GTK_ENTRY(item), FALSE);
+        gtk_entry_set_visibility(GTK_ENTRY(item->widget), FALSE);
     }
     item = get_item(IDS_MQTT_PASSWORD);
     if (item != nullptr) {
-        gtk_entry_set_visibility(GTK_ENTRY(item), FALSE);
+        gtk_entry_set_visibility(GTK_ENTRY(item->widget), FALSE);
     }
 
     
@@ -486,44 +486,48 @@ GtkWidget* App::create_dialog(void) {
     return (m.gtk.dialog);
 }
 
-GtkWidget* App::get_item(int _item_id) {
+DialogItem* App::get_item(int _item_id) {
     for (DialogItem*& item : m.gtk.items) {
         if (item != nullptr) {
             if (item->id == _item_id) {
-                return (item->widget);
+                return (item);
             }
         }
     }
     return (nullptr);
 }
 
+void App::handle_item_change(DialogItem *_item, bool _setup) {
+    if ((_item->field != nullptr) && (_item->widget != nullptr)) {
+        if (_setup) {
+            if (_item->list == nullptr) {
+                gtk_entry_set_text(GTK_ENTRY(_item->widget), _item->field);
+            } else {
+                App::string_combobox_setup(_item->widget, _item->field, _item->list);
+            }
+        } else {
+            if (_item->list == nullptr) {
+                const gchar* item_text = gtk_entry_get_text(GTK_ENTRY(_item->widget));
+                if (item_text != nullptr) {
+                    memset(_item->field, 0, _item->length);
+                    strncpy(_item->field, item_text, _item->length - 1);
+                }
+            } else {
+                gchar* item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(_item->widget));
+                if (item_text != nullptr) {
+                    memset(_item->field, 0, _item->length);
+                    strncpy(_item->field, item_text, _item->length - 1);
+                    g_free(item_text);
+                }
+            }
+        }
+    }
+}
+
 void App::handle_dialog_items(bool _setup) {
     for (DialogItem*& item : m.gtk.items) {
         if (item != nullptr) {
-            if ((item->field != nullptr) && (item->widget != nullptr)) {
-                if (_setup) {
-                    if (item->list == nullptr) {
-                        gtk_entry_set_text(GTK_ENTRY(item->widget), item->field);
-                    } else {
-                        App::string_combobox_setup(item->widget, item->field, item->list);
-                    }
-                } else {
-                    if (item->list == nullptr) {
-                        const gchar* item_text = gtk_entry_get_text(GTK_ENTRY(item->widget));
-                        if (item_text != nullptr) {
-                            memset(item->field, 0, item->length);
-                            strncpy(item->field, item_text, item->length - 1);
-                        }
-                    } else {
-                        gchar* item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(item->widget));
-                        if (item_text != nullptr) {
-                            memset(item->field, 0, item->length);
-                            strncpy(item->field, item_text, item->length - 1);
-                            g_free(item_text);
-                        }
-                    }
-                }
-            }
+            handle_item_change(item, _setup);
         }
     }
 }
@@ -567,36 +571,15 @@ void App::on_command(CallbackParameter* p) {
         } break;
 
         default: {
-            // DialogItem* item = get_item(item_id);
-            // if (item == nullptr) {
-            //     return;
-            // }
-
-            // switch (item_id) {
-            //     case IDS_VERSION:
-            //     case IDS_WIFI_SSID:
-            //     case IDS_WIFI_PASSWORD:
-            //     case IDS_WIFI_CHANNEL:
-            //     case IDS_MQTT_BROKER:
-            //     case IDS_MQTT_USERNAME:
-            //     case IDS_MQTT_PASSWORD:
-            //     case IDS_MQTT_ENABLE:
-            //     case IDS_DISPLAY_TIMEOUT:
-            //     case IDS_DISPLAY_ROTATION:
-            //     case IDS_DISPLAY_CONTRAST:
-            //     case IDS_DISPLAY_LAYOUT:
-            //     case IDS_DISPLAY_PARAM:
-            //     case IDS_LED_INTENSITY:
-            //     case IDS_SENSOR_TYPE:
-            //     case IDS_IFC_ENABLE: {
-            //     } break;
-            // }
+            DialogItem* item = get_item(item_id);
+            if (item != nullptr) {
+                handle_item_change(item, false);
+            }
         } break;
     }
 }
 
 void App::on_command_scan(void) {
-printf("on_command_scan()\n"); // ****
     status_update(APPSTRING(IDS_SCANNING));
     if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
         on_reload_data();
@@ -606,12 +589,10 @@ printf("on_command_scan()\n"); // ****
 }
 
 void App::on_command_program(void) {
-printf("on_command_program()\n"); // ****
     gdk_threads_add_idle(App::_idle_task, ON_ITEM(IDS_PROGRAM_DEV));
 }
 
 void App::on_reload_data(void) {
-printf("on_reload_data()\n"); // ****
     char string[256]{0};
     snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_LOADING));
     status_update(string);
@@ -655,9 +636,14 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_PROGRAM_DEV: {
             size_t length = 0;
-            char* json_string = m.device.get_config_json(&length);
+            char* json_string = m.device.get_config_json("/config=", &length);
             if (json_string != nullptr) {
-                printf("Config JSON:\n\"\"\"%s\"\"\"\n", json_string); // ****
+printf("Config JSON:\n\"\"\"\n%s\"\"\"\n", json_string); // ****
+                char* response = DevConfig::transact_command(m.ifac, json_string);
+                if (response != nullptr) {
+printf("Config response:\n\"\"\"%s\"\"\"\n", response); // ****
+                    free(response);
+                }
                 free(json_string);
             }
         } break;

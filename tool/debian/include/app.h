@@ -79,7 +79,7 @@ class App {
         void cleanup(void);
 
 
-        GtkWidget* get_item(int _item_id);
+        DialogItem* get_item(int _item_id);
         DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _width, int _x, int _y, char* _field, size_t _length, const char* _list = nullptr);
         void run_gui(void);
         void create_app_window(void);
@@ -89,6 +89,7 @@ class App {
         void on_move_or_size(int x, int y, int width, int height);
         void status_update(const char* _string = nullptr);
         void handle_dialog_items(bool _setup);
+        void handle_item_change(DialogItem* _item, bool _setup);
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
         void on_command_scan(void);
         void on_command_program(void);
