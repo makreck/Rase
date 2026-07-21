@@ -97,7 +97,7 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
 
         "disabled\nenabled",
         "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280",
-        "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.",
+        "Never\n10 s\n1 min\n5 min\n15 min\n30 min",
         "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%",
         "Value page\nDetails page\nInfo page",
         "0°\n180°",
