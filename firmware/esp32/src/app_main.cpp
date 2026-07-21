@@ -309,6 +309,20 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             handle_reset(false);
         } break;
 
+        case AppEvent::display_contrast: {
+            SysConfig* cfg = get_config();
+            if (cfg != nullptr) {
+                float value = cfg->get_display_contrast();
+                DisplayI2C* display = get_display();
+                if (display != nullptr) {
+                    display->set_contrast(value);
+// #ifdef DISPLAY_STATE
+                    ESP_LOGI(TAG, "New display contrast setting %d%%.", (int)(value * 100.0f));
+// #endif
+                }
+            }
+        } break;
+
         default: {
 #ifdef DISPLAY_STATE
             ESP_LOGE(TAG, "Unsupported message %d.", (int)event_id);
