@@ -32,6 +32,8 @@
 #define CFG_KEY_CONFIG           "/config"
 #define CFG_KEY_INITIALIZE       "/initialize"
 #define CFG_KEY_REBOOT           "/reboot"
+#define CFG_KEY_PAR              "/par"
+#define CFG_KEY_TEST             "/test"
 
 class App;
 class ConfigInterface;
@@ -74,8 +76,10 @@ class ConfigInterface {
         static void handle_website_output(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
         static void handle_restart(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
         static void handle_mqtt_broker(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_par(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
+        static void handle_test(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
 
-        const ConfigCB function_tab[8] = {
+        const ConfigCB function_tab[10] = {
             { CFG_KEY_WIFI_SETUP,       ConfigInterface::handle_wifi_setup,      0},
             { CFG_KEY_MQTT_BROKER,      ConfigInterface::handle_mqtt_broker,     0},
             { CFG_KEY_CONFIG,           ConfigInterface::handle_config_response, 0},
@@ -84,6 +88,9 @@ class ConfigInterface {
             { CFG_KEY_WEBSITE_RESPONSE, ConfigInterface::handle_website_output,  0},
             { CFG_KEY_REBOOT,           ConfigInterface::handle_restart,         0},
             { CFG_KEY_INITIALIZE,       ConfigInterface::handle_restart,         9},
+            { CFG_KEY_PAR,              ConfigInterface::handle_par,             0},
+
+            { CFG_KEY_TEST,             ConfigInterface::handle_test,            0},
         };
 
     public:

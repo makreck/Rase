@@ -200,6 +200,7 @@ void ConfigInterface::process_command(const char* data, size_t length) {
         }
     }
 }
+
 void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, const char* data, size_t length) {
     if (instance == nullptr) {
         return;
@@ -269,3 +270,51 @@ void ConfigInterface::extract_link_pwd(const char* _data, size_t _length, const 
     }
 }
 
+void ConfigInterface::handle_par(ConfigInterface* _instance, int _mode, const char* _data, size_t _length) {
+    App* app = _instance->app;
+    SysConfig* cfg = app->get_config();
+    if (cfg == nullptr) {
+        return;
+    }
+
+    char key[32]{ 0 };
+    char value[32]{ 0 };
+
+    char* p = strstr(_data, CFG_KEY_PAR);
+    if (p == nullptr) {
+        return;
+    }
+
+    p = &p[strlen(CFG_KEY_PAR)];
+    if (*p != '=') {
+        return;
+    }
+    p++;
+    int i;
+    for (i = 0; (i < (sizeof (key) - 1)) && ((&p[i] - _data) < _length) && (p[i] != ':'); i++) {
+        key[i] = p[i];
+    }
+    strncpy(value, &p[i + 1], sizeof(value) - 1);
+
+    const char* format = "{\n\"%s\": \"%s\"\n}\n";
+    size_t size = snprintf(nullptr, 0, format, key, value) + 8;
+    char* json_string = (char*)malloc(size);
+    memset(json_string, 0, size);
+    snprintf(json_string, size, format, key, value);
+
+    cfg->import_json(json_string, size);
+
+    free(json_string);
+}
+
+void ConfigInterface::handle_test(ConfigInterface* _instance, int _mode, const char* _data, size_t _length) {
+    const char* s;
+    s = " 35,2°";   ESP_LOGI(TAG, "1. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "35.2°";    ESP_LOGI(TAG, "2. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "3,500.25"; ESP_LOGI(TAG, "3. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "-11";      ESP_LOGI(TAG, "4. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "-11.1";    ESP_LOGI(TAG, "5. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "23 24 25"; ESP_LOGI(TAG, "6. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "0x1000";   ESP_LOGI(TAG, "7. \"%s\" = %.3f ", s, Tools::string2number(s));
+    s = "100%";     ESP_LOGI(TAG, "8. \"%s\" = %.3f ", s, Tools::string2number(s));
+}
