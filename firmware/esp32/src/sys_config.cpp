@@ -23,6 +23,12 @@
 
 // #define DISPLAY_STATE
 
+const char* SysConfig::str_display_layout[3] = {
+    "Value page",
+    "Details page",
+    "Info page",
+};
+
 const char* SysConfig::config_json_format =
     "\n"
     "{\n"
@@ -58,7 +64,7 @@ char* SysConfig::get_json(void) {
         get_mqtt_username(),
         get_mqtt_password(),
         (get_mqtt_enable()) ? "enabled" : "disabled",
-        App::get_display_layout_name(get_display_layout()),
+        get_display_layout_str(),
         (int)get_display_parameter(),
         (int)get_display_rotation(),
         get_display_timeout_str(),
@@ -81,7 +87,7 @@ char* SysConfig::get_json(void) {
             get_mqtt_username(),
             get_mqtt_password(),
             (get_mqtt_enable()) ? "enabled" : "disabled",
-            App::get_display_layout_name(get_display_layout()),
+            get_display_layout_str(),
             (int)get_display_parameter(),
             (int)get_display_rotation(),
             get_display_timeout_str(),
@@ -299,11 +305,20 @@ AppState SysConfig::set_password(const char* password) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_LED_intensity(float intensity) {
-    float preset = MAX(0.0f, MIN(1.0f, intensity));
+AppState SysConfig::set_LED_intensity(float _intensity) {
+    float preset = _intensity;
+    if (_intensity > 1.0f) {
+        preset = _intensity / 100.0f;
+    }
+    preset = MAX(0.0f, MIN(1.0f, preset));
     modified = (cfg.led_intensity != preset);
     cfg.led_intensity = preset;
     return (AppState::OK);
+}
+
+AppState SysConfig::set_LED_intensity_str(const char* _intensity) {
+    float intensity = Tools::string2number(_intensity) + 0.001;
+    return (set_LED_intensity(intensity));
 }
 
 float SysConfig::get_LED_intensity(void) {
@@ -334,23 +349,39 @@ SensorType SysConfig::get_sensor_type(void) {
     return ((SensorType)cfg.sensor_type);
 }
 
-AppState SysConfig::set_sensor_type(SensorType type) {
-    cfg.sensor_type = ((uint8_t)type & 0xff);
+AppState SysConfig::set_sensor_type(SensorType _type) {
+    cfg.sensor_type = ((uint8_t)_type & 0xff);
     modified = true;
     return (AppState::OK);
+}
+
+AppState SysConfig::set_sensor_type_str(const char* _type) {
+    int type = 0;
+    for (int i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
+        if (strstr(_type, SensorDriver::str_sensor_types[i]) != nullptr) {
+            type = i;
+            break;
+        }
+    }
+    return (set_sensor_type((SensorType)(type)));
 }
 
 AppState SysConfig::flip_display_rotation(void) {
     return (set_display_rotation(get_display_rotation() + 180));
 }
 
-AppState SysConfig::set_display_rotation(int _degree) {
-    int rot_step = (_degree / 90) & 0x03;
+AppState SysConfig::set_display_rotation(int _degrees) {
+    int rot_step = (_degrees / 90) & 0x03;
     if ((rot_step & 1) != 0) {
         return (AppState::not_implemented);
     }
     cfg.f_display_rotoation = (uint8_t)(rot_step);
     return (AppState::OK);
+}
+
+AppState SysConfig::set_display_rotation_str(const char* _degrees) {
+    float degrees = Tools::string2number(_degrees);
+    return (set_display_rotation((int)degrees));
 }
 
 int SysConfig::get_display_rotation(void) {
@@ -365,21 +396,22 @@ int SysConfig::get_display_rotation(void) {
 }
 
 AppState SysConfig::set_display_contrast(float _value) {
-    if ((_value > 1.0f) && (_value <= 100.0f)) {
-        _value /= 100.0f;
-    } else if ((_value > 100.0f) && (_value <= 1000.0f)) {
-        _value /= 1000.0f;
-    } else if (_value > 1000.0f) {
-        return (AppState::invalid_arg);
+    float contrast = fabsf(_value);
+    if (contrast > 1.0f) {
+        contrast = contrast / 100.0f;
     }
-
-    float contrast = MIN(1.0f, MAX(0.0f, _value));
+    contrast = MIN(1.0f, MAX(0.0f, contrast));
     if (cfg.display_contrast != contrast) {
         cfg.display_contrast = contrast;
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_contrast, nullptr, 0, pdMS_TO_TICKS(1));
         modified = true;
     }
-
     return (AppState::OK);
+}
+
+AppState SysConfig::set_display_contrast_str(const char* _value) {
+    float value = Tools::string2number(_value) + 0.001f;
+    return (set_display_contrast(value));
 }
 
 float SysConfig::get_display_contrast(void) {
@@ -404,17 +436,40 @@ AppState SysConfig::get_mac_Address(char* string, size_t size) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_layout(DisplayLayout layout) {
-    if (cfg.display_layout != (uint8_t)layout) {
-        cfg.display_layout  = (uint8_t)layout;
+AppState SysConfig::set_display_layout(DisplayLayout _layout) {
+    if (cfg.display_layout != (uint8_t)_layout) {
+        cfg.display_layout  = (uint8_t)_layout;
         cfg.display_param   = (uint8_t)0;
         modified = true;
     }
     return (AppState::OK);
 }
 
+AppState SysConfig::set_display_layout_str(const char* _layout) {
+    for (size_t i = 0; i < SIZEOFARRAY(SysConfig::str_display_layout); i++) {
+        if (strstr(_layout, SysConfig::str_display_layout[i]) != nullptr) {
+            set_display_layout((DisplayLayout)i);
+            return (AppState::OK);
+        }
+    }
+    return (AppState::invalid_arg);
+}
+
 DisplayLayout SysConfig::get_display_layout(void) {
     return ((DisplayLayout)cfg.display_layout);
+}
+
+const char* SysConfig::get_display_layout_str(void) {
+    return (get_display_layout_name(get_display_layout()));
+}
+
+const char* SysConfig::get_display_layout_name(DisplayLayout __layout) {
+    int index = (int)(__layout);
+    if ((index >= 0) && (index < SIZEOFARRAY(SysConfig::str_display_layout))) {
+        return (SysConfig::str_display_layout[index]);
+    }
+
+    return ("Invalid");
 }
 
 AppState SysConfig::set_display_parameter(uint8_t parameter) {
@@ -510,7 +565,10 @@ void SysConfig::print_parms(const char* hint) {
 }
 
 AppState SysConfig::import_json(const char* _json_string, size_t _length) {
-    if ((_json_string == nullptr) || (_length < 16)) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "SysConfig::import_json()\n\"\"\"\n%s\n\"\"\"\n", _json_string);
+#endif
+    if ((_json_string == nullptr) || (_length < 2)) {
         return (AppState::invalid_arg);
     }
 
@@ -551,19 +609,19 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
 
 
     len = Tools::json_get(_json_string, "display_layout", parameter, sizeof (parameter));
-    if (len > 0) { set_display_layout((DisplayLayout)atoi(parameter)); }
+    if (len > 0) { set_display_layout_str(parameter); }
 
     len = Tools::json_get(_json_string, "display_param", parameter, sizeof (parameter));
-    if (len > 0) { set_display_parameter((uint8_t)(atoi(parameter) & 0xff)); }
+    if (len > 0) { set_display_parameter((uint8_t)((int)Tools::string2number(parameter) & 0xff)); }
 
     len = Tools::json_get(_json_string, "display_rotation", parameter, sizeof (parameter));
-    if (len > 0) { set_display_rotation(atoi(parameter)); }
+    if (len > 0) { set_display_rotation_str(parameter); }
 
     len = Tools::json_get(_json_string, "display_timeout", parameter, sizeof (parameter));
     if (len > 0) { set_display_timeout_str(parameter); }
 
     len = Tools::json_get(_json_string, "display_contrast", parameter, sizeof (parameter));
-    if (len > 0) { set_display_contrast(atof(parameter)); }
+    if (len > 0) { set_display_contrast_str(parameter); }
 
 
     len = Tools::json_get(_json_string, "sensor_type", parameter, sizeof (parameter));
@@ -574,7 +632,7 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
     }
 
     len = Tools::json_get(_json_string, "led_intensity", parameter, sizeof (parameter));
-    if (len > 0) { set_LED_intensity(atof(parameter)); }
+    if (len > 0) { set_LED_intensity_str(parameter); }
 
-    return (AppState::OK);
+    return (update());
 }
