@@ -193,8 +193,6 @@ class App {
             cleanup();
         }
 
-        static const char* get_display_layout_name(DisplayLayout __layout);
-
         AppState init(void);
         AppState run(void);
         AppState cleanup(void);
