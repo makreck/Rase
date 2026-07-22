@@ -23,6 +23,23 @@
 
 // #define DISPLAY_STATE
 
+
+#define JSON_KEY_VERSION          "version"
+#define JSON_KEY_WIFI_SSID        "ssid"
+#define JSON_KEY_WIFI_PASSWORD    "password"
+#define JSON_KEY_WIFI_CHANNEL     "wifi_channel"
+#define JSON_KEY_MQTT_BROKER      "mqtt_broker"
+#define JSON_KEY_MQTT_USERNAME    "mqtt_username"
+#define JSON_KEY_MQTT_PASSWORD    "mqtt_password"
+#define JSON_KEY_MQTT_ENABLE      "mqtt_enable"
+#define JSON_KEY_DISPLAY_LAYOUT   "display_layout"
+#define JSON_KEY_DISPLAY_PARAM    "display_param"
+#define JSON_KEY_DISPLAY_ROTATION "display_rotation"
+#define JSON_KEY_DISPLAY_TIMEOUT  "display_timeout"
+#define JSON_KEY_DISPLAY_CONTRAST "display_contrast"
+#define JSON_KEY_SENSOR_TYPE      "sensor_type"
+#define JSON_KEY_LED_INTENSITY    "led_intensity"
+
 const char* SysConfig::str_display_layout[3] = {
     "Value page",
     "Details page",
@@ -32,26 +49,39 @@ const char* SysConfig::str_display_layout[3] = {
 const char* SysConfig::config_json_format =
     "\n"
     "{\n"
-    "\t\"version\": \"0x%-8.8X\",\n"
-    
-    "\t\"ssid\": \"%s\",\n"
-    "\t\"password\": \"%s\",\n"
-    "\t\"wifi_channel\": \"%d\",\n"
-    
-    "\t\"mqtt_broker\": \"%s\",\n"
-    "\t\"mqtt_username\": \"%s\",\n"
-    "\t\"mqtt_password\": \"%s\",\n"
-    "\t\"mqtt_enable\": \"%s\",\n"
-    
-    "\t\"display_layout\": \"%s\",\n"
-    "\t\"display_param\": \"%d\",\n"
-    "\t\"display_rotation\": \"%d°\",\n"
-    "\t\"display_timeout\": \"%s\",\n"
-    "\t\"display_contrast\": \"%.0f%%\",\n"
-
-    "\t\"sensor_type\": \"%s\",\n"
-    "\t\"led_intensity\": \"%.0f%%\"\n"
+    "\t\"" JSON_KEY_VERSION "\": \"0x%-8.8X\",\n"
+    "\t\"" JSON_KEY_WIFI_SSID "\": \"%s\",\n"
+    "\t\"" JSON_KEY_WIFI_PASSWORD "\": \"%s\",\n"
+    "\t\"" JSON_KEY_WIFI_CHANNEL "\": \"%d\",\n"
+    "\t\"" JSON_KEY_MQTT_BROKER "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_USERNAME "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_PASSWORD "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_ENABLE "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_LAYOUT "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_PARAM "\": \"%d\",\n"
+    "\t\"" JSON_KEY_DISPLAY_ROTATION "\": \"%d°\",\n"
+    "\t\"" JSON_KEY_DISPLAY_TIMEOUT "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_CONTRAST "\": \"%.0f%%\",\n"
+    "\t\"" JSON_KEY_SENSOR_TYPE "\": \"%s\",\n"
+    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%.0f%%\"\n"
     "}\n";
+
+const JsonScan SysConfig::config_scan_table[] = {
+    { JSON_KEY_WIFI_SSID,        SysConfig::set_wifi_ssid_str         },
+    { JSON_KEY_WIFI_PASSWORD,    SysConfig::set_wifi_password_str     },
+    { JSON_KEY_WIFI_CHANNEL,     SysConfig::set_wifi_channel_str      },
+    { JSON_KEY_MQTT_BROKER,      SysConfig::set_mqtt_broker_str       },
+    { JSON_KEY_MQTT_USERNAME,    SysConfig::set_mqtt_username_str     },
+    { JSON_KEY_MQTT_PASSWORD,    SysConfig::set_mqtt_password_str     },
+    { JSON_KEY_MQTT_ENABLE,      SysConfig::set_mqtt_enable_str       },
+    { JSON_KEY_DISPLAY_LAYOUT,   SysConfig::set_display_layout_str    },
+    { JSON_KEY_DISPLAY_PARAM,    SysConfig::set_display_parameter_str },
+    { JSON_KEY_DISPLAY_ROTATION, SysConfig::set_display_rotation_str  },
+    { JSON_KEY_DISPLAY_TIMEOUT,  SysConfig::set_display_timeout_str   },
+    { JSON_KEY_DISPLAY_CONTRAST, SysConfig::set_display_contrast_str  },
+    { JSON_KEY_SENSOR_TYPE,      SysConfig::set_sensor_type_str       },
+    { JSON_KEY_LED_INTENSITY,    SysConfig::set_LED_intensity_str     },
+};
 
 char* SysConfig::get_json(void) {
     size_t length = snprintf(nullptr, 0,
@@ -98,6 +128,25 @@ char* SysConfig::get_json(void) {
     }
 
     return (str_json);
+}
+
+AppState SysConfig::import_json(const char* _json_string, size_t _length) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "SysConfig::import_json()\n\"\"\"\n%s\n\"\"\"\n", _json_string);
+#endif
+    if ((_json_string == nullptr) || (_length < 2)) {
+        return (AppState::invalid_arg);
+    }
+
+    for (int i = 0; i < SIZEOFARRAY(SysConfig::config_scan_table); i++) {
+        char parameter[64]{ 0 };
+        size_t len = Tools::json_get(_json_string, SysConfig::config_scan_table[i].key, parameter, sizeof (parameter));
+        if (len > 0) {
+            (*config_scan_table[i].scan_function)(this, parameter);
+        }
+    }
+
+    return (update());
 }
 
 AppState SysConfig::init(void) {
@@ -236,7 +285,7 @@ AppState SysConfig::set_display_timeout(float _timeout_s) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_timeout_str(char* _str) {
+AppState SysConfig::set_display_timeout_str(SysConfig* _instance, const char* _str) {
     float value = 0.0f;
     if (strstr(_str, "Never") == nullptr) {
         if (strstr(_str, " min") != nullptr) {
@@ -247,16 +296,21 @@ AppState SysConfig::set_display_timeout_str(char* _str) {
             value = atof(_str);
         }
     }
-    return (set_display_timeout(value));
+    return (_instance->set_display_timeout(value));
 }
 
-AppState SysConfig::set_wifi_channel(uint8_t channelNumber) {
-    if ((channelNumber < 1) || (channelNumber > 12)) {
+AppState SysConfig::set_wifi_channel(int _channel) {
+    if ((_channel < 1) || (_channel > 12)) {
         return (AppState::invalid_arg);
     }
-    modified = (cfg.wifi_channel != channelNumber);
-    cfg.wifi_channel = channelNumber;
+    modified = (cfg.wifi_channel != (uint8_t)_channel);
+    cfg.wifi_channel = (uint8_t)_channel;
     return (AppState::OK);
+}
+
+AppState SysConfig::set_wifi_channel_str(SysConfig* _instance, const char* _channel) {
+    int channel = (int)Tools::string2number(_channel);
+    return (_instance->set_wifi_channel(channel));
 }
 
 int SysConfig::get_wifi_channel(void) {
@@ -286,6 +340,10 @@ AppState SysConfig::set_ssid(const char* ap_name) {
     return (AppState::OK);
 }
 
+AppState SysConfig::set_wifi_ssid_str(SysConfig* _instance, const char* _ap_name) {
+    return (_instance->set_ssid(_ap_name));
+}
+
 const char* SysConfig::get_password(void) {
     if (cfg.version != WCFG_VERSION) {
         return (nullptr);
@@ -305,6 +363,10 @@ AppState SysConfig::set_password(const char* password) {
     return (AppState::OK);
 }
 
+AppState SysConfig::set_wifi_password_str(SysConfig* _instance, const char* _password) {
+    return (_instance->set_password(_password));
+}
+
 AppState SysConfig::set_LED_intensity(float _intensity) {
     float preset = _intensity;
     if (_intensity > 1.0f) {
@@ -316,9 +378,9 @@ AppState SysConfig::set_LED_intensity(float _intensity) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_LED_intensity_str(const char* _intensity) {
+AppState SysConfig::set_LED_intensity_str(SysConfig* _instance, const char* _intensity) {
     float intensity = Tools::string2number(_intensity) + 0.001;
-    return (set_LED_intensity(intensity));
+    return (_instance->set_LED_intensity(intensity));
 }
 
 float SysConfig::get_LED_intensity(void) {
@@ -339,10 +401,22 @@ bool SysConfig::get_mqtt_enable(void) {
     return (cfg.f_mqtt_enable == 1);
 }
 
-AppState SysConfig::set_mqtt_enable(bool enable) {
-    modified = (get_mqtt_enable() != enable);
-    cfg.f_mqtt_enable = (uint8_t)((enable) ? 1 : 0);
+AppState SysConfig::set_mqtt_enable(bool _enable) {
+    modified = (get_mqtt_enable() != _enable);
+    cfg.f_mqtt_enable = (uint8_t)((_enable) ? 1 : 0);
     return (AppState::OK);
+}
+
+AppState SysConfig::set_mqtt_enable_str(SysConfig* _instance, const char* _enable) {
+    bool enable = false;
+    if (strstr(_enable, "ena") != nullptr) {
+        enable = true;
+    } else if (strstr(_enable, "dis") != nullptr) {
+        enable = false;
+    } else {
+        enable = (Tools::string2number(_enable) != 0.0f);
+    }
+    return (_instance->set_mqtt_enable(enable));
 }
 
 SensorType SysConfig::get_sensor_type(void) {
@@ -355,7 +429,7 @@ AppState SysConfig::set_sensor_type(SensorType _type) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_sensor_type_str(const char* _type) {
+AppState SysConfig::set_sensor_type_str(SysConfig* _instance, const char* _type) {
     int type = 0;
     for (int i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
         if (strstr(_type, SensorDriver::str_sensor_types[i]) != nullptr) {
@@ -363,7 +437,7 @@ AppState SysConfig::set_sensor_type_str(const char* _type) {
             break;
         }
     }
-    return (set_sensor_type((SensorType)(type)));
+    return (_instance->set_sensor_type((SensorType)(type)));
 }
 
 AppState SysConfig::flip_display_rotation(void) {
@@ -379,9 +453,9 @@ AppState SysConfig::set_display_rotation(int _degrees) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_rotation_str(const char* _degrees) {
+AppState SysConfig::set_display_rotation_str(SysConfig* _instance, const char* _degrees) {
     float degrees = Tools::string2number(_degrees);
-    return (set_display_rotation((int)degrees));
+    return (_instance->set_display_rotation((int)degrees));
 }
 
 int SysConfig::get_display_rotation(void) {
@@ -409,9 +483,9 @@ AppState SysConfig::set_display_contrast(float _value) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_contrast_str(const char* _value) {
+AppState SysConfig::set_display_contrast_str(SysConfig* _instance, const char* _value) {
     float value = Tools::string2number(_value) + 0.001f;
-    return (set_display_contrast(value));
+    return (_instance->set_display_contrast(value));
 }
 
 float SysConfig::get_display_contrast(void) {
@@ -445,10 +519,10 @@ AppState SysConfig::set_display_layout(DisplayLayout _layout) {
     return (AppState::OK);
 }
 
-AppState SysConfig::set_display_layout_str(const char* _layout) {
+AppState SysConfig::set_display_layout_str(SysConfig* _instance, const char* _layout) {
     for (size_t i = 0; i < SIZEOFARRAY(SysConfig::str_display_layout); i++) {
         if (strstr(_layout, SysConfig::str_display_layout[i]) != nullptr) {
-            set_display_layout((DisplayLayout)i);
+            _instance->set_display_layout((DisplayLayout)i);
             return (AppState::OK);
         }
     }
@@ -472,12 +546,16 @@ const char* SysConfig::get_display_layout_name(DisplayLayout __layout) {
     return ("Invalid");
 }
 
-AppState SysConfig::set_display_parameter(uint8_t parameter) {
-    if (cfg.display_param != parameter) {
-        modified = true;
-        cfg.display_param = parameter;
-    }
+AppState SysConfig::set_display_parameter(int _parameter) {
+    uint8_t parameter = (uint8_t)(_parameter & 0xff);
+    modified = (cfg.display_param != parameter);
+    cfg.display_param = parameter;
     return (AppState::OK);
+}
+
+AppState SysConfig::set_display_parameter_str(SysConfig* _instance, const char* _parameter) {
+    int parameter = (int)Tools::string2number(_parameter);
+    return (_instance->set_display_parameter(parameter));
 }
 
 uint8_t SysConfig::get_display_parameter(void) {
@@ -497,8 +575,16 @@ AppState SysConfig::set_mqtt_broker(const char* broker) {
     return (AppState::OK);
 }
 
+AppState SysConfig::set_mqtt_broker_str(SysConfig* _instance, const char* _broker) {
+    return (_instance->set_mqtt_broker(_broker));
+}
+
 const char* SysConfig::get_mqtt_broker(void) {
     return (cfg.mqtt_broker);
+}
+
+AppState SysConfig::set_mqtt_username_str(SysConfig* _instance, const char* _username) {
+    return (_instance->set_mqtt_username(_username));
 }
 
 AppState SysConfig::set_mqtt_username(const char* username) {
@@ -527,6 +613,10 @@ AppState SysConfig::set_mqtt_password(const char* password) {
     }
     modified = true;
     return (AppState::OK);
+}
+
+AppState SysConfig::set_mqtt_password_str(SysConfig* _instance, const char* _password) {
+    return (_instance->set_mqtt_password(_password));
 }
 
 const char* SysConfig::get_mqtt_password(void) {
@@ -564,75 +654,4 @@ void SysConfig::print_parms(const char* hint) {
 #endif    
 }
 
-AppState SysConfig::import_json(const char* _json_string, size_t _length) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "SysConfig::import_json()\n\"\"\"\n%s\n\"\"\"\n", _json_string);
-#endif
-    if ((_json_string == nullptr) || (_length < 2)) {
-        return (AppState::invalid_arg);
-    }
 
-    char parameter[64]{ 0 };
-    size_t len;
-
-    len = Tools::json_get(_json_string, "version", parameter, sizeof (parameter));
-    if (len > 0) {
-        int32_t ver = strtoul(parameter, nullptr, 0);
-        if (ver != WCFG_VERSION) {
-#ifdef DISPLAY_STATE    
-            ESP_LOGE(TAG, "Invalid version number 0x%-8.8X.", (unsigned int)ver);
-#endif
-        }
-    }
-
-    len = Tools::json_get(_json_string, "ssid", parameter, sizeof (parameter));
-    if (len > 0) { set_ssid(parameter); }
-
-    len = Tools::json_get(_json_string, "password", parameter, sizeof (parameter));
-    if (len > 0) { set_password(parameter); }
-
-    len = Tools::json_get(_json_string, "wifi_channel", parameter, sizeof (parameter));
-    if (len > 0) { set_wifi_channel(atoi(parameter)); }
-
-
-    len = Tools::json_get(_json_string, "mqtt_broker", parameter, sizeof (parameter));
-    if (len > 0) { set_mqtt_broker(parameter); }
-
-    len = Tools::json_get(_json_string, "mqtt_username", parameter, sizeof (parameter));
-    if (len > 0) { set_mqtt_username(parameter); }
-
-    len = Tools::json_get(_json_string, "mqtt_password", parameter, sizeof (parameter));
-    if (len > 0) { set_mqtt_password(parameter); }
-
-    len = Tools::json_get(_json_string, "mqtt_enable", parameter, sizeof (parameter));
-    if (len > 0) { set_mqtt_enable(strstr(parameter, "enabled") != nullptr); }
-
-
-    len = Tools::json_get(_json_string, "display_layout", parameter, sizeof (parameter));
-    if (len > 0) { set_display_layout_str(parameter); }
-
-    len = Tools::json_get(_json_string, "display_param", parameter, sizeof (parameter));
-    if (len > 0) { set_display_parameter((uint8_t)((int)Tools::string2number(parameter) & 0xff)); }
-
-    len = Tools::json_get(_json_string, "display_rotation", parameter, sizeof (parameter));
-    if (len > 0) { set_display_rotation_str(parameter); }
-
-    len = Tools::json_get(_json_string, "display_timeout", parameter, sizeof (parameter));
-    if (len > 0) { set_display_timeout_str(parameter); }
-
-    len = Tools::json_get(_json_string, "display_contrast", parameter, sizeof (parameter));
-    if (len > 0) { set_display_contrast_str(parameter); }
-
-
-    len = Tools::json_get(_json_string, "sensor_type", parameter, sizeof (parameter));
-    if (len > 0) { 
-        uint8_t type = (uint8_t)(strtoul(parameter, nullptr, 0) & 0xff);
-        ESP_LOGI(TAG, "Scanned Sensor Type = %d ", (int)type);
-        set_sensor_type((SensorType)(type));
-    }
-
-    len = Tools::json_get(_json_string, "led_intensity", parameter, sizeof (parameter));
-    if (len > 0) { set_LED_intensity_str(parameter); }
-
-    return (update());
-}

@@ -101,10 +101,19 @@ class SysConfigData {
         };
 };
 
+class SysConfig;
+
+class JsonScan {
+    public:
+        const char* key;
+        AppState (*scan_function)(SysConfig*, const char *);
+};
+
 class SysConfig {
     private:
         static const char* config_json_format;
         static const char* str_display_layout[3];
+        static const JsonScan config_scan_table[];
 
         SysConfigData cfg;
         bool modified = false;
@@ -134,25 +143,37 @@ class SysConfig {
         AppState update(void);
         AppState perform_factory_reset(void);
 
-        AppState set_wifi_channel(uint8_t _channelNumber);
+        AppState set_wifi_channel(int _channelNumber);
         AppState set_display_timeout(float _timeout_s);
-        AppState set_display_timeout_str(char* _str);
         AppState set_display_rotation(int _degrees);
-        AppState set_display_rotation_str(const char* _degrees);
         AppState set_display_contrast(float _value);
-        AppState set_display_contrast_str(const char* _value);
         AppState set_display_layout(DisplayLayout layout);
-        AppState set_display_layout_str(const char* _layout);
-        AppState set_display_parameter(uint8_t _parameter = 0);
+        AppState set_display_parameter(int _parameter = 0);
         AppState set_ssid(const char* _ap_name);
         AppState set_password(const char* _password);
         AppState set_mqtt_broker(const char* _broker);
         AppState set_mqtt_username(const char* _username);
         AppState set_mqtt_password(const char* _password);
+        AppState set_mqtt_enable(bool enable);
         AppState set_sensor_type(SensorType _type);
-        AppState set_sensor_type_str(const char* _type);
         AppState set_LED_intensity(float _intensity);
-        AppState set_LED_intensity_str(const char* _intensity);
+
+        static AppState set_wifi_ssid_str(SysConfig* _instance, const char* _ap_name);
+        static AppState set_wifi_password_str(SysConfig* _instance, const char* _password);
+        static AppState set_wifi_channel_str(SysConfig* _instance, const char* _channel);
+
+        static AppState set_mqtt_broker_str(SysConfig* _instance, const char* _broker);
+        static AppState set_mqtt_username_str(SysConfig* _instance, const char* _username);
+        static AppState set_mqtt_password_str(SysConfig* _instance, const char* _password);
+
+        static AppState set_display_rotation_str(SysConfig* _instance, const char* _degrees);
+        static AppState set_display_contrast_str(SysConfig* _instance, const char* _value);
+        static AppState set_display_timeout_str(SysConfig* _instance, const char* _str);
+        static AppState set_display_layout_str(SysConfig* _instance, const char* _layout);
+        static AppState set_display_parameter_str(SysConfig* _instance, const char* _parameter);
+        static AppState set_mqtt_enable_str(SysConfig* _instance, const char* _enable);
+        static AppState set_sensor_type_str(SysConfig* _instance, const char* _type);
+        static AppState set_LED_intensity_str(SysConfig* _instance, const char* _intensity);
         
         const char* get_ssid(void);
         const char* get_password(void);
@@ -176,5 +197,4 @@ class SysConfig {
         bool get_config_enable(void);
         AppState set_config_enable(bool enable);
         bool get_mqtt_enable(void);
-        AppState set_mqtt_enable(bool enable);
 };
