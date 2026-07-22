@@ -27,7 +27,7 @@ const MenuItem menu_main[] {
     IDM_TITLE,               "Main menu",
     IDM_EXIT,                "1 Exit",
     IDM_LAYOUT,              "2 Layout",
-    IDM_CONFIG,              "3 Setup",
+    IDM_CONFIG,              "3 Config",
     IDM_REBOOT,              "4 Reboot system",
     IDM_FACTORY_RESET,       "5 Factory reset",
 };
@@ -59,9 +59,9 @@ const MenuItem menu_contrast[] {
     IDM_CONTRAST_100,        "2 100%",
     IDM_CONTRAST_80,         "3 80%",
     IDM_CONTRAST_60,         "4 60%",
-    IDM_CONTRAST_40,         "5 50%",
-    IDM_CONTRAST_20,         "6 40%",
-    IDM_CONTRAST_10,         "7 30%",
+    IDM_CONTRAST_50,         "5 50%",
+    IDM_CONTRAST_40,         "6 40%",
+    IDM_CONTRAST_30,         "7 30%",
     IDM_CONTRAST_20,         "8 20%",
     IDM_CONTRAST_10,         "9 10%",
 };

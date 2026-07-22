@@ -194,3 +194,29 @@ cairo_pattern_t* GtkTool::make_gradientfill_pattern(GradientMode _mode, std::vec
 
     return (pattern);
 }
+
+GtkWidget* GtkTool::create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items) {
+    GtkWidget* menu_bar = gtk_menu_bar_new();
+    _menu_items.push_back(menu_bar);
+
+    GtkWidget* menu_stack[MENU_LEVEL_MAX]{ nullptr };
+    menu_stack[0] = menu_bar;
+
+    for (int i = 0; i < (int)_size - 1; i++) {
+        const char* menu_string = APPSTRING(_menu_tree[i].id);
+        GtkWidget* item = gtk_menu_item_new_with_label(menu_string);
+        _menu_items.push_back(item);
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu_stack[_menu_tree[i].level - 1]), item);
+
+        if (_menu_tree[i + 1].level > _menu_tree[i].level) {
+            menu_stack[_menu_tree[i].level] = gtk_menu_new();
+            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), menu_stack[_menu_tree[i].level]);
+        } else {
+            if (_callback != nullptr) {
+                g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(_callback), ON_ITEM(_instance, _menu_tree[i].id));
+            }
+        }
+    }
+
+    return (menu_bar);
+}

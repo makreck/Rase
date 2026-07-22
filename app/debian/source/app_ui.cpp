@@ -152,7 +152,7 @@ void Application::_rowSelected(GtkListBox* self, GtkListBoxRow* row, gpointer us
 void Application::rowSelected(GtkListBoxRow* row) {
 }
 
-void Application::_onCommand(GtkApplication* gtk, void* callback_parameter) {
+void Application::_on_command(GtkApplication* gtk, void* callback_parameter) {
     CallbackParameter* cbp = CALLBACK_PARAMETER(callback_parameter);
     OBJ_PTR(Application, cbp->get_this())->onCommand(cbp);
 }
@@ -191,42 +191,26 @@ void Application::createLayout(void) {
     gtk_box_pack_start(GTK_BOX(m.gtk.baseVBox), createStatusBar(),   FALSE, FALSE, 0);
 }
 
+MenuTree menu_tree[] = {
+    { 1, IDS_FILE},
+    {  2, IDS_QUIT},
+
+    { 1, IDS_EDIT},
+    {  2, IDS_COPY},
+    {  2, IDS_PASTE},
+
+    { 0, -1 },
+};
+
 GtkWidget* Application::createMainMenu(void) {
-    m.gtk.menuBar = gtk_menu_bar_new();
-
-    { // file menu
-        GtkWidget* fileMenu = gtk_menu_new();
-        GtkWidget* fileMi = gtk_menu_item_new_with_label(APPSTRING(IDS_FILE));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), fileMi);
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
-
-        GtkWidget* quitMi = gtk_menu_item_new_with_label(APPSTRING(IDS_QUIT));
-        g_signal_connect(G_OBJECT(quitMi), "activate", G_CALLBACK(Application::_onCommand), ON_ITEM(IDS_QUIT));
-        gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
-    }
-
-    { // edit menu
-        GtkWidget* editMenu = gtk_menu_new();
-        GtkWidget* editMi = gtk_menu_item_new_with_label(APPSTRING(IDS_EDIT));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menuBar), editMi);
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(editMi), editMenu);
-
-        GtkWidget* copyMi = gtk_menu_item_new_with_label(APPSTRING(IDS_COPY));
-        g_signal_connect(G_OBJECT(copyMi), "activate", G_CALLBACK(Application::_onCommand), ON_ITEM(IDS_COPY));
-        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), copyMi);
-
-        GtkWidget* pasteMi = gtk_menu_item_new_with_label(APPSTRING(IDS_PASTE));
-        g_signal_connect(G_OBJECT(pasteMi), "activate", G_CALLBACK(Application::_onCommand), ON_ITEM(IDS_PASTE));
-        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), pasteMi);
-    }
-
-    return (m.gtk.menuBar);
+    m.gtk.menu_bar = GtkTool::create_menu_bar(this, G_CALLBACK(Application::_on_command), menu_tree, SIZEOFARRAY(menu_tree), m.gtk.menu_items);
+    return (m.gtk.menu_bar);
 }
 
 GtkWidget* Application::createMainToolbar(void) {
     m.gtk.toolbar = GtkTool::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
                                             &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
-                                            m.toolIconSize, G_CALLBACK(Application::_onCommand), this);
+                                            m.toolIconSize, G_CALLBACK(Application::_on_command), this);
     gtk_widget_set_hexpand(m.gtk.toolbar, TRUE);
     return (m.gtk.toolbar);
 }

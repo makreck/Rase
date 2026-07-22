@@ -57,14 +57,16 @@ class Application {
             struct {
                 GtkWidget* win            = nullptr;
                 GtkWidget* baseVBox       = nullptr;
-                GtkWidget*  menuBar       = nullptr;
+                GtkWidget*  menu_bar      = nullptr;
                 GtkWidget*  toolbar       = nullptr;
                 GtkWidget*  paned         = nullptr;
-                GtkWidget*   frame_rec       = nullptr;
+                GtkWidget*   frame_rec    = nullptr;
                 GtkWidget*    recorder    = nullptr;
-                GtkWidget*   frame_dev       = nullptr;
+                GtkWidget*   frame_dev    = nullptr;
                 GtkWidget*    devList     = nullptr;
                 GtkWidget*  statusBar     = nullptr;
+            
+                std::vector<GtkWidget*> menu_items;
             } gtk;
 
             struct {
@@ -107,7 +109,7 @@ class Application {
         static void* _updateThreadProc(void* object);
         void updateThreadProc(void);
 
-        static void _onCommand(GtkApplication* gtk, void* callback_parameter);
+        static void _on_command(GtkApplication* gtk, void* callback_parameter);
         void onCommand(CallbackParameter* p);
 
         static bool _linRecEventCallback(LRFindResult* eventResult, void* user_param);

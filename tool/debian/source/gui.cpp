@@ -22,18 +22,6 @@
 #include "includes.h"
 
 
-// GtkWidget* checkbox = gtk_check_button_new_with_label(hint);
-// g_signal_connect(checkbox, "toggled", G_CALLBACK(DialogBox::_itemEvent), p);
-// gtk_grid_attach(GTK_GRID(gtk.grid), checkbox, pos.x + 1, pos.y, 1, 1);
-
-// const char* enable_list       = "disabled\nenabled";
-// const char* sensor_types_list = "autoscan\nNull\nSHT2x\nSHT3x\nHTU21d\nATHxx\nHDC1080\nBMx280";
-// const char* display_timeouts  = "Never\n10 sec.\n1 min.\n5 min.\n15 min.\n30 min.";
-// const char* display_contrast  = "100%\n80%\n60%\n50%\n40%\n30%\n20%\n10%";
-// const char* display_page      = "Value page\nDetails page\nInfo page";
-// const char* display_rotation  = "0°\n180°";
-// const char* led_intensity     = "100%\n75%\n50%\n25%\n10%\n1%";
-
 const ToolbarItems main_toolbar[] = {
     { svg_search, (void*)IDS_DEVICE_SCAN       },
     { nullptr,    (void*)nullptr               },
@@ -250,38 +238,6 @@ GtkWidget* App::create_toolbar(const ToolbarItems* _item_list, size_t _item_list
     return ((GtkWidget*)tool_bar);
 }
 
-GtkWidget* App::create_main_menu(void) {
-    m.gtk.menu_bar = gtk_menu_bar_new();
-
-    { // file menu
-        GtkWidget* fileMenu = gtk_menu_new();
-        GtkWidget* fileMi = gtk_menu_item_new_with_label(APPSTRING(IDS_FILE));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menu_bar), fileMi);
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
-
-        GtkWidget* quitMi = gtk_menu_item_new_with_label(APPSTRING(IDS_QUIT));
-        g_signal_connect(G_OBJECT(quitMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_QUIT));
-        gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
-    }
-
-    { // edit menu
-        GtkWidget* editMenu = gtk_menu_new();
-        GtkWidget* editMi = gtk_menu_item_new_with_label(APPSTRING(IDS_EDIT));
-        gtk_menu_shell_append(GTK_MENU_SHELL(m.gtk.menu_bar), editMi);
-        gtk_menu_item_set_submenu(GTK_MENU_ITEM(editMi), editMenu);
-
-        GtkWidget* copyMi = gtk_menu_item_new_with_label(APPSTRING(IDS_COPY));
-        g_signal_connect(G_OBJECT(copyMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_COPY));
-        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), copyMi);
-
-        GtkWidget* pasteMi = gtk_menu_item_new_with_label(APPSTRING(IDS_PASTE));
-        g_signal_connect(G_OBJECT(pasteMi), "activate", G_CALLBACK(App::_on_command), ON_ITEM(IDS_PASTE));
-        gtk_menu_shell_append(GTK_MENU_SHELL(editMenu), pasteMi);
-    }
-
-    return (m.gtk.menu_bar);
-}
-
 GtkWidget* App::create_main_toolbar(void) {
     m.gtk.tool_bar = App::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
                                         &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
@@ -404,7 +360,7 @@ DialogItem* App::add_text_field(GtkWidget* _grid, int _item_id, int _width, int 
     gtk_widget_set_size_request(item->widget, std::min(320, _width), -1);
 
     if (_item_id >= 0) {
-        g_signal_connect(item->widget, "changed", G_CALLBACK(App::_on_command), ON_ITEM(_item_id));
+        g_signal_connect(item->widget, "changed", G_CALLBACK(App::_on_command), ON_ITEM(this, _item_id));
     } else {
         gtk_editable_set_editable(GTK_EDITABLE(item->widget), false);
     }
@@ -589,14 +545,14 @@ void App::on_command_scan(void) {
 }
 
 void App::on_command_program(void) {
-    gdk_threads_add_idle(App::_idle_task, ON_ITEM(IDS_PROGRAM_DEV));
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, IDS_PROGRAM_DEV));
 }
 
 void App::on_reload_data(void) {
     char string[256]{0};
     snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_LOADING));
     status_update(string);
-    gdk_threads_add_idle(App::_idle_task, ON_ITEM(IDS_LOADING));
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, IDS_LOADING));
 }
 
 void App::on_command_reset(void) {
@@ -611,7 +567,7 @@ void App::on_command_initialize(void) {
     snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_INITIALIZING));
     status_update(string);
 
-    char *response = DevConfig::transact_command(m.ifac, "/initialize");
+    char* response = DevConfig::transact_command(m.ifac, "/initialize");
     if (response != nullptr) {
         free(response);
     }
@@ -638,10 +594,8 @@ void App::idle_task(CallbackParameter* p) {
             size_t length = 0;
             char* json_string = m.device.get_config_json("/config=", &length);
             if (json_string != nullptr) {
-printf("Config JSON:\n\"\"\"\n%s\"\"\"\n", json_string); // ****
                 char* response = DevConfig::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
-printf("Config response:\n\"\"\"%s\"\"\"\n", response); // ****
                     free(response);
                 }
                 free(json_string);
@@ -654,4 +608,115 @@ printf("Config response:\n\"\"\"%s\"\"\"\n", response); // ****
         case IDS_INITIALIZE_DEVICE: {
         } break;
     }
+}
+
+MenuTree menu_tree[] = {
+    { 1, IDS_FILE},
+    {  2, IDS_QUIT},
+
+    { 1, IDS_EDIT},
+    {  2, IDS_COPY},
+    {  2, IDS_PASTE},
+
+    { 1, IDS_DEVICE_MENU},
+    {  2, IDS_TITLE_MAIN},
+    {  2, IDS_EXIT},
+    {  2, IDS_LAYOUT},
+    {   3, IDS_TITLE_LAYOUT},
+    {   3, IDS_MAIN},
+    {   3, IDS_LAYOUT_VALUE_PAGE},
+    {   3, IDS_LAYOUT_DETAILS_PAGE},
+    {   3, IDS_LAYOUT_INFO_PAGE},
+    {  2, IDS_CONFIG},
+    {   3, IDS_TITLE_CONFIG},
+    {   3, IDS_MAIN},
+    {   3, IDS_DISPLAY},
+    {    4, IDS_TITLE_DISPLAY},
+    {    4, IDS_MAIN},
+    {    4, IDS_ROTATE},
+    {    4, IDS_CONTRAST},
+    {     5, IDS_TITLE_CONTRAST},
+    {     5, IDS_MAIN},
+    {     5, IDS_CONTRAST_100},
+    {     5, IDS_CONTRAST_80},
+    {     5, IDS_CONTRAST_60},
+    {     5, IDS_CONTRAST_40},
+    {     5, IDS_CONTRAST_20},
+    {     5, IDS_CONTRAST_10},
+    {     5, IDS_CONTRAST_20},
+    {     5, IDS_CONTRAST_10},
+    {    4, IDS_DISPLAY_OFF},
+    {     5, IDS_TITLE_TIMEOUT},
+    {     5, IDS_MAIN},
+    {     5, IDS_DISPLAY_OFF_NEVER},
+    {     5, IDS_DISPLAY_OFF_10SEC},
+    {     5, IDS_DISPLAY_OFF_1MIN},
+    {     5, IDS_DISPLAY_OFF_5MIN},
+    {     5, IDS_DISPLAY_OFF_15MIN},
+    {     5, IDS_DISPLAY_OFF_30MIN},
+    {   3, IDS_INTENSITY},
+    {    4, IDS_TITLE_LED_INTENSITY},
+    {    4, IDS_MAIN},
+    {    4, IDS_LED_INTENSITY_100},
+    {    4, IDS_LED_INTENSITY_75},
+    {    4, IDS_LED_INTENSITY_50},
+    {    4, IDS_LED_INTENSITY_25},
+    {    4, IDS_LED_INTENSITY_10},
+    {    4, IDS_LED_INTENSITY_1},
+    {   3, IDS_MQTT_CLIENT},
+    {   3, IDS_CONFIG_INTERFACE},
+    {   3, IDS_SENSOR_SELECT},
+    {  2, IDS_REBOOT},
+    {  2, IDS_FACTORY_RESET},
+
+    { 0, -1 }, // End of the list
+};
+
+GtkWidget* App::create_main_menu(void) {
+    std::vector<GtkWidget*> menu_items;
+    m.gtk.menu_bar = App::create_menu_bar(this, G_CALLBACK(App::_on_command), menu_tree, SIZEOFARRAY(menu_tree), menu_items);
+
+    // m.gtk.menu_bar = gtk_menu_bar_new();
+    // GtkWidget* menu_stack[8]{ m.gtk.menu_bar, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+
+    // for (int i = 0; i < (int)SIZEOFARRAY(menu_tree) - 1; i++) {
+    //     const char* menu_string = APPSTRING(menu_tree[i].id);
+    //     GtkWidget* item = gtk_menu_item_new_with_label(menu_string);
+    //     gtk_menu_shell_append(GTK_MENU_SHELL(menu_stack[menu_tree[i].level - 1]), item);
+
+    //     if (menu_tree[i + 1].level > menu_tree[i].level) {
+    //         menu_stack[menu_tree[i].level] = gtk_menu_new();
+    //         gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), menu_stack[menu_tree[i].level]);
+    //     } else {
+    //         g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(App::_on_command), ON_ITEM(this, menu_tree[i].id));
+    //     }
+    // }
+
+    return (m.gtk.menu_bar);
+}
+
+GtkWidget* App::create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items) {
+    GtkWidget* menu_bar = gtk_menu_bar_new();
+    _menu_items.push_back(menu_bar);
+
+    GtkWidget* menu_stack[MENU_LEVEL_MAX]{ nullptr };
+    menu_stack[0] = menu_bar;
+
+    for (int i = 0; i < (int)_size - 1; i++) {
+        const char* menu_string = APPSTRING(_menu_tree[i].id);
+        GtkWidget* item = gtk_menu_item_new_with_label(menu_string);
+        _menu_items.push_back(item);
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu_stack[_menu_tree[i].level - 1]), item);
+
+        if (_menu_tree[i + 1].level > _menu_tree[i].level) {
+            menu_stack[_menu_tree[i].level] = gtk_menu_new();
+            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), menu_stack[_menu_tree[i].level]);
+        } else {
+            if (_callback != nullptr) {
+                g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(_callback), ON_ITEM(_instance, _menu_tree[i].id));
+            }
+        }
+    }
+
+    return (menu_bar);
 }

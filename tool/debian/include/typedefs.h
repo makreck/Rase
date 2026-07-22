@@ -60,5 +60,5 @@ class CallbackParameter {
 
 };
 
-#define ON_ITEM(item)           ((void*)new CallbackParameter(this, (void*)((uint64_t)item)))
+#define ON_ITEM(instance, item) ((void*)new CallbackParameter((instance), (void*)((uint64_t)(item))))
 #define CALLBACK_PARAMETER(ptr) (reinterpret_cast<CallbackParameter*>(ptr))

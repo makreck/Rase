@@ -29,6 +29,13 @@ class ToolbarItems {
         const void* text_id;
 };
 
+#define MENU_LEVEL_MAX (8)
+class MenuTree {
+    public:
+        int level;
+        int id;
+};
+
 class App {
     private:
         struct {
@@ -63,6 +70,8 @@ class App {
         static void print_help(void);
         static GdkPixbuf* svg2image(const char* _svg_string, int _width, int _height, ColorRef _color);
         static GtkWidget* create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size, const char** _str_list, size_t _str_list_size, int _icon_size, GCallback cb, void* _user_par);
+        static GtkWidget* create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items);
+        
         static int string_combobox_setup(GtkWidget* widget, const char* selected, const char* _str_list);
 
         static gboolean _activate(GtkApplication* gtk, void* user_data);

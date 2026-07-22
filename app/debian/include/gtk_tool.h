@@ -54,10 +54,18 @@ class ToolbarItems {
         const void* text_id;
 };
 
+#define MENU_LEVEL_MAX (8)
+class MenuTree {
+    public:
+        int level;
+        int id;
+};
+
 class GtkTool {
     public:
         static GtkWidget* create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size,
             const char** _string_list, size_t _string_list_size, int _icon_size, GCallback _callback, void* _parameter);
+        static GtkWidget* create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items);
 
         static GtkWidget* create_empty_pixbuf(int width_px, int height_px, ColorRef background_color, gboolean has_alpha = true);
         static GdkPixbuf* svg2image(const char* svg_string, int width_px, int height_px, ColorRef color);
