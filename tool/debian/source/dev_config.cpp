@@ -23,27 +23,39 @@
  
 #include "includes.h"
 
+#define JSON_KEY_VERSION          "version"
+#define JSON_KEY_WIFI_SSID        "ssid"
+#define JSON_KEY_WIFI_PASSWORD    "password"
+#define JSON_KEY_WIFI_CHANNEL     "wifi_channel"
+#define JSON_KEY_MQTT_BROKER      "mqtt_broker"
+#define JSON_KEY_MQTT_USERNAME    "mqtt_username"
+#define JSON_KEY_MQTT_PASSWORD    "mqtt_password"
+#define JSON_KEY_MQTT_ENABLE      "mqtt_enable"
+#define JSON_KEY_DISPLAY_LAYOUT   "display_layout"
+#define JSON_KEY_DISPLAY_PARAM    "display_param"
+#define JSON_KEY_DISPLAY_ROTATION "display_rotation"
+#define JSON_KEY_DISPLAY_TIMEOUT  "display_timeout"
+#define JSON_KEY_DISPLAY_CONTRAST "display_contrast"
+#define JSON_KEY_SENSOR_TYPE      "sensor_type"
+#define JSON_KEY_LED_INTENSITY    "led_intensity"
+
 const char* DevConfig::config_json_cmd_format =
     "%s{\n"
-    "\t\"version\": \"%s\",\n"
-    
-    "\t\"ssid\": \"%s\",\n"
-    "\t\"password\": \"%s\",\n"
-    "\t\"wifi_channel\": \"%s\",\n"
-    
-    "\t\"mqtt_broker\": \"%s\",\n"
-    "\t\"mqtt_username\": \"%s\",\n"
-    "\t\"mqtt_password\": \"%s\",\n"
-    "\t\"mqtt_enable\": \"%s\",\n"
-    
-    "\t\"display_layout\": \"%s\",\n"
-    "\t\"display_param\": \"%s\",\n"
-    "\t\"display_rotation\": \"%s\",\n"
-    "\t\"display_timeout\": \"%s\",\n"
-    "\t\"display_contrast\": \"%s\",\n"
-
-    "\t\"sensor_type\": \"%s\",\n"
-    "\t\"led_intensity\": \"%s\"\n"
+    "\t\"" JSON_KEY_VERSION "\": \"%s\",\n"
+    "\t\"" JSON_KEY_WIFI_SSID "\": \"%s\",\n"
+    "\t\"" JSON_KEY_WIFI_PASSWORD "\": \"%s\",\n"
+    "\t\"" JSON_KEY_WIFI_CHANNEL "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_BROKER "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_USERNAME "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_PASSWORD "\": \"%s\",\n"
+    "\t\"" JSON_KEY_MQTT_ENABLE "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_LAYOUT "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_PARAM "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_ROTATION "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_TIMEOUT "\": \"%s\",\n"
+    "\t\"" JSON_KEY_DISPLAY_CONTRAST "\": \"%s\",\n"
+    "\t\"" JSON_KEY_SENSOR_TYPE "\": \"%s\",\n"
+    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%s\"\n"
     "}\n";
 
 void DevConfig::clear(void) {
@@ -284,21 +296,21 @@ bool DevConfig::read_config(const char* _ifac) {
         memset(&cfg, 0, sizeof (cfg));
 
         KeyList key_list[] = {
-            { "version",              cfg.version,             sizeof (cfg.version)           },
-            { "ssid",                 cfg.wifi_ssid,           sizeof (cfg.wifi_ssid)         },
-            { "password",             cfg.wifi_password,       sizeof (cfg.wifi_password)     },
-            { "wifi_channel",         cfg.wifi_channel,        sizeof (cfg.wifi_channel)      },
-            { "mqtt_broker",          cfg.mqtt_broker,         sizeof (cfg.mqtt_broker)       },
-            { "mqtt_username",        cfg.mqtt_username,       sizeof (cfg.mqtt_username)     },
-            { "mqtt_password",        cfg.mqtt_password,       sizeof (cfg.mqtt_password)     },
-            { "mqtt_enable",          cfg.mqtt_enable,         sizeof (cfg.mqtt_enable)       },
-            { "display_layout",       cfg.display_layout,      sizeof (cfg.display_layout)    },
-            { "display_param",        cfg.display_param,       sizeof (cfg.display_param)     },
-            { "display_rotation",     cfg.display_rotoation,   sizeof (cfg.display_rotoation) },
-            { "display_timeout",      cfg.display_timeout_s,   sizeof (cfg.display_timeout_s) },
-            { "display_contrast",     cfg.display_contrast,    sizeof (cfg.display_contrast)  },
-            { "sensor_type",          cfg.sensor_type,         sizeof (cfg.sensor_type)       },
-            { "led_intensity",        cfg.led_intensity,       sizeof (cfg.led_intensity)     },
+            { JSON_KEY_VERSION,          cfg.version,             sizeof (cfg.version)           },
+            { JSON_KEY_WIFI_SSID,        cfg.wifi_ssid,           sizeof (cfg.wifi_ssid)         },
+            { JSON_KEY_WIFI_PASSWORD,    cfg.wifi_password,       sizeof (cfg.wifi_password)     },
+            { JSON_KEY_WIFI_CHANNEL,     cfg.wifi_channel,        sizeof (cfg.wifi_channel)      },
+            { JSON_KEY_MQTT_BROKER,      cfg.mqtt_broker,         sizeof (cfg.mqtt_broker)       },
+            { JSON_KEY_MQTT_USERNAME,    cfg.mqtt_username,       sizeof (cfg.mqtt_username)     },
+            { JSON_KEY_MQTT_PASSWORD,    cfg.mqtt_password,       sizeof (cfg.mqtt_password)     },
+            { JSON_KEY_MQTT_ENABLE,      cfg.mqtt_enable,         sizeof (cfg.mqtt_enable)       },
+            { JSON_KEY_DISPLAY_LAYOUT,   cfg.display_layout,      sizeof (cfg.display_layout)    },
+            { JSON_KEY_DISPLAY_PARAM,    cfg.display_param,       sizeof (cfg.display_param)     },
+            { JSON_KEY_DISPLAY_ROTATION, cfg.display_rotoation,   sizeof (cfg.display_rotoation) },
+            { JSON_KEY_DISPLAY_TIMEOUT,  cfg.display_timeout_s,   sizeof (cfg.display_timeout_s) },
+            { JSON_KEY_DISPLAY_CONTRAST, cfg.display_contrast,    sizeof (cfg.display_contrast)  },
+            { JSON_KEY_SENSOR_TYPE,      cfg.sensor_type,         sizeof (cfg.sensor_type)       },
+            { JSON_KEY_LED_INTENSITY,    cfg.led_intensity,       sizeof (cfg.led_intensity)     },
         };
         DevConfig::import_data(config_json, key_list, SIZEOFARRAY(key_list));
 
