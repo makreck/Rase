@@ -43,7 +43,7 @@ const MenuItem menu_display[] {
 const size_t menu_display_size = SIZEOFARRAY(menu_display); 
 
 const MenuItem menu_config[] {
-    IDM_TITLE,               "Display contrast",
+    IDM_TITLE,               "Config menu",
     IDM_MAIN,                "1 Main menu",
     IDM_DISPLAY,             "2 Display",
     IDM_LED_INTENSITY,       "3 LED intensity",
@@ -90,14 +90,14 @@ const size_t menu_display_off_size = SIZEOFARRAY(menu_display_off);
 static const float display_timeout_times[] = { 0.0f, 10.0f, 60.0f, 300.0f, 900.0f, 1800.0f };
 
 const MenuItem menu_led[] {
-    IDM_TITLE,              "LED intensity",
-    IDM_MAIN,               "1 Main menu",
-    IDM_LED_INTENSITY_100,  "2 Max. 100%",
-    IDM_LED_INTENSITY_75,   "3 High 75%",
-    IDM_LED_INTENSITY_50,   "4 Medium 50%",
-    IDM_LED_INTENSITY_25,   "5 Low 25%",
-    IDM_LED_INTENSITY_10,   "6 Very low 10%",
-    IDM_LED_INTENSITY_1,    "7 Min. 1%",
+    IDM_TITLE,               "LED intensity",
+    IDM_MAIN,                "1 Main menu",
+    IDM_LED_INTENSITY_100,   "2 Max. 100%",
+    IDM_LED_INTENSITY_75,    "3 High 75%",
+    IDM_LED_INTENSITY_50,    "4 Medium 50%",
+    IDM_LED_INTENSITY_25,    "5 Low 25%",
+    IDM_LED_INTENSITY_10,    "6 Very low 10%",
+    IDM_LED_INTENSITY_1,     "7 Min. 1%",
 };
 const size_t menu_led_size = SIZEOFARRAY(menu_led); 
 static const float LED_Intensity_List[] = { 1.0f, 0.75f, 0.5f, 0.25f, 0.10f, 0.01f, };
