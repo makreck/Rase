@@ -55,6 +55,7 @@ class App {
                 GtkWidget*  status_frame = nullptr;
                 GtkWidget*   status_bar  = nullptr;
 
+                std::vector<GtkWidget*>  menu_items;
                 std::vector<DialogItem*> items;
             } gtk;
             struct {

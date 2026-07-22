@@ -673,25 +673,7 @@ MenuTree menu_tree[] = {
 };
 
 GtkWidget* App::create_main_menu(void) {
-    std::vector<GtkWidget*> menu_items;
-    m.gtk.menu_bar = App::create_menu_bar(this, G_CALLBACK(App::_on_command), menu_tree, SIZEOFARRAY(menu_tree), menu_items);
-
-    // m.gtk.menu_bar = gtk_menu_bar_new();
-    // GtkWidget* menu_stack[8]{ m.gtk.menu_bar, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-
-    // for (int i = 0; i < (int)SIZEOFARRAY(menu_tree) - 1; i++) {
-    //     const char* menu_string = APPSTRING(menu_tree[i].id);
-    //     GtkWidget* item = gtk_menu_item_new_with_label(menu_string);
-    //     gtk_menu_shell_append(GTK_MENU_SHELL(menu_stack[menu_tree[i].level - 1]), item);
-
-    //     if (menu_tree[i + 1].level > menu_tree[i].level) {
-    //         menu_stack[menu_tree[i].level] = gtk_menu_new();
-    //         gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), menu_stack[menu_tree[i].level]);
-    //     } else {
-    //         g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(App::_on_command), ON_ITEM(this, menu_tree[i].id));
-    //     }
-    // }
-
+    m.gtk.menu_bar = App::create_menu_bar(this, G_CALLBACK(App::_on_command), menu_tree, SIZEOFARRAY(menu_tree), m.gtk.menu_items);
     return (m.gtk.menu_bar);
 }
 
