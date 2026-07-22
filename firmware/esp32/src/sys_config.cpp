@@ -450,6 +450,7 @@ AppState SysConfig::set_display_rotation(int _degrees) {
         return (AppState::not_implemented);
     }
     cfg.f_display_rotoation = (uint8_t)(rot_step);
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
     return (AppState::OK);
 }
 
@@ -477,7 +478,7 @@ AppState SysConfig::set_display_contrast(float _value) {
     contrast = MIN(1.0f, MAX(0.0f, contrast));
     if (cfg.display_contrast != contrast) {
         cfg.display_contrast = contrast;
-        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_contrast, nullptr, 0, pdMS_TO_TICKS(1));
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
         modified = true;
     }
     return (AppState::OK);
