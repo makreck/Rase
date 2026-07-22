@@ -309,15 +309,15 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             handle_reset(false);
         } break;
 
-        case AppEvent::display_contrast: {
+        case AppEvent::display_config: {
             SysConfig* cfg = get_config();
             if (cfg != nullptr) {
-                float value = cfg->get_display_contrast();
                 DisplayI2C* display = get_display();
                 if (display != nullptr) {
-                    display->set_contrast(value);
+                    display->set_contrast(cfg->get_display_contrast());
+                    display->set_rotation(cfg->get_display_rotation());
 // #ifdef DISPLAY_STATE
-                    ESP_LOGI(TAG, "New display contrast setting %d%%.", (int)(value * 100.0f));
+                    ESP_LOGI(TAG, "Display update, contrast %d%%, rotation %d°.", (int)(cfg->get_display_contrast() * 100.0f), cfg->get_display_rotation());
 // #endif
                 }
             }
