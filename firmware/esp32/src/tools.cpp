@@ -43,6 +43,7 @@ const char* device_id_json =
     "\t\"ip_addr\": \"%s\",\n"
     "\t\"rssi\": \"%s\",\n"
     "\t\"tx_power\": \"%s\",\n"
+    "\t\"system_time\": \"%s\"\n"
     "}\n";
 
 
@@ -72,6 +73,7 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     char ip_addr[32]{ 0 };
     char head[16]{ 0 };
     char head_serial[16]{ 0 };
+    char system_time_string[32]{ 0 };
     
     if (_ip_addr != nullptr) {
         strncpy(ip_addr, _ip_addr, sizeof (ip_addr) - 1);
@@ -88,10 +90,10 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     }
 
     Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
+    Tools::get_timestamp(system_time_string, sizeof (system_time_string));
+    Tools::get_iso_build_date(iso_firmware_date, sizeof (iso_firmware_date));
 
     snprintf(firmware_version, sizeof (firmware_version), "%d.%d.%d.%d", VS_HIGH, VS_LOW, VS_REV, VS_BUILD);
-
-    get_iso_build_date(iso_firmware_date, sizeof (iso_firmware_date));
 
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
@@ -107,12 +109,12 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     Wifi_Station::get_tx_power_dbm(tx_power_string, sizeof (tx_power_string));
 
     size_t length = snprintf(nullptr, 0, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string);
+        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string, system_time_string);
 
     char* json_string = (char*)malloc(length + 1);
 
     snprintf(json_string, length + 1, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string);
+        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string, system_time_string);
 
     return (json_string);
 }
