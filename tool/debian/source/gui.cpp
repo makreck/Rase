@@ -29,6 +29,8 @@ const ToolbarItems main_toolbar[] = {
     { svg_upload, (void*)IDS_PROGRAM_DEV       },
     { nullptr,    (void*)nullptr               },
     { svg_reset,  (void*)IDS_RESET_DEVICE      },
+    { nullptr,    (void*)nullptr               },
+    { svg_ic,     (void*)IDS_FORMWARE_UPLOAD   },
     { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
 };
 const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
@@ -133,7 +135,6 @@ void App::on_move_or_size(int x, int y, int width, int height) {
     m.rc.client.y = y;
     m.rc.client.width = width;
     m.rc.client.height = height;
-printf("%d,%d %d,%d\n", x, y, width, height); // ****
 }
 
 void App::create_layout(void) {

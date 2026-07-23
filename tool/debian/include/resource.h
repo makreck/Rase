@@ -46,7 +46,7 @@
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (111)
+#define IDS_MAIN_COUNT              (112)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -165,6 +165,7 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_LED_INTENSITY_25        (108)
 #define IDS_LED_INTENSITY_10        (109)
 #define IDS_LED_INTENSITY_1         (110)
+#define IDS_FORMWARE_UPLOAD         (111)
 
 #define SVG_STROKE_COLOR            "#010203"
 
@@ -174,6 +175,7 @@ extern const char* svg_upload;
 extern const char* svg_reset;
 extern const char* svg_init;
 extern const char* svg_reload;
+extern const char* svg_ic;
 
 class AppString {
     public:
