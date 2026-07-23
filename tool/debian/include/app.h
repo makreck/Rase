@@ -92,8 +92,8 @@ class App {
         DialogItem* get_item(int _item_id);
         DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _width, int _x, int _y, char* _field, size_t _length, const char* _list = nullptr);
         void run_gui(void);
-        void create_app_window(void);
-        void get_main_window_placing(void);
+        void create_gui(void);
+        void create_window(void);
         void create_layout(void);
         void set_main_window_callbacks(void);
         void on_move_or_size(int x, int y, int width, int height);

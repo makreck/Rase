@@ -35,6 +35,68 @@ const ToolbarItems main_toolbar[] = {
 };
 const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
 
+MenuTree menu_tree[] = {
+    { 1, IDS_FILE},
+    {  2, IDS_QUIT},
+
+    { 1, IDS_EDIT},
+    {  2, IDS_COPY},
+    {  2, IDS_PASTE},
+
+    { 1, IDS_DEVICE_MENU},
+    {  2, IDS_TITLE_MAIN},
+    {  2, IDS_EXIT},
+    {  2, IDS_LAYOUT},
+    {   3, IDS_TITLE_LAYOUT},
+    {   3, IDS_MAIN},
+    {   3, IDS_LAYOUT_VALUE_PAGE},
+    {   3, IDS_LAYOUT_DETAILS_PAGE},
+    {   3, IDS_LAYOUT_INFO_PAGE},
+    {  2, IDS_CONFIG},
+    {   3, IDS_TITLE_CONFIG},
+    {   3, IDS_MAIN},
+    {   3, IDS_DISPLAY},
+    {    4, IDS_TITLE_DISPLAY},
+    {    4, IDS_MAIN},
+    {    4, IDS_ROTATE},
+    {    4, IDS_CONTRAST},
+    {     5, IDS_TITLE_CONTRAST},
+    {     5, IDS_MAIN},
+    {     5, IDS_CONTRAST_100},
+    {     5, IDS_CONTRAST_80},
+    {     5, IDS_CONTRAST_60},
+    {     5, IDS_CONTRAST_40},
+    {     5, IDS_CONTRAST_20},
+    {     5, IDS_CONTRAST_10},
+    {     5, IDS_CONTRAST_20},
+    {     5, IDS_CONTRAST_10},
+    {    4, IDS_DISPLAY_OFF},
+    {     5, IDS_TITLE_TIMEOUT},
+    {     5, IDS_MAIN},
+    {     5, IDS_DISPLAY_OFF_NEVER},
+    {     5, IDS_DISPLAY_OFF_10SEC},
+    {     5, IDS_DISPLAY_OFF_1MIN},
+    {     5, IDS_DISPLAY_OFF_5MIN},
+    {     5, IDS_DISPLAY_OFF_15MIN},
+    {     5, IDS_DISPLAY_OFF_30MIN},
+    {   3, IDS_INTENSITY},
+    {    4, IDS_TITLE_LED_INTENSITY},
+    {    4, IDS_MAIN},
+    {    4, IDS_LED_INTENSITY_100},
+    {    4, IDS_LED_INTENSITY_75},
+    {    4, IDS_LED_INTENSITY_50},
+    {    4, IDS_LED_INTENSITY_25},
+    {    4, IDS_LED_INTENSITY_10},
+    {    4, IDS_LED_INTENSITY_1},
+    {   3, IDS_MQTT_CLIENT},
+    {   3, IDS_CONFIG_INTERFACE},
+    {   3, IDS_SENSOR_SELECT},
+    {  2, IDS_REBOOT},
+    {  2, IDS_FACTORY_RESET},
+
+    { 0, -1 }, // End of the list
+};
+
 void App::run_gui(void) {
     gtk_init(&m.argc, &m.argv);
 
@@ -65,12 +127,12 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
     return (false);
 }
 void App::activate(void) {
-    create_app_window();
+    create_gui();
     handle_dialog_items(true);
     gtk_main();
 }
 
-void App::get_main_window_placing(void) {
+void App::create_window(void) {
     m.rc.client.x      = 64;
     m.rc.client.y      = 64;
     m.rc.client.width  = APP_WINDOW_DEF_WIDTH;
@@ -95,7 +157,8 @@ void App::get_main_window_placing(void) {
     gtk_window_set_default_size(GTK_WINDOW(m.gtk.win), m.rc.client.width, m.rc.client.height);
     gtk_window_set_resizable(GTK_WINDOW(m.gtk.win), TRUE);
     gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_CENTER);
-    gtk_container_set_border_width(GTK_CONTAINER(m.gtk.win), 4);
+
+    gtk_container_set_border_width(GTK_CONTAINER(m.gtk.win), 0);
     gtk_window_set_title(GTK_WINDOW(m.gtk.win), APP_WINDOW_NAME);
 
     GdkPixbuf* icon = App::svg2image(svg_app, 64, 64, C_WHITE);
@@ -104,8 +167,8 @@ void App::get_main_window_placing(void) {
     }
 }
 
-void App::create_app_window(void) {
-    get_main_window_placing();
+void App::create_gui(void) {
+    create_window();
     create_layout();
     set_main_window_callbacks();
     gtk_widget_show_all(m.gtk.win);
@@ -138,7 +201,7 @@ void App::on_move_or_size(int x, int y, int width, int height) {
 }
 
 void App::create_layout(void) {
-    m.gtk.base_v_box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 0);
+    m.gtk.base_v_box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 2);
     gtk_container_add(GTK_CONTAINER(m.gtk.win), m.gtk.base_v_box);
 
     gtk_box_pack_start(GTK_BOX(m.gtk.base_v_box), create_main_menu(),    FALSE, FALSE, 0);
@@ -611,68 +674,6 @@ void App::idle_task(CallbackParameter* p) {
         } break;
     }
 }
-
-MenuTree menu_tree[] = {
-    { 1, IDS_FILE},
-    {  2, IDS_QUIT},
-
-    { 1, IDS_EDIT},
-    {  2, IDS_COPY},
-    {  2, IDS_PASTE},
-
-    { 1, IDS_DEVICE_MENU},
-    {  2, IDS_TITLE_MAIN},
-    {  2, IDS_EXIT},
-    {  2, IDS_LAYOUT},
-    {   3, IDS_TITLE_LAYOUT},
-    {   3, IDS_MAIN},
-    {   3, IDS_LAYOUT_VALUE_PAGE},
-    {   3, IDS_LAYOUT_DETAILS_PAGE},
-    {   3, IDS_LAYOUT_INFO_PAGE},
-    {  2, IDS_CONFIG},
-    {   3, IDS_TITLE_CONFIG},
-    {   3, IDS_MAIN},
-    {   3, IDS_DISPLAY},
-    {    4, IDS_TITLE_DISPLAY},
-    {    4, IDS_MAIN},
-    {    4, IDS_ROTATE},
-    {    4, IDS_CONTRAST},
-    {     5, IDS_TITLE_CONTRAST},
-    {     5, IDS_MAIN},
-    {     5, IDS_CONTRAST_100},
-    {     5, IDS_CONTRAST_80},
-    {     5, IDS_CONTRAST_60},
-    {     5, IDS_CONTRAST_40},
-    {     5, IDS_CONTRAST_20},
-    {     5, IDS_CONTRAST_10},
-    {     5, IDS_CONTRAST_20},
-    {     5, IDS_CONTRAST_10},
-    {    4, IDS_DISPLAY_OFF},
-    {     5, IDS_TITLE_TIMEOUT},
-    {     5, IDS_MAIN},
-    {     5, IDS_DISPLAY_OFF_NEVER},
-    {     5, IDS_DISPLAY_OFF_10SEC},
-    {     5, IDS_DISPLAY_OFF_1MIN},
-    {     5, IDS_DISPLAY_OFF_5MIN},
-    {     5, IDS_DISPLAY_OFF_15MIN},
-    {     5, IDS_DISPLAY_OFF_30MIN},
-    {   3, IDS_INTENSITY},
-    {    4, IDS_TITLE_LED_INTENSITY},
-    {    4, IDS_MAIN},
-    {    4, IDS_LED_INTENSITY_100},
-    {    4, IDS_LED_INTENSITY_75},
-    {    4, IDS_LED_INTENSITY_50},
-    {    4, IDS_LED_INTENSITY_25},
-    {    4, IDS_LED_INTENSITY_10},
-    {    4, IDS_LED_INTENSITY_1},
-    {   3, IDS_MQTT_CLIENT},
-    {   3, IDS_CONFIG_INTERFACE},
-    {   3, IDS_SENSOR_SELECT},
-    {  2, IDS_REBOOT},
-    {  2, IDS_FACTORY_RESET},
-
-    { 0, -1 }, // End of the list
-};
 
 GtkWidget* App::create_main_menu(void) {
     m.gtk.menu_bar = App::create_menu_bar(this, G_CALLBACK(App::_on_command), menu_tree, SIZEOFARRAY(menu_tree), m.gtk.menu_items);
