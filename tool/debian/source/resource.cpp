@@ -89,10 +89,12 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Reset device",
         "Initialize device",
         "loading ...",
+        "Connected",
         "Not connected",
         "Scanning ports ...",
         "Initializing ...",
         "Reload data",
+        "Firmware upload",
 
         "No connected device found!\n\nPlease connect a device first and ensure\nthat the config interface is enabled.",
         "Unable to read config data from device!\n\nPlease ensure that the config interface\nis enabled.",
@@ -151,7 +153,6 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "6 Very low 10%",
         "7 Min. 1%",
 
-        "Firmware upload",
     }
 };
 
