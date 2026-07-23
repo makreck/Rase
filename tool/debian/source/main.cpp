@@ -27,6 +27,12 @@ void App::init(int argc, char* argv[]) {
 }
 
 void App::cleanup(void) {
+    if (m.thread_handle != 0) {
+        pthread_cancel(m.thread_handle);
+        pthread_join(m.thread_handle, nullptr);
+        m.thread_handle = 0;
+    }
+    
     if (m.gtk.items.size() > 0) {
         for (DialogItem*& item : m.gtk.items) {
             if (item != nullptr) {

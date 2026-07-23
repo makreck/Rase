@@ -45,15 +45,16 @@ class App {
 
             GtkApplication* gtkApp = nullptr;
             struct {
-                GtkWidget* win           = nullptr;
-                GtkWidget* base_v_box    = nullptr;
-                GtkWidget*  menu_bar     = nullptr;
-                GtkWidget*  tool_bar     = nullptr;
+                GtkWidget* win            = nullptr;
+                GtkWidget* base_v_box     = nullptr;
+                GtkWidget*  menu_bar      = nullptr;
+                GtkWidget*  tool_bar      = nullptr;
                 
-                GtkWidget*  dialog       = nullptr;
-                GtkWidget*   scrolled    = nullptr;
-                GtkWidget*  status_frame = nullptr;
-                GtkWidget*   status_bar  = nullptr;
+                GtkWidget*  dialog        = nullptr;
+                GtkWidget*   scrolled     = nullptr;
+                GtkWidget*  status_box    = nullptr;
+                GtkWidget*   status_grid  = nullptr;
+                GtkWidget*    status[4]{ nullptr, nullptr, nullptr, nullptr };
 
                 std::vector<GtkWidget*>  menu_items;
                 std::vector<DialogItem*> items;
@@ -63,7 +64,7 @@ class App {
             } rc;
 
             int toolIconSize = 28;
-            char status_text[256]{ 0 };
+            pthread_t thread_handle = 0;
 
             DevConfig device;
         } m;
@@ -84,6 +85,8 @@ class App {
         void on_command(CallbackParameter* p);
         static gboolean _idle_task(gpointer _callback_parameter);
         void idle_task(CallbackParameter* p);
+        static void* _interval_thread(void* _object);
+        void interval_thread(void);
         
         void init(int argc, char* argv[]);
         void cleanup(void);
@@ -97,15 +100,10 @@ class App {
         void create_layout(void);
         void set_main_window_callbacks(void);
         void on_move_or_size(int x, int y, int width, int height);
-        void status_update(const char* _string = nullptr);
+        void set_status(const char* _box_0 = nullptr, const char* _box_1 = nullptr, const char* _box_2 = nullptr, const char* _box_3 = nullptr);
         void handle_dialog_items(bool _setup);
         void handle_item_change(DialogItem* _item, bool _setup);
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
-        void on_command_scan(void);
-        void on_command_program(void);
-        void on_command_reset(void);
-        void on_command_initialize(void);
-        void on_reload_data(void);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);

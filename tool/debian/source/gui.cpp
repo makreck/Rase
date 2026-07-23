@@ -30,7 +30,7 @@ const ToolbarItems main_toolbar[] = {
     { nullptr,    (void*)nullptr               },
     { svg_reset,  (void*)IDS_RESET_DEVICE      },
     { nullptr,    (void*)nullptr               },
-    { svg_ic,     (void*)IDS_FORMWARE_UPLOAD   },
+    { svg_ic,     (void*)IDS_FIRMWARE_UPLOAD   },
     { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
 };
 const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
@@ -129,6 +129,7 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
 void App::activate(void) {
     create_gui();
     handle_dialog_items(true);
+    pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
     gtk_main();
 }
 
@@ -306,31 +307,8 @@ GtkWidget* App::create_main_toolbar(void) {
     m.gtk.tool_bar = App::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
                                         &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
                                         m.toolIconSize, G_CALLBACK(App::_on_command), this);
-    gtk_widget_set_hexpand(m.gtk.tool_bar, TRUE);
+    gtk_widget_set_hexpand(m.gtk.tool_bar, true);
     return (m.gtk.tool_bar);
-}
-
-GtkWidget* App::create_statusbar(void) {
-    m.gtk.status_bar = gtk_label_new("Status bar.");
-    gtk_label_set_xalign(GTK_LABEL(m.gtk.status_bar), 0.0f);
-    gtk_widget_set_hexpand(m.gtk.status_bar, TRUE);
-    gtk_widget_set_size_request(m.gtk.status_bar, -1, 28);
-
-    char string[256]{ 0 };
-    snprintf(string, sizeof (string), "\"%s\"", m.ifac);
-    status_update(string);
-
-    return (m.gtk.status_bar);
-}
-
-void App::status_update(const char* _string) {
-    if (_string != nullptr) {
-        memset(m.status_text, 0, sizeof (m.status_text));
-        strncpy(m.status_text, _string, sizeof (m.status_text) - 1);
-    }
-    gtk_label_set_text(GTK_LABEL(m.gtk.status_bar), m.status_text);
-    gtk_widget_queue_draw(m.gtk.status_bar);
-    gtk_widget_show_all(m.gtk.win);
 }
 
 GtkWidget* App::add_grid(const char* _label, GtkWidget* _parent) {
@@ -571,24 +549,14 @@ void App::on_command(CallbackParameter* p) {
         case IDS_PASTE: {
         } break;
 
-        case IDS_DEVICE_SCAN: {
-            on_command_scan();
-        } break;
-
-        case IDS_PROGRAM_DEV: {
-            on_command_program();
-        } break;
-
-        case IDS_RELOAD_DATA: {
-            on_reload_data();
-        } break;
-
-        case IDS_RESET_DEVICE: {
-            on_command_reset();
-        } break;
-
+        case IDS_DEVICE_SCAN:
+        case IDS_PROGRAM_DEV:
+        case IDS_RELOAD_DATA:
+        case IDS_RESET_DEVICE:
+        case IDS_FIRMWARE_UPLOAD:
         case IDS_INITIALIZE_DEVICE: {
-            on_command_initialize();
+            set_status(APPSTRING(item_id));
+            gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, item_id));
         } break;
 
         default: {
@@ -596,81 +564,6 @@ void App::on_command(CallbackParameter* p) {
             if (item != nullptr) {
                 handle_item_change(item, false);
             }
-        } break;
-    }
-}
-
-void App::on_command_scan(void) {
-    status_update(APPSTRING(IDS_SCANNING));
-    if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
-        on_reload_data();
-    } else {
-        status_update(APPSTRING(IDS_NOT_CONNECTED));
-    }
-}
-
-void App::on_command_program(void) {
-    gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, IDS_PROGRAM_DEV));
-}
-
-void App::on_reload_data(void) {
-    char string[256]{0};
-    snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_LOADING));
-    status_update(string);
-    gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, IDS_LOADING));
-}
-
-void App::on_command_reset(void) {
-    char* response = DevConfig::transact_command(m.ifac, "/reboot");
-    if (response != nullptr) {
-        free(response);
-    }
-}
-
-void App::on_command_initialize(void) {
-    char string[256]{0};
-    snprintf(string, sizeof(string), "\"%s\" --> %s", m.ifac, APPSTRING(IDS_INITIALIZING));
-    status_update(string);
-
-    char* response = DevConfig::transact_command(m.ifac, "/initialize");
-    if (response != nullptr) {
-        free(response);
-    }
-}
-
-gboolean App::_idle_task(gpointer _callback_parameter) {
-    CallbackParameter* cbp = CALLBACK_PARAMETER(_callback_parameter);
-    OBJ_PTR(App, cbp->get_this())->idle_task(cbp);
-    return ((gboolean)false);
-}
-void App::idle_task(CallbackParameter* p) {
-    int64_t item_id = (int64_t)(p->get_pointer());
-    switch(item_id) {
-        case IDS_LOADING: {
-            if (m.device.read_data(m.ifac)) {
-                handle_dialog_items(true);
-                char string[256]{0};
-                snprintf(string, sizeof(string), "\"%s\"", m.ifac);
-                status_update(string);
-            }
-        } break;
-
-        case IDS_PROGRAM_DEV: {
-            size_t length = 0;
-            char* json_string = m.device.get_config_json("/config=", &length);
-            if (json_string != nullptr) {
-                char* response = DevConfig::transact_command(m.ifac, json_string);
-                if (response != nullptr) {
-                    free(response);
-                }
-                free(json_string);
-            }
-        } break;
-
-        case IDS_RESET_DEVICE: {
-        } break;
-
-        case IDS_INITIALIZE_DEVICE: {
         } break;
     }
 }
@@ -704,4 +597,116 @@ GtkWidget* App::create_menu_bar(void* _instance, GCallback _callback, MenuTree* 
     }
 
     return (menu_bar);
+}
+
+GtkWidget* App::create_statusbar(void) {
+    m.gtk.status_box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 4);
+    gtk_widget_set_size_request(m.gtk.status_box, -1, APP_WINDOW_STATUSBAR_HEIGHT);
+    gtk_container_set_border_width(GTK_CONTAINER(m.gtk.status_box), 4);
+
+    m.gtk.status_grid = gtk_grid_new();
+    gtk_grid_set_row_homogeneous(GTK_GRID(m.gtk.status_grid), FALSE);
+    gtk_grid_set_column_homogeneous(GTK_GRID(m.gtk.status_grid), FALSE);
+    gtk_grid_set_column_spacing(GTK_GRID(m.gtk.status_grid), 16);
+    gtk_grid_set_row_spacing(GTK_GRID(m.gtk.status_grid), 4);
+    gtk_box_pack_start(GTK_BOX(m.gtk.status_box), m.gtk.status_grid, true, true, 0);
+
+    int width = m.rc.client.width / 4 - 16;
+    for (int i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
+        m.gtk.status[i] = gtk_label_new("---");
+        gtk_label_set_xalign(GTK_LABEL(m.gtk.status[i]), 0.0f);
+        gtk_widget_set_size_request(m.gtk.status[i], width, -1);
+        gtk_grid_attach(GTK_GRID(m.gtk.status_grid), m.gtk.status[i], i, 0, 1, 1);
+    }
+
+    return (m.gtk.status_box);
+}
+
+void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2, const char* _box_3) {
+    if (_box_0 != nullptr) {
+        gtk_label_set_text(GTK_LABEL(m.gtk.status[0]), _box_0);
+    }
+    if (_box_1 != nullptr) {
+        gtk_label_set_text(GTK_LABEL(m.gtk.status[1]), _box_1);
+    }
+    if (_box_2 != nullptr) {
+        gtk_label_set_text(GTK_LABEL(m.gtk.status[2]), _box_2);
+    }
+    if (_box_3 != nullptr) {
+        gtk_label_set_text(GTK_LABEL(m.gtk.status[3]), _box_3);
+    }
+
+    gtk_widget_queue_draw(m.gtk.status_box);
+    gtk_widget_show_all(m.gtk.win);
+}
+
+void* App::_interval_thread(void* _object) {
+    APP_PTR(_object)->interval_thread();
+    return (nullptr);
+}
+void App::interval_thread(void) {
+    while (true) {
+        sleep(1);
+        gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, -1));
+    }
+}
+
+gboolean App::_idle_task(gpointer _callback_parameter) {
+    CallbackParameter* cbp = CALLBACK_PARAMETER(_callback_parameter);
+    OBJ_PTR(App, cbp->get_this())->idle_task(cbp);
+    return ((gboolean)false);
+}
+void App::idle_task(CallbackParameter* p) {
+    int64_t item_id = (int64_t)(p->get_pointer());
+    switch(item_id) {
+        case -1: {
+            set_status(APPSTRING(IDS_CONNECTED), nullptr, nullptr, m.ifac);
+        } break;
+
+        case IDS_DEVICE_SCAN: {
+            if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
+                if (m.device.read_data(m.ifac)) {
+                    handle_dialog_items(true);
+                }
+            }
+        } break;
+
+        case IDS_RELOAD_DATA: {
+            if (m.device.read_data(m.ifac)) {
+                handle_dialog_items(true);
+            }
+        } break;
+
+        case IDS_PROGRAM_DEV: {
+            size_t length = 0;
+            char* json_string = m.device.get_config_json("/config=", &length);
+            if (json_string != nullptr) {
+                char* response = DevConfig::transact_command(m.ifac, json_string);
+                if (response != nullptr) {
+                    free(response);
+                }
+                free(json_string);
+            }
+        } break;
+
+        case IDS_RESET_DEVICE: {
+            char* response = DevConfig::transact_command(m.ifac, "/reboot");
+            if (response != nullptr) {
+                free(response);
+            }
+        } break;
+
+        case IDS_INITIALIZE_DEVICE: {
+            char* response = DevConfig::transact_command(m.ifac, "/initialize");
+            if (response != nullptr) {
+                free(response);
+            }
+        } break;
+
+        case IDS_FIRMWARE_UPLOAD: {
+        } break;
+
+        default: {
+        } break;
+    }
 }
