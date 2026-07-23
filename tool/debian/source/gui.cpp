@@ -439,6 +439,7 @@ GtkWidget* App::create_dialog(void) {
     m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 6, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
     
     m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 7, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 7, m.device.id.system_time,          sizeof (m.device.id.system_time),            nullptr));
 
     return (m.gtk.dialog);
 }

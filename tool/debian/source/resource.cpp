@@ -83,6 +83,7 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Tx power",
         "Sensor head type",
         "Head serial no.",
+        "System time",
 
         "Program device",
         "Reset device",

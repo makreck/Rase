@@ -100,6 +100,7 @@ class DevConfig {
             char ip_addr[16]{ 0 };
             char rssi[16]{ 0 };
             char tx_power[16]{ 0 };
+            char system_time[32]{ 0 };
         } id;
 
         DevConfig() {

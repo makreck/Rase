@@ -341,6 +341,7 @@ bool DevConfig::read_id(const char* _ifac) {
             { "ip_addr",              id.ip_addr,              sizeof (id.ip_addr)              },
             { "rssi",                 id.rssi,                 sizeof (id.rssi)                 },
             { "tx_power",             id.tx_power,             sizeof (id.tx_power)             },
+            { "system_time",          id.system_time,          sizeof (id.system_time)          },
         };
         DevConfig::import_data(id_json, key_list, SIZEOFARRAY(key_list));
 
