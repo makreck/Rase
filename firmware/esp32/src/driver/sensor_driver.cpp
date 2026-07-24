@@ -197,6 +197,10 @@ uint32_t SensorDriver::get_head_serial_number(void) {
     return (head_serial_number);
 }
 
+uint8_t SensorDriver::get_device_address(void) {
+    return (device_address);
+}
+
 SensorReading* SensorDriver::get_reading(void) {
     return (&reading);
 }
