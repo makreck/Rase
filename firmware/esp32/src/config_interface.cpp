@@ -193,6 +193,7 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
 }
 
 void ConfigInterface::process_command(const char* data, size_t length) {
+    app->reload_screensaver();
     for (size_t i = 0; i < SIZEOFARRAY(function_tab); i++) {
         if (strncmp(data, function_tab[i].key, strlen(function_tab[i].key)) == 0) {
             (*function_tab[i].callback)(this, function_tab[i].mode, data, length);

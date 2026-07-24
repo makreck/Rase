@@ -395,6 +395,8 @@ AppState App::handle_nvm_update(void) {
             m.update_thr_time = 0;
         }
 
+        reload_screensaver();
+
 #ifdef DISPLAY_STATE
         ESP_LOGI(TAG, "handle_nvm_update() -> saving data...");
 #endif

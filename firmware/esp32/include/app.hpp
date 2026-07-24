@@ -177,7 +177,6 @@ class App {
         AppState handle_mqtt_client(void);
         AppState handle_config_changes(void);
 
-        AppState reload_screensaver(void);
         AppState check_screensaver(void);
 
         AppState display_value_page(void);
@@ -204,6 +203,7 @@ class App {
         AppState request_sys_config_update(void);
         AppState handle_reset(bool init_flash = false);
         AppState set_display_page(DisplayPage page);
+        AppState reload_screensaver(void);
 
         SysConfig*       get_config(void)    { return (m.cfg);       }
         LEDController*   get_LED(void)       { return (m.led);       }
