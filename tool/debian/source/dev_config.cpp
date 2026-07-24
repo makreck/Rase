@@ -19,8 +19,8 @@
  * ==============================================================================
  */
 
- #define ENABLE_FILTER
- 
+// #define ENABLE_FILTER
+
 #include "includes.h"
 
 #define JSON_KEY_VERSION          "version"
@@ -309,12 +309,26 @@ bool DevConfig::read_config(const char* _ifac) {
             { JSON_KEY_DISPLAY_ROTATION, cfg.display_rotoation,   sizeof (cfg.display_rotoation) },
             { JSON_KEY_DISPLAY_TIMEOUT,  cfg.display_timeout_s,   sizeof (cfg.display_timeout_s) },
             { JSON_KEY_DISPLAY_CONTRAST, cfg.display_contrast,    sizeof (cfg.display_contrast)  },
-            { JSON_KEY_SENSOR_TYPE,      cfg.sensor_type,         sizeof (cfg.sensor_type)       },
+            { JSON_KEY_SENSOR_TYPE,      cfg._sensor_type_list,   sizeof (cfg._sensor_type_list) },
             { JSON_KEY_LED_INTENSITY,    cfg.led_intensity,       sizeof (cfg.led_intensity)     },
         };
         DevConfig::import_data(config_json, key_list, SIZEOFARRAY(key_list));
-
         free(config_json);
+
+        char* p = strstr(cfg._sensor_type_list, ",");
+        if (p != nullptr) {
+            *p++ = '\0';
+            strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
+            for (int i = 0; i < sizeof (cfg._sensor_type_list); i++) {
+                cfg._sensor_type_list[i] = p[i];
+                if (p[i] == '\0') break;
+                if (p[i] == ',') cfg._sensor_type_list[i] = '\n';
+            }
+        } else {
+            strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
+            strncpy(cfg._sensor_type_list, APPSTRING(IDS_LIST_SENSOR_TYPES), sizeof (cfg._sensor_type_list));
+        }
+
         return (true);
     }
     return (false);

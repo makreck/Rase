@@ -82,6 +82,8 @@ class DevConfig {
             
             char led_intensity[NUM_FIELD_LEN]{ 0 };
             char sensor_type[NUM_FIELD_LEN]{ 0 };
+
+            char _sensor_type_list[256]{ 0 };
         } cfg;
 
         struct {

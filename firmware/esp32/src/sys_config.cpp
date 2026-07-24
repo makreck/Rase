@@ -84,6 +84,14 @@ const JsonScan SysConfig::config_scan_table[] = {
 };
 
 char* SysConfig::get_json(void) {
+
+    char sensor_support[256]{ 0 };
+    strncpy(sensor_support, SensorDriver::get_driver_name(get_sensor_type()), sizeof (sensor_support));
+    for (size_t i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
+        strcat(sensor_support, ",");
+        strcat(sensor_support, SensorDriver::str_sensor_types[i]);
+    }
+
     size_t length = snprintf(nullptr, 0,
         config_json_format,
         (unsigned int)cfg.version,
@@ -99,7 +107,7 @@ char* SysConfig::get_json(void) {
         (int)get_display_rotation(),
         get_display_timeout_str(),
         (float)get_display_contrast() * 100.0f,
-        SensorDriver::get_driver_name(get_sensor_type()),
+        sensor_support,
         (float)(get_LED_intensity() * 100.0f)
     );
 
@@ -122,7 +130,7 @@ char* SysConfig::get_json(void) {
             (int)get_display_rotation(),
             get_display_timeout_str(),
             (float)get_display_contrast() * 100.0f,
-            SensorDriver::get_driver_name(get_sensor_type()),
+            sensor_support,
             (float)(get_LED_intensity() * 100.0f)
         );
     }
@@ -424,15 +432,19 @@ SensorType SysConfig::get_sensor_type(void) {
 }
 
 AppState SysConfig::set_sensor_type(SensorType _type) {
-    cfg.sensor_type = ((uint8_t)_type & 0xff);
-    modified = true;
+    uint8_t type = ((uint8_t)_type & 0xff);
+    modified = (type != cfg.sensor_type);
+    cfg.sensor_type = type;
+    if (modified) {
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::driver_config, nullptr, 0, pdMS_TO_TICKS(1));
+    }
     return (AppState::OK);
 }
 
 AppState SysConfig::set_sensor_type_str(SysConfig* _instance, const char* _type) {
     int type = 0;
     for (int i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
-        if (strstr(_type, SensorDriver::str_sensor_types[i]) != nullptr) {
+        if (strcmp(_type, SensorDriver::str_sensor_types[i]) == 0) {
             type = i;
             break;
         }
@@ -445,12 +457,15 @@ AppState SysConfig::flip_display_rotation(void) {
 }
 
 AppState SysConfig::set_display_rotation(int _degrees) {
-    int rot_step = (_degrees / 90) & 0x03;
+    uint8_t rot_step = (uint8_t)((_degrees / 90) & 0x03);
     if ((rot_step & 1) != 0) {
         return (AppState::not_implemented);
     }
-    cfg.f_display_rotoation = (uint8_t)(rot_step);
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
+    modified = (rot_step != cfg.f_display_rotoation);
+    cfg.f_display_rotoation = rot_step;
+    if (modified) {
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
+    }
     return (AppState::OK);
 }
 
