@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 AppState App::init(void) {
     init_watchdog();
@@ -135,15 +135,6 @@ AppState App::trigger_watchdog(void) {
     return ((esp_task_wdt_reset() == ESP_OK) ? AppState::OK : AppState::watchdog);
 }
 
-AppState App::handle_nvm_update(void) {
-    if (m.flags.b.nvm_update_req == 1) {
-        m.flags.b.nvm_update_req = 0;
-        m.cfg->update();
-        vTaskDelay(pdMS_TO_TICKS(250));
-    }
-    return (AppState::idle);
-}
-
 AppState App::handle_reset(bool init_flash) {
     if (m.display != nullptr) {
         m.display->clear();
@@ -162,7 +153,50 @@ AppState App::handle_reset(bool init_flash) {
     return (AppState::OK);
 }
 
+AppState App::switch_driver_to(uint8_t i2c_addr) {
+ESP_LOGI(TAG, "switch_driver_to(%d) - 1", (int)i2c_addr);
+    if ((m.driver == nullptr) || (m.sensor == nullptr)) {
+        return (AppState::not_ready);
+    }
+
+    if (m.driver->get_device_address() == i2c_addr) {
+ESP_LOGI(TAG, "switch_driver_to(%d) - 2 - nothing to do.", (int)i2c_addr);
+        return (AppState::OK);
+    }
+
+ESP_LOGI(TAG, "switch_driver_to(%d) - 3 - Sensor manager driver disable.", (int)i2c_addr);
+    m.sensor->set_driver(nullptr);
+
+    if (m.mqtt != nullptr) {
+ESP_LOGI(TAG, "switch_driver_to(%d) - 4 - MQTT stop, driver disable.", (int)i2c_addr);
+        m.mqtt->stop();
+    }
+
+ESP_LOGI(TAG, "switch_driver_to(%d) - 5 - Suspend all driver operations.", (int)i2c_addr);
+    m.driver->suspend();
+    m.flags.b.driver_ready = 0;
+    
+ESP_LOGI(TAG, "switch_driver_to(%d) - 6 - Delete the sensor driver.", (int)i2c_addr);
+    SAFE_DELETE(m.driver);
+
+ESP_LOGI(TAG, "switch_driver_to(%d) - 7 - Create a new sensor driver.", (int)i2c_addr);
+    m.driver = SensorDriver::create_driver_by_address(i2c_addr);
+    if (m.driver != nullptr) {
+ESP_LOGI(TAG, "switch_driver_to(%d) - 9 - Set driver for Sensor manager.", (int)i2c_addr);
+        m.sensor->set_driver(m.driver);
+
+        if ((m.mqtt != nullptr) && (m.cfg->get_mqtt_enable() == true)) {
+ESP_LOGI(TAG, "switch_driver_to(%d) - 10 - Set driver for MQTT and restart MQTT operation.", (int)i2c_addr);
+            m.mqtt->start(m.driver);
+        }
+    }
+
+ESP_LOGI(TAG, "switch_driver_to(%d) - 99", (int)i2c_addr);
+    return (AppState::OK);
+}
+
 AppState App::request_sys_config_update(void) {
+    m.update_thr_time = Tools::get_tickcount64() + 100;
     m.flags.b.nvm_update_req = 1;
     return (AppState::OK);
 }
@@ -310,23 +344,11 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::display_config: {
-            SysConfig* cfg = get_config();
-            if (cfg != nullptr) {
-                DisplayI2C* display = get_display();
-                if (display != nullptr) {
-                    display->set_contrast(cfg->get_display_contrast());
-                    display->set_rotation(cfg->get_display_rotation());
-                    request_sys_config_update();
-                }
-            }
+            m.flags.b.display_cfg_req = 1;
         } break;
 
         case AppEvent::driver_config: {
-            SysConfig* cfg = get_config();
-            if (cfg != nullptr) {
-                uint8_t i2c_addr = SensorDriver::get_bus_addr_by_type(cfg->get_sensor_type());
-                switch_driver_to(i2c_addr);
-            }
+            m.flags.b.driver_cfg_req = 1;
         } break;
         
         default: {
@@ -340,8 +362,55 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
     return (ESP_OK);
 }
 
+AppState App::handle_config_changes(void) {
+    if (m.flags.b.display_cfg_req == 1) {
+        m.flags.b.display_cfg_req = 0;
+        if (m.display != nullptr) {
+            m.display->set_contrast(m.cfg->get_display_contrast());
+            m.display->set_rotation(m.cfg->get_display_rotation());
+            request_sys_config_update();
+        }
+    }
+
+    if (m.flags.b.driver_cfg_req == 1) {
+        m.flags.b.driver_cfg_req = 0;
+        uint8_t i2c_addr = SensorDriver::get_bus_addr_by_type(m.cfg->get_sensor_type());
+        switch_driver_to(i2c_addr);
+        request_sys_config_update();
+    }
+
+    return (AppState::OK);
+}
+
+AppState App::handle_nvm_update(void) {
+    if (m.flags.b.nvm_update_req == 1) {
+
+        if (m.update_thr_time != 0) {
+            if (Tools::get_tickcount64() < m.update_thr_time) {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "handle_nvm_update() -> delayed...");
+#endif
+                return (AppState::not_ready);
+            }
+            m.update_thr_time = 0;
+        }
+
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "handle_nvm_update() -> saving data...");
+#endif
+        m.flags.b.nvm_update_req = 0;
+        m.cfg->update();
+        vTaskDelay(pdMS_TO_TICKS(250));
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "handle_nvm_update() -> Update finished.");
+#endif
+    }
+    return (AppState::idle);
+}
+
 AppState App::run(void) {
     while (trigger_watchdog() == AppState::OK) {
+        handle_config_changes();
         handle_nvm_update();
         handle_LEDs();
         handle_display();

@@ -107,25 +107,29 @@ class App {
             DisplayPage      display_page     = DisplayPage::invalid;
 
             uint32_t         display_off_time = 0;
+            uint64_t         update_thr_time  = 0;
 
             union {
                 uint32_t f = 0;
                 struct {
-                    uint32_t error            : 1;
-                    uint32_t nvm_update_req   : 1;
-                    uint32_t display_off      : 1;
+                    uint32_t error           : 1;
+                    uint32_t display_off     : 1;
 
-                    uint32_t button_ready     : 1;
-                    uint32_t display_ready    : 1;
-                    uint32_t driver_ready     : 1;
-                    uint32_t wifi_enabled     : 1;
-                    uint32_t wifi_connected   : 1;
-                    uint32_t website_ready    : 1;
+                    uint32_t nvm_update_req  : 1;
+                    uint32_t display_cfg_req : 1;
+                    uint32_t driver_cfg_req  : 1;
 
-                    uint32_t button_event     : 1;
-                    uint32_t driver_query     : 1;
-                    uint32_t web_api_query     : 1;
-                    uint32_t website_query    : 1;
+                    uint32_t button_ready    : 1;
+                    uint32_t display_ready   : 1;
+                    uint32_t driver_ready    : 1;
+                    uint32_t wifi_enabled    : 1;
+                    uint32_t wifi_connected  : 1;
+                    uint32_t website_ready   : 1;
+
+                    uint32_t button_event    : 1;
+                    uint32_t driver_query    : 1;
+                    uint32_t web_api_query   : 1;
+                    uint32_t website_query   : 1;
                 } b;
             } flags;
 
@@ -171,6 +175,7 @@ class App {
         AppState handle_display(void);
         AppState handle_config_interface(void);
         AppState handle_mqtt_client(void);
+        AppState handle_config_changes(void);
 
         AppState reload_screensaver(void);
         AppState check_screensaver(void);
