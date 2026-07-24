@@ -136,8 +136,8 @@ AppState App::trigger_watchdog(void) {
 }
 
 AppState App::handle_nvm_update(void) {
-    if (m.flags.b.bNVMUpdateReq == 1) {
-        m.flags.b.bNVMUpdateReq = 0;
+    if (m.flags.b.nvm_update_req == 1) {
+        m.flags.b.nvm_update_req = 0;
         m.cfg->update();
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -163,7 +163,7 @@ AppState App::handle_reset(bool init_flash) {
 }
 
 AppState App::request_sys_config_update(void) {
-    m.flags.b.bNVMUpdateReq = 1;
+    m.flags.b.nvm_update_req = 1;
     return (AppState::OK);
 }
 
@@ -175,20 +175,20 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         case AppEvent::measuring_event: {
             if (m.sensor != nullptr) {
                 m.sensor->update((SensorReading*)event_data);
-                m.flags.b.bDriverQuery = 1;
+                m.flags.b.driver_query = 1;
                 m.display_request++;
             }
         } break;
 
         case AppEvent::web_query_event: {
-            m.flags.b.bWebsiteQuery = 1;
+            m.flags.b.website_query = 1;
         } break;
 
         case AppEvent::web_favicon_req: {
         } break;
 
         case AppEvent::web_api_event: {
-            m.flags.b.bWebAPIQuery = 1;
+            m.flags.b.web_api_query = 1;
         } break;
 
         case AppEvent::button_event: {
@@ -200,19 +200,19 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::button_idle: {
-            m.flags.b.bButtonEvent = 1;
+            m.flags.b.button_event = 1;
         } break;
 
         case AppEvent::button_ready: {
-            m.flags.b.bButtonReady = 1;
+            m.flags.b.button_ready = 1;
         } break;
 
         case AppEvent::display_ready: {
-            m.flags.b.bDisplayReady = 1;
+            m.flags.b.display_ready = 1;
         } break;
 
         case AppEvent::wifi_enabled: {
-            m.flags.b.bWifiEnabled = 1;
+            m.flags.b.wifi_enabled = 1;
             m.display_request++;
         } break;
 
@@ -232,14 +232,14 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
 #ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "Connected to Wifi AP \"%s\".", m.cfg->get_ssid());
 #endif
-            m.flags.b.bWifiConnected = 1;
+            m.flags.b.wifi_connected = 1;
             m.display_request++;
 
             esp_event_post(APP_EVENT, (int32_t)AppEvent::mqtt_configure, nullptr, 0, pdMS_TO_TICKS(1));
         } break;
 
         case AppEvent::driver_ready: {
-            m.flags.b.bDriverReady = 1;
+            m.flags.b.driver_ready = 1;
             m.display_request++;
 
             if (m.sensor != nullptr) {
@@ -254,9 +254,9 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::web_start_server: {
-            if ((m.flags.b.bWebsiteReady  == 0) && 
-                (m.flags.b.bWifiConnected == 1) && 
-                (m.flags.b.bDriverReady   == 1)) {
+            if ((m.flags.b.website_ready  == 0) && 
+                (m.flags.b.wifi_connected == 1) && 
+                (m.flags.b.driver_ready   == 1)) {
                 m.webserver->start(m.sensor, m.station->get_ip());
             } else {
                 vTaskDelay(pdMS_TO_TICKS(1000));
@@ -265,12 +265,12 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::web_started: {
-            m.flags.b.bWebsiteReady = 1;
+            m.flags.b.website_ready = 1;
             m.display_request++;
         } break;
 
         case AppEvent::mqtt_configure: {
-            if ((m.flags.b.bWifiConnected == 0) || (m.flags.b.bDriverReady == 0)) {
+            if ((m.flags.b.wifi_connected == 0) || (m.flags.b.driver_ready == 0)) {
                 SAFE_DELETE(m.mqtt);
                 break;
             }
@@ -298,7 +298,7 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::nvm_update: {
-            m.flags.b.bNVMUpdateReq = 1;
+            request_sys_config_update();
         } break;
 
         case AppEvent::factory_reset: {
@@ -316,13 +316,19 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
                 if (display != nullptr) {
                     display->set_contrast(cfg->get_display_contrast());
                     display->set_rotation(cfg->get_display_rotation());
-// #ifdef DISPLAY_STATE
-                    ESP_LOGI(TAG, "Display update, contrast %d%%, rotation %d°.", (int)(cfg->get_display_contrast() * 100.0f), cfg->get_display_rotation());
-// #endif
+                    request_sys_config_update();
                 }
             }
         } break;
 
+        case AppEvent::driver_config: {
+            SysConfig* cfg = get_config();
+            if (cfg != nullptr) {
+                uint8_t i2c_addr = SensorDriver::get_bus_addr_by_type(cfg->get_sensor_type());
+                switch_driver_to(i2c_addr);
+            }
+        } break;
+        
         default: {
 #ifdef DISPLAY_STATE
             ESP_LOGE(TAG, "Unsupported message %d.", (int)event_id);
