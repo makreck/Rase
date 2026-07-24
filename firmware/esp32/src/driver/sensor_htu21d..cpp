@@ -126,11 +126,10 @@ esp_err_t SensorHTU21d::read_user_register(uint8_t* data) {
 		if (data != nullptr) {
 			*data = user_register;
 		}
-
+#ifdef DISPLAY_STATE
 		ESP_LOGI(TAG, "SensorHTU21d::read_user_register(). Read successful, content = 0x%-2.2X, result = %d", (unsigned int)i2c_buffer[0], result);
-	}
-	else
-	{
+#endif        
+	} else {
 		ESP_LOGE(TAG, "SensorHTU21d::read_user_register(). Error, unable to read User Register content, result = %d", result);
 	}
 
