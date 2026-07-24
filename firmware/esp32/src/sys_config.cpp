@@ -21,8 +21,7 @@
 
 #include "app.hpp"
 
-#define DISPLAY_STATE
-
+// #define DISPLAY_STATE
 
 #define JSON_KEY_VERSION          "version"
 #define JSON_KEY_WIFI_SSID        "ssid"
@@ -233,6 +232,7 @@ AppState SysConfig::load(void) {
     if (length != sizeof(cfg)) {
         return (AppState::nvs_error);
     }
+    modified = false;
     return (check());
 }
 
