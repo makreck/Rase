@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 
 #define JSON_KEY_VERSION          "version"
@@ -256,13 +256,28 @@ AppState SysConfig::save(void) {
 }
 
 AppState SysConfig::update(void) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "SysConfig::update()");
+#endif
     AppState result = AppState::OK;
     if (modified) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "SysConfig::update() -> Data modified, writing requested.");
+#endif
         result = save();
         if (result == AppState::OK) {
             modified = false;
+#ifdef DISPLAY_STATE
+        } else {
+            ESP_LOGE(TAG, "SysConfig::update() -> Write into flash has failed.");
+#endif
         }
+#ifdef DISPLAY_STATE
+    } else {
+        ESP_LOGE(TAG, "SysConfig::update() -> Flash already up-to-date.");
+#endif
     }
+
     return (result);
 }
 
@@ -286,7 +301,7 @@ const char* SysConfig::get_display_timeout_str(void) {
 }
 
 AppState SysConfig::set_display_timeout(float _timeout_s) {
-    if ((cfg.display_timeout_s != _timeout_s) && (_timeout_s >= 0.0f)) {
+    if ((fabsf(cfg.display_timeout_s - _timeout_s) > 0.1f) && (_timeout_s >= 0.0f)) {
         cfg.display_timeout_s = _timeout_s;
         modified = true;
     }
@@ -311,7 +326,9 @@ AppState SysConfig::set_wifi_channel(int _channel) {
     if ((_channel < 1) || (_channel > 12)) {
         return (AppState::invalid_arg);
     }
-    modified = (cfg.wifi_channel != (uint8_t)_channel);
+    if (cfg.wifi_channel != (uint8_t)_channel){
+        modified = true;
+    }
     cfg.wifi_channel = (uint8_t)_channel;
     return (AppState::OK);
 }
@@ -335,15 +352,15 @@ const char* SysConfig::get_ssid(void) {
     return (cfg.ssid); 
 }
 
-AppState SysConfig::set_ssid(const char* ap_name) {
-    if (ap_name == nullptr) {
+AppState SysConfig::set_ssid(const char* _ap_name) {
+    if (_ap_name == nullptr) {
         return (AppState::invalid_arg);
     }
-    if (!strncmp(cfg.ssid, ap_name, sizeof (cfg.ssid))) {
+    if (!strncmp(cfg.ssid, _ap_name, sizeof (cfg.ssid))) {
         return (AppState::OK);
     }
     memset(cfg.ssid, 0, sizeof(cfg.ssid));
-    strncpy(cfg.ssid, ap_name, sizeof(cfg.ssid) - 1);
+    strncpy(cfg.ssid, _ap_name, sizeof(cfg.ssid) - 1);
     modified = true;
     return (AppState::OK);
 }
@@ -359,14 +376,15 @@ const char* SysConfig::get_password(void) {
     return (cfg.password); 
 }
 
-AppState SysConfig::set_password(const char* password) {
-    if ((password != nullptr) && (!strncmp(cfg.password, password, sizeof (cfg.password)))) {
+AppState SysConfig::set_password(const char* _password) {
+    if (_password == nullptr) {
+        return (AppState::invalid_arg);
+    }
+    if (!strncmp(cfg.password, _password, sizeof (cfg.password))) {
         return (AppState::OK);
     }
     memset(cfg.password, 0, sizeof (cfg.password));
-    if (password != nullptr) {
-        strncpy(cfg.password, password, sizeof (cfg.password) - 1);
-    }
+    strncpy(cfg.password, _password, sizeof (cfg.password) - 1);
     modified = true;
     return (AppState::OK);
 }
@@ -381,7 +399,9 @@ AppState SysConfig::set_LED_intensity(float _intensity) {
         preset = _intensity / 100.0f;
     }
     preset = MAX(0.0f, MIN(1.0f, preset));
-    modified = (cfg.led_intensity != preset);
+    if (fabsf(cfg.led_intensity - preset) >= 0.01f) {
+        modified = true;
+    }
     cfg.led_intensity = preset;
     return (AppState::OK);
 }
@@ -400,7 +420,9 @@ bool SysConfig::get_config_enable(void) {
 }
 
 AppState SysConfig::set_config_enable(bool enable) {
-    modified = (get_config_enable() != enable);
+    if (get_config_enable() != enable) {
+        modified = true;
+    }
     cfg.f_ifc_enable = (uint8_t)((enable) ? 1 : 0);
     return (AppState::OK);
 }
@@ -410,7 +432,9 @@ bool SysConfig::get_mqtt_enable(void) {
 }
 
 AppState SysConfig::set_mqtt_enable(bool _enable) {
-    modified = (get_mqtt_enable() != _enable);
+    if (get_mqtt_enable() != _enable) {
+        modified = true;
+    }
     cfg.f_mqtt_enable = (uint8_t)((_enable) ? 1 : 0);
     return (AppState::OK);
 }
@@ -433,9 +457,9 @@ SensorType SysConfig::get_sensor_type(void) {
 
 AppState SysConfig::set_sensor_type(SensorType _type) {
     uint8_t type = ((uint8_t)_type & 0xff);
-    modified = (type != cfg.sensor_type);
-    cfg.sensor_type = type;
-    if (modified) {
+    if (type != cfg.sensor_type) {
+        cfg.sensor_type = type;
+        modified = true;
         esp_event_post(APP_EVENT, (int32_t)AppEvent::driver_config, nullptr, 0, pdMS_TO_TICKS(1));
     }
     return (AppState::OK);
@@ -461,9 +485,9 @@ AppState SysConfig::set_display_rotation(int _degrees) {
     if ((rot_step & 1) != 0) {
         return (AppState::not_implemented);
     }
-    modified = (rot_step != cfg.f_display_rotoation);
-    cfg.f_display_rotoation = rot_step;
-    if (modified) {
+    if (rot_step != cfg.f_display_rotoation) {
+        cfg.f_display_rotoation = rot_step;
+        modified = true;
         esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
     }
     return (AppState::OK);
@@ -491,10 +515,10 @@ AppState SysConfig::set_display_contrast(float _value) {
         contrast = contrast / 100.0f;
     }
     contrast = MIN(1.0f, MAX(0.0f, contrast));
-    if (cfg.display_contrast != contrast) {
+    if (fabsf(cfg.display_contrast - contrast) >= 0.01f) {
         cfg.display_contrast = contrast;
-        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
         modified = true;
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
     }
     return (AppState::OK);
 }
@@ -531,6 +555,7 @@ AppState SysConfig::set_display_layout(DisplayLayout _layout) {
         cfg.display_layout  = (uint8_t)_layout;
         cfg.display_param   = (uint8_t)0;
         modified = true;
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
     }
     return (AppState::OK);
 }
@@ -564,8 +589,11 @@ const char* SysConfig::get_display_layout_name(DisplayLayout __layout) {
 
 AppState SysConfig::set_display_parameter(int _parameter) {
     uint8_t parameter = (uint8_t)(_parameter & 0xff);
-    modified = (cfg.display_param != parameter);
-    cfg.display_param = parameter;
+    if (cfg.display_param != parameter) {
+        cfg.display_param = parameter;
+        modified = true;
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
+    }
     return (AppState::OK);
 }
 
@@ -578,15 +606,15 @@ uint8_t SysConfig::get_display_parameter(void) {
     return (cfg.display_param);
 }
 
-AppState SysConfig::set_mqtt_broker(const char* broker) {
-    if (broker == nullptr) {
+AppState SysConfig::set_mqtt_broker(const char* _broker) {
+    if (_broker == nullptr) {
         return (AppState::invalid_arg);
     }
-    if (!strncmp(cfg.mqtt_broker, broker, sizeof (cfg.mqtt_broker))) {
+    if (!strncmp(cfg.mqtt_broker, _broker, sizeof (cfg.mqtt_broker))) {
         return (AppState::OK);
     }
     memset(cfg.mqtt_broker, 0, sizeof(cfg.mqtt_broker));
-    strncpy(cfg.mqtt_broker, broker, sizeof(cfg.mqtt_broker) - 1);
+    strncpy(cfg.mqtt_broker, _broker, sizeof(cfg.mqtt_broker) - 1);
     modified = true;
     return (AppState::OK);
 }
@@ -603,14 +631,15 @@ AppState SysConfig::set_mqtt_username_str(SysConfig* _instance, const char* _use
     return (_instance->set_mqtt_username(_username));
 }
 
-AppState SysConfig::set_mqtt_username(const char* username) {
-    if ((username != nullptr) && (!strncmp(cfg.mqtt_username, username, sizeof (cfg.mqtt_username)))) {
+AppState SysConfig::set_mqtt_username(const char* _username) {
+    if (_username == nullptr) {
+        return (AppState::invalid_arg);
+    }
+    if (!strncmp(cfg.mqtt_username, _username, sizeof (cfg.mqtt_username)))) {
         return (AppState::OK);
     }
     memset(cfg.mqtt_username, 0, sizeof (cfg.mqtt_username));
-    if (username != nullptr) {
-        strncpy(cfg.mqtt_username, username, sizeof (cfg.mqtt_username) - 1);
-    }
+    strncpy(cfg.mqtt_username, _username, sizeof (cfg.mqtt_username) - 1);
     modified = true;
     return (AppState::OK);
 }
@@ -619,14 +648,15 @@ const char* SysConfig::get_mqtt_username(void) {
     return (cfg.mqtt_username);
 }
 
-AppState SysConfig::set_mqtt_password(const char* password) {
-    if ((password != nullptr) && (!strncmp(cfg.mqtt_password, password, sizeof (cfg.mqtt_password)))) {
+AppState SysConfig::set_mqtt_password(const char* _password) {
+    if (_password == nullptr) {
+        return (AppState::invalid_arg);
+    }
+    if (!strncmp(cfg.mqtt_password, _password, sizeof (cfg.mqtt_password)))) {
         return (AppState::OK);
     }
     memset(cfg.mqtt_password, 0, sizeof (cfg.mqtt_password));
-    if (password != nullptr) {
-        strncpy(cfg.mqtt_password, password, sizeof (cfg.mqtt_password) - 1);
-    }
+    strncpy(cfg.mqtt_password, _password, sizeof (cfg.mqtt_password) - 1);
     modified = true;
     return (AppState::OK);
 }
