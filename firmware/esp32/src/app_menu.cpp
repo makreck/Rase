@@ -225,25 +225,10 @@ AppState App::select_driver(void) {
     return (AppState::OK);
 }
 
-AppState App::switch_driver_to(uint8_t i2c_addr) {
-    if (m.sensor == nullptr) {
-        return (AppState::not_ready);
-    }
-    m.driver = nullptr;
-    m.sensor->set_driver(m.driver);
-    m.flags.b.driver_ready = 0;
-    m.driver = SensorDriver::create_driver_by_address(i2c_addr);
-    if (m.driver != nullptr) {
-        m.cfg->set_sensor_type(m.driver->get_sensor_type());
-        request_sys_config_update();
-    }
-    return (AppState::OK);
-}
-
 bool App::exit_Menu(void) {
     if ((m.menu[m.menuSelect].id >= IDM_SENSOR_BASE) && (m.menu[m.menuSelect].id < IDM_SENSOR_LAST)) {
         int i = m.menu[m.menuSelect].id - IDM_SENSOR_BASE;
-        switch_driver_to(m.drv_scan_adr[i]);
+        m.cfg->set_sensor_type(m.drv_scan_type[i]);
         return (true);
     } else if ((m.menu[m.menuSelect].id >= IDM_LED_INTENSITY_BASE) && (m.menu[m.menuSelect].id <= IDM_LED_INTENSITY_LAST)) {
         int i = m.menu[m.menuSelect].id - IDM_LED_INTENSITY_BASE;
