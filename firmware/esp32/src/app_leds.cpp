@@ -40,25 +40,25 @@ AppState App::handle_LEDs(void) {
 
     float intensity = m.cfg->get_LED_intensity();
 
-    if (m.flags.b.bError == 1) {
+    if (m.flags.b.error == 1) {
         m.led->set_color((color_t)ColorRef::RED, intensity);
         m.led->set_LED(intensity);
-    } else if (m.flags.b.bDriverQuery == 1) {
-        m.flags.b.bDriverQuery = 0;
+    } else if (m.flags.b.driver_query == 1) {
+        m.flags.b.driver_query = 0;
         m.led->set_color((color_t)ColorRef::GREEN, intensity);
         m.led->set_LED(intensity);
-    } else if ((m.flags.b.bWebsiteQuery == 1) || (m.flags.b.bWebAPIQuery == 1)) {
-        m.flags.b.bWebsiteQuery = 0;
-        m.flags.b.bWebAPIQuery = 0;
+    } else if ((m.flags.b.website_query == 1) || (m.flags.b.web_api_query == 1)) {
+        m.flags.b.website_query = 0;
+        m.flags.b.web_api_query = 0;
         m.led->set_color((color_t)ColorRef::BLUE, intensity);
         m.led->set_LED(intensity);
     } else {
         m.led->set_LED(0.0f);
-        if (m.flags.b.bDriverReady == 0) {
+        if (m.flags.b.driver_ready == 0) {
             m.led->set_color((color_t)ColorRef::RED, intensity);
-        } else if (m.flags.b.bWifiConnected == 0) {
+        } else if (m.flags.b.wifi_connected == 0) {
             m.led->set_color((color_t)ColorRef::ORANGE, intensity);
-        } else if (m.flags.b.bWebsiteReady == 0) {
+        } else if (m.flags.b.website_ready == 0) {
             m.led->set_color((color_t)ColorRef::YELLOW, intensity);
         } else {
             m.led->set_color((color_t)ColorRef::BLACK, 0.0f);

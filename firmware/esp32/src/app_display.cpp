@@ -59,13 +59,13 @@ AppState App::handle_display(void) {
         return (AppState::menu);
     } 
 
-    if (m.flags.b.bButtonEvent == 1) {
+    if (m.flags.b.button_event == 1) {
         if (reload_screensaver() == AppState::idle) {
-            m.flags.b.bButtonEvent = 0;    
+            m.flags.b.button_event = 0;    
             m.display_request++;
         } else {
             if (m.btnState.button_message == BTN_SHORT_PRESS) {
-                m.flags.b.bButtonEvent = 0;    
+                m.flags.b.button_event = 0;    
                 display_next();
             }
         }
@@ -103,9 +103,9 @@ AppState App::handle_display(void) {
 
 AppState App::print_net_Info(void) {
     const char* ip_txt;
-    if (m.flags.b.bWifiConnected == 1) {
+    if (m.flags.b.wifi_connected == 1) {
         ip_txt = m.station->get_ip();
-    } else if (m.flags.b.bWifiEnabled == 1) {
+    } else if (m.flags.b.wifi_enabled == 1) {
         ip_txt = "WLAN connecting";
     } else {
         ip_txt = "WLAN not connect";
@@ -183,9 +183,9 @@ AppState App::display_small_value_page(void) {
     m.display->print(0, 0, line, 16);
 
     const char* ip_txt;
-    if (m.flags.b.bWifiConnected == 1) {
+    if (m.flags.b.wifi_connected == 1) {
         ip_txt = m.station->get_ip();
-    } else if (m.flags.b.bWifiEnabled == 1) {
+    } else if (m.flags.b.wifi_enabled == 1) {
         ip_txt = "WLAN connecting";
     } else {
         ip_txt = "WLAN not connect";
@@ -336,8 +336,8 @@ AppState App::display_info_page(void) {
 
 void App::flip_display(void) {
     m.cfg->flip_display_rotation();
-    m.display->set_rotation(m.cfg->get_display_rotation());
     m.display_request++;
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
 }
 
 void App::set_display_contrast(float value) {
@@ -347,7 +347,7 @@ void App::set_display_contrast(float value) {
     }
 
     m.cfg->set_display_contrast(value);
-    request_sys_config_update();
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
 }
 
 AppState App::set_display_page(DisplayPage page) {
@@ -376,8 +376,8 @@ bool App::reload_display_timeout(void) {
 AppState App::reload_screensaver(void) {
     AppState state = AppState::OK;
 
-    if (m.flags.b.bDisplayOFF == 1) {
-        m.flags.b.bDisplayOFF = 0;
+    if (m.flags.b.display_off == 1) {
+        m.flags.b.display_off = 0;
         m.display->on();
         state = AppState::idle;
     }
@@ -387,14 +387,14 @@ AppState App::reload_screensaver(void) {
 }
 
 AppState App::check_screensaver(void) {
-    if ((m.display_off_time == 0) || (m.flags.b.bDisplayOFF == 1)) {
+    if ((m.display_off_time == 0) || (m.flags.b.display_off == 1)) {
         return (AppState::OK);
     }
 
     if (Tools::get_tick_seconds() >= m.display_off_time) {
-        if (m.flags.b.bDisplayOFF == 0) {
+        if (m.flags.b.display_off == 0) {
             m.display->off();
-            m.flags.b.bDisplayOFF = 1;
+            m.flags.b.display_off = 1;
         }
         return (AppState::sleep);
     }

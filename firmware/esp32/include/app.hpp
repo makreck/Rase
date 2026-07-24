@@ -111,21 +111,21 @@ class App {
             union {
                 uint32_t f = 0;
                 struct {
-                    uint32_t bError          : 1;
-                    uint32_t bNVMUpdateReq   : 1;
-                    uint32_t bDisplayOFF     : 1;
+                    uint32_t error            : 1;
+                    uint32_t nvm_update_req   : 1;
+                    uint32_t display_off      : 1;
 
-                    uint32_t bButtonReady    : 1;
-                    uint32_t bDisplayReady   : 1;
-                    uint32_t bDriverReady    : 1;
-                    uint32_t bWifiEnabled    : 1;
-                    uint32_t bWifiConnected  : 1;
-                    uint32_t bWebsiteReady   : 1;
+                    uint32_t button_ready     : 1;
+                    uint32_t display_ready    : 1;
+                    uint32_t driver_ready     : 1;
+                    uint32_t wifi_enabled     : 1;
+                    uint32_t wifi_connected   : 1;
+                    uint32_t website_ready    : 1;
 
-                    uint32_t bButtonEvent    : 1;
-                    uint32_t bDriverQuery    : 1;
-                    uint32_t bWebAPIQuery    : 1;
-                    uint32_t bWebsiteQuery   : 1;
+                    uint32_t button_event     : 1;
+                    uint32_t driver_query     : 1;
+                    uint32_t web_api_query     : 1;
+                    uint32_t website_query    : 1;
                 } b;
             } flags;
 

@@ -132,10 +132,10 @@ AppState App::handle_menu(void) {
         return (AppState::not_implemented);
     }
 
-    if (m.flags.b.bButtonEvent == 0) {
+    if (m.flags.b.button_event == 0) {
         return (AppState::idle);
     }
-    m.flags.b.bButtonEvent = 0;    
+    m.flags.b.button_event = 0;    
 
     if (m.btnState.button_message == BTN_LONG_PRESS) {
         if (m.display_page == DisplayPage::menu) {
@@ -231,7 +231,7 @@ AppState App::switch_driver_to(uint8_t i2c_addr) {
     }
     m.driver = nullptr;
     m.sensor->set_driver(m.driver);
-    m.flags.b.bDriverReady = 0;
+    m.flags.b.driver_ready = 0;
     m.driver = SensorDriver::create_driver_by_address(i2c_addr);
     if (m.driver != nullptr) {
         m.cfg->set_sensor_type(m.driver->get_sensor_type());
@@ -284,7 +284,6 @@ bool App::exit_Menu(void) {
 
             case IDM_ROTATE: {
                 flip_display();
-                request_sys_config_update();
             } return (true);
 
             case IDM_CONTRAST: {
@@ -321,17 +320,17 @@ bool App::exit_Menu(void) {
 
             case IDM_LAYOUT_VALUE_PAGE: {
                 m.cfg->set_display_layout(DisplayLayout::large_values);
-                request_sys_config_update();
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
             } return (true);
 
             case IDM_LAYOUT_DETAILS_PAGE: {
                 m.cfg->set_display_layout(DisplayLayout::detailes);
-                request_sys_config_update();
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
             } return (true);
 
             case IDM_LAYOUT_INFO_PAGE: {
                 m.cfg->set_display_layout(DisplayLayout::info);
-                request_sys_config_update();
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
             } return (true);
 
             default: {
