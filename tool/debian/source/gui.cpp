@@ -23,7 +23,7 @@
 
 
 const ToolbarItems main_toolbar[] = {
-    { svg_search, (void*)IDS_DEVICE_SCAN       },
+    { svg_search, (void*)IDS_SEARCH       },
     { nullptr,    (void*)nullptr               },
     { svg_reload, (void*)IDS_RELOAD_DATA       },
     { svg_upload, (void*)IDS_PROGRAM_DEV       },
@@ -130,6 +130,8 @@ void App::activate(void) {
     create_gui();
     handle_dialog_items(true);
     pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
+    const char* status = (strlen(m.ifac) > 4) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+    set_status(status, m.ifac, "---", "---");
     gtk_main();
 }
 
@@ -549,13 +551,13 @@ void App::on_command(CallbackParameter* p) {
         case IDS_PASTE: {
         } break;
 
-        case IDS_DEVICE_SCAN:
+        case IDS_SEARCH:
         case IDS_PROGRAM_DEV:
         case IDS_RELOAD_DATA:
         case IDS_RESET_DEVICE:
         case IDS_FIRMWARE_UPLOAD:
         case IDS_INITIALIZE_DEVICE: {
-            set_status(APPSTRING(item_id));
+            set_status(nullptr, nullptr, APPSTRING(item_id));
             gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, item_id));
         } break;
 
@@ -636,8 +638,10 @@ void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2,
         gtk_label_set_text(GTK_LABEL(m.gtk.status[3]), _box_3);
     }
 
+    usleep(250000);
     gtk_widget_queue_draw(m.gtk.status_box);
     gtk_widget_show_all(m.gtk.win);
+    usleep(250000);
 }
 
 void* App::_interval_thread(void* _object) {
@@ -646,8 +650,11 @@ void* App::_interval_thread(void* _object) {
 }
 void App::interval_thread(void) {
     while (true) {
-        sleep(1);
-        gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, -1));
+        usleep(250000);
+        if (m.update_request) {
+            m.update_request = false;
+            gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, -1));
+        }
     }
 }
 
@@ -660,21 +667,24 @@ void App::idle_task(CallbackParameter* p) {
     int64_t item_id = (int64_t)(p->get_pointer());
     switch(item_id) {
         case -1: {
-            set_status(APPSTRING(IDS_CONNECTED), nullptr, nullptr, m.ifac);
+            const char* status = (strlen(m.ifac) > 4) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+            set_status(status, m.ifac, "---", "---");
         } break;
 
-        case IDS_DEVICE_SCAN: {
+        case IDS_SEARCH: {
             if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
                 if (m.device.read_data(m.ifac)) {
                     handle_dialog_items(true);
                 }
             }
+            m.update_request = true;
         } break;
 
         case IDS_RELOAD_DATA: {
             if (m.device.read_data(m.ifac)) {
                 handle_dialog_items(true);
             }
+            m.update_request = true;
         } break;
 
         case IDS_PROGRAM_DEV: {
@@ -687,6 +697,7 @@ void App::idle_task(CallbackParameter* p) {
                 }
                 free(json_string);
             }
+            m.update_request = true;
         } break;
 
         case IDS_RESET_DEVICE: {
@@ -694,6 +705,7 @@ void App::idle_task(CallbackParameter* p) {
             if (response != nullptr) {
                 free(response);
             }
+            m.update_request = true;
         } break;
 
         case IDS_INITIALIZE_DEVICE: {
@@ -701,9 +713,11 @@ void App::idle_task(CallbackParameter* p) {
             if (response != nullptr) {
                 free(response);
             }
+            m.update_request = true;
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
+            m.update_request = true;
         } break;
 
         default: {

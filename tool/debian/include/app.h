@@ -54,6 +54,7 @@ class App {
                 GtkWidget*   scrolled     = nullptr;
                 GtkWidget*  status_box    = nullptr;
                 GtkWidget*   status_grid  = nullptr;
+                
                 GtkWidget*    status[4]{ nullptr, nullptr, nullptr, nullptr };
 
                 std::vector<GtkWidget*>  menu_items;
@@ -64,6 +65,7 @@ class App {
             } rc;
 
             int toolIconSize = 28;
+            bool update_request = false;
             pthread_t thread_handle = 0;
 
             DevConfig device;

@@ -44,7 +44,7 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "cancel",
         "enabled",
         "disabled",
-        "Device scan",
+        "Search device",
 
         "Version",
         "SSID",

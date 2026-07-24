@@ -62,7 +62,7 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_CANCEL                  (9)
 #define IDS_ENABLED                 (10)
 #define IDS_DISABLED                (11)
-#define IDS_DEVICE_SCAN             (12)
+#define IDS_SEARCH                  (12)
 #define IDS_VERSION                 (13)
 #define IDS_WIFI_SSID               (14)
 #define IDS_WIFI_PASSWORD           (15)
