@@ -76,7 +76,7 @@ SensorDevice::~SensorDevice() {
 void SensorDevice::delete_driver(void) {
     xSemaphoreTake(m.mutex, portMAX_DELAY);
 
-    SAFE_DELETE(m.driver);
+    m.driver = nullptr;
     
     for (size_t i = 0; i < m.node.size(); i++) {
         delete (m.node[i]);
