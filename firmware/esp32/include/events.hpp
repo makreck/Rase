@@ -53,7 +53,8 @@ enum class AppEvent:uint32_t {
 
     driver_ready      = 600,
     measuring_event   = 601,
-
+    driver_config     = 603,
+    
     button_ready      = 700,
     button_event      = 701,
     button_idle       = 702,
