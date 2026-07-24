@@ -635,7 +635,7 @@ AppState SysConfig::set_mqtt_username(const char* _username) {
     if (_username == nullptr) {
         return (AppState::invalid_arg);
     }
-    if (!strncmp(cfg.mqtt_username, _username, sizeof (cfg.mqtt_username)))) {
+    if (!strncmp(cfg.mqtt_username, _username, sizeof (cfg.mqtt_username))) {
         return (AppState::OK);
     }
     memset(cfg.mqtt_username, 0, sizeof (cfg.mqtt_username));
@@ -652,7 +652,7 @@ AppState SysConfig::set_mqtt_password(const char* _password) {
     if (_password == nullptr) {
         return (AppState::invalid_arg);
     }
-    if (!strncmp(cfg.mqtt_password, _password, sizeof (cfg.mqtt_password)))) {
+    if (!strncmp(cfg.mqtt_password, _password, sizeof (cfg.mqtt_password))) {
         return (AppState::OK);
     }
     memset(cfg.mqtt_password, 0, sizeof (cfg.mqtt_password));
