@@ -446,7 +446,7 @@ GtkWidget* App::create_dialog(void) {
 
     GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
     m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     APPSTRING(IDS_LIST_LED_INTENSITY)));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       APPSTRING(IDS_LIST_SENSOR_TYPES)));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       m.device.cfg._sensor_type_list));
 
     DialogItem* item;
     item = get_item(IDS_WIFI_PASSWORD);
@@ -482,7 +482,7 @@ GtkWidget* App::create_dialog(void) {
     m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 6, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
     
     m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 7, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 7, m.device.id.system_time,          sizeof (m.device.id.system_time),            nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 7, m.device.id.system_time,          sizeof (m.device.id.system_time),          nullptr));
 
     return (m.gtk.dialog);
 }
@@ -676,6 +676,8 @@ void App::idle_task(CallbackParameter* p) {
                 if (m.device.read_data(m.ifac)) {
                     handle_dialog_items(true);
                 }
+            } else {
+                memset(m.ifac, 0, sizeof (m.ifac));
             }
             m.update_request = true;
         } break;
@@ -691,6 +693,7 @@ void App::idle_task(CallbackParameter* p) {
             size_t length = 0;
             char* json_string = m.device.get_config_json("/config=", &length);
             if (json_string != nullptr) {
+printf("Programmed:\n%s\n", json_string); // ****
                 char* response = DevConfig::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
                     free(response);
