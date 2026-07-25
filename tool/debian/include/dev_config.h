@@ -26,6 +26,22 @@
 // #define WCFG_VERSION                 (0x20260701)
 // #define WCFG_VERSION                 (0x20260410)
 
+#define JSON_KEY_VERSION             "version"
+#define JSON_KEY_WIFI_SSID           "ssid"
+#define JSON_KEY_WIFI_PASSWORD       "password"
+#define JSON_KEY_WIFI_CHANNEL        "wifi_channel"
+#define JSON_KEY_MQTT_BROKER         "mqtt_broker"
+#define JSON_KEY_MQTT_USERNAME       "mqtt_username"
+#define JSON_KEY_MQTT_PASSWORD       "mqtt_password"
+#define JSON_KEY_MQTT_ENABLE         "mqtt_enable"
+#define JSON_KEY_DISPLAY_LAYOUT      "display_layout"
+#define JSON_KEY_DISPLAY_PARAM       "display_param"
+#define JSON_KEY_DISPLAY_ROTATION    "display_rotation"
+#define JSON_KEY_DISPLAY_TIMEOUT     "display_timeout"
+#define JSON_KEY_DISPLAY_CONTRAST    "display_contrast"
+#define JSON_KEY_SENSOR_TYPE         "sensor_type"
+#define JSON_KEY_LED_INTENSITY       "led_intensity"
+
 #define WIFI_AP_NAME_MAX             (32)
 #define MQTT_BROKER_MAX              (64)
 #define USERNAME_MAX                 (32)

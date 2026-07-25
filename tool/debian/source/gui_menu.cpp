@@ -136,31 +136,30 @@ void App::on_menu(CallbackParameter* p) {
         // case IDS_DEVICE_MENU: {
         // } break;
 
+        // case IDS_CONTRAST: {  
+        // } break;
+
+        // case IDS_DISPLAY_OFF: {
+        // } break;
+
         case IDS_MAIN: {       
-            GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "In the device, this always returns to the main menu.");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            app_menu_display_messagebox("In the device, this always returns to the main menu.");
         } break;
 
         case IDS_EXIT: {       
-            GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "In the device, this always closes the menu.");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            app_menu_display_messagebox("In the device, this always closes the menu.");
         } break;
 
         case IDS_TITLE_MAIN: { 
-            GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "In the device, this is the 1st menu displayed.");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            app_menu_display_messagebox("In the device, this is the 1st menu displayed.");
         } break;
 
-        // case IDS_LAYOUT: {     
-        // } break;
+        case IDS_LAYOUT: {     
+            app_menu_display_messagebox("In the device, this is the menu for selecting the display layout.");
+        } break;
 
         case IDS_CONFIG: {     
-            GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "In the device, this is the 1st menu displayed.");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            app_menu_display_messagebox("In the device, this is the 1st menu displayed.");
         } break;
 
         case IDS_REBOOT: {     
@@ -172,40 +171,39 @@ void App::on_menu(CallbackParameter* p) {
         } break;
 
         case IDS_TITLE_DISPLAY: {
-            GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "In the device, this menu is for display related settings.");
-            gtk_dialog_run(GTK_DIALOG(dialog));
-            gtk_widget_destroy(dialog);
+            app_menu_display_messagebox("In the device, this menu is for display related settings.");
         } break;
 
         case IDS_ROTATE: {
             app_menu_display_rotation();
         } break;
 
-        // case IDS_CONTRAST: {  
-        // } break;
-
-        // case IDS_DISPLAY_OFF: {
-        // } break;
-
         case IDS_TITLE_CONFIG: {
+            app_menu_display_messagebox("This menu contains the general configuration properties.");
         } break;
 
         case IDS_DISPLAY: {
+            app_menu_display_messagebox("This menu contains the display related configuration properties.");
         } break;
 
         case IDS_INTENSITY: {
+            app_menu_display_messagebox("This menu is used to change the signal LED intensity.");
         } break;
 
         case IDS_MQTT_CLIENT: {
+            app_menu_enable_disable(IDS_MQTT_ENABLE, JSON_KEY_MQTT_ENABLE);
         } break;
 
         case IDS_CONFIG_INTERFACE: {
+            app_menu_display_messagebox("This menu is used to enable or disable the config interface.\nThis cannot be disabled while using it.\nPlease use device internal menu.");
         } break;
 
         case IDS_SENSOR_SELECT: {
+            app_menu_display_messagebox("This menu is used to select one of the connected saensor heads.");
         } break;
 
         case IDS_TITLE_CONTRAST: {
+            app_menu_display_messagebox("This menu is used to change the OLED display intensity.");
         } break;
 
         case IDS_CONTRAST_100:
@@ -225,6 +223,7 @@ void App::on_menu(CallbackParameter* p) {
         case IDS_LAYOUT_VALUE_PAGE:
         case IDS_LAYOUT_DETAILS_PAGE:
         case IDS_LAYOUT_INFO_PAGE: {
+            app_menu_display_layout(item_id);
         } break;
 
         case IDS_TITLE_TIMEOUT: {
@@ -236,6 +235,7 @@ void App::on_menu(CallbackParameter* p) {
         case IDS_DISPLAY_OFF_5MIN:   
         case IDS_DISPLAY_OFF_15MIN:  
         case IDS_DISPLAY_OFF_30MIN: {
+            app_menu_display_timeout(item_id);
         } break;
 
         case IDS_TITLE_LED_INTENSITY: {
@@ -247,6 +247,7 @@ void App::on_menu(CallbackParameter* p) {
         case IDS_LED_INTENSITY_25:   
         case IDS_LED_INTENSITY_10:   
         case IDS_LED_INTENSITY_1: {
+            app_menu_led_intensity(item_id);
         } break;
 
         default: {
@@ -254,8 +255,14 @@ void App::on_menu(CallbackParameter* p) {
     }
 }
 
+void App::app_menu_display_messagebox(const char* _string) {
+    GtkWidget *dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, _string, "");
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+}
+
 void App::app_menu_display_rotation(void) {
-    DialogItem *item = get_item(IDS_DISPLAY_ROTATION);
+    DialogItem* item = get_item(IDS_DISPLAY_ROTATION);
     if (item == nullptr) { return; }
     int angle = (strstr(item->field, "180") != nullptr) ? 0 : 180;
     snprintf(item->field, sizeof(item->field), "%d°", angle);
@@ -264,19 +271,67 @@ void App::app_menu_display_rotation(void) {
     gdk_threads_add_idle(App::_idle_task, ON_ITEM_PAR(this, IDS_EXEC_COMMAND, m.cmd));
 }
 
-void App::app_menu_display_contrast(int _item_id) {
-    DialogItem *item = get_item(IDS_DISPLAY_CONTRAST);
+void App::app_menu_handle_str_tab(int _item_id, int _base_id, int _dlg_item_id, const char* _tab, const char* _key) {
+    char string[1024]{ 0 };
+    strncpy(string, _tab, sizeof (string) - 1);
+
+    char* tab[64]{ nullptr };
+    tab[0] = string;
+    int len = 1;
+    size_t size = strlen(string);
+    for (int i = 1; i < size; i++) {
+        if (string[i] == '\n') {
+            string[i++] = '\0';
+            tab[len++] = &string[i];
+        }
+    }
+
+    DialogItem* item = get_item(_dlg_item_id);
     if (item == nullptr) { return; }
 
-    int tab[] = { 100, 80, 60, 50, 40, 30, 20, 10 };
-    int index = _item_id - IDS_CONTRAST_100;
-    if ((index < 0) || (index >= SIZEOFARRAY(tab))) {
+    int index = _item_id - _base_id;
+    if ((index < 0) || (index >= len)) {
         return;
     }
-    
-    snprintf(item->field, sizeof(item->field), "%d%%", tab[index]);
+
+    memset(item->field, 0, item->length);
+    strncpy(item->field, tab[index], item->length);
     handle_item_change(item, true);
 
-    snprintf(m.cmd, sizeof(m.cmd), "/par=display_contrast:%d", tab[index]);
+    snprintf(m.cmd, sizeof(m.cmd), "/par=%s:%s", _key, tab[index]);
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM_PAR(this, IDS_EXEC_COMMAND, m.cmd));
+}
+
+void App::app_menu_display_contrast(int _item_id) {
+    app_menu_handle_str_tab(_item_id, IDS_CONTRAST_100, IDS_DISPLAY_CONTRAST, APPSTRING(IDS_LIST_DISPLAY_CONTRAST), JSON_KEY_DISPLAY_CONTRAST);
+}
+
+void App::app_menu_display_timeout(int _item_id) {
+    app_menu_handle_str_tab(_item_id, IDS_DISPLAY_OFF_NEVER, IDS_DISPLAY_TIMEOUT, APPSTRING(IDS_LIST_DISPLAY_TIMEOUTS), JSON_KEY_DISPLAY_TIMEOUT);
+}
+
+void App::app_menu_display_layout(int _item_id) {
+    app_menu_handle_str_tab(_item_id, IDS_LAYOUT_VALUE_PAGE, IDS_DISPLAY_LAYOUT, APPSTRING(IDS_LIST_DISPLAY_PAGE), JSON_KEY_DISPLAY_LAYOUT);
+}
+
+void App::app_menu_led_intensity(int _item_id) {
+    app_menu_handle_str_tab(_item_id, IDS_LED_INTENSITY_100, IDS_LED_INTENSITY, APPSTRING(IDS_LIST_LED_INTENSITY), JSON_KEY_LED_INTENSITY);
+}
+
+void App::app_menu_enable_disable(int _dlg_item_id, const char* _key) {
+    DialogItem* item = get_item(_dlg_item_id);
+    if (item == nullptr) { return; }
+
+    const char* p;
+    if (strstr(item->field, APPSTRING(IDS_ENABLED)) != nullptr) {
+        p = APPSTRING(IDS_DISABLED);
+    } else {
+        p = APPSTRING(IDS_ENABLED);
+    }
+    memset(item->field, 0, item->length);
+    strncpy(item->field, p, item->length - 1);
+    handle_item_change(item, true);
+
+    snprintf(m.cmd, sizeof(m.cmd), "/par=%s:%s", _key, p);
     gdk_threads_add_idle(App::_idle_task, ON_ITEM_PAR(this, IDS_EXEC_COMMAND, m.cmd));
 }

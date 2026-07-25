@@ -120,8 +120,14 @@ class App {
         GtkWidget* create_dialog(void);
         GtkWidget* create_statusbar(void);
 
+        void app_menu_handle_str_tab(int _item_id, int _base_id, int _dlg_item_id, const char* _tab, const char* _key);
+        void app_menu_enable_disable(int _dlg_item_id, const char* _key);
+        void app_menu_display_messagebox(const char* _string);
         void app_menu_display_rotation(void);
+        void app_menu_display_timeout(int _item_id);
+        void app_menu_display_layout(int _item_id);
         void app_menu_display_contrast(int _item_id);
+        void app_menu_led_intensity(int _item_id);
 
         void run_command(char* cmd);
         char* load_config_json(char* cmd);

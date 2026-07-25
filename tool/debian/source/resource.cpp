@@ -153,58 +153,8 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "5 Low 25%",
         "6 Very low 10%",
         "7 Min. 1%",
-
     }
 };
-
-
-/*
-#define IDS_DEVICE_MENU
-#define IDS_MAIN
-#define IDS_EXIT
-#define IDS_TITLE_MAIN
-#define IDS_LAYOUT
-#define IDS_CONFIG
-#define IDS_REBOOT
-#define IDS_FACTORY_RESET
-#define IDS_TITLE_DISPLAY
-#define IDS_ROTATE
-#define IDS_CONTRAST
-#define IDS_DISPLAY_OFF
-#define IDS_TITLE_CONFIG
-#define IDS_DISPLAY
-#define IDS_LED_INTENSITY
-#define IDS_MQTT_CLIENT
-#define IDS_CONFIG_INTERFACE
-#define IDS_SENSOR_SELECT
-#define IDS_TITLE_CONTRAST
-#define IDS_CONTRAST_100
-#define IDS_CONTRAST_80
-#define IDS_CONTRAST_60
-#define IDS_CONTRAST_40
-#define IDS_CONTRAST_20
-#define IDS_CONTRAST_10
-#define IDS_CONTRAST_20
-#define IDS_CONTRAST_10
-#define IDS_TITLE_LAYOUT
-#define IDS_LAYOUT_VALUE_PAGE
-#define IDS_LAYOUT_DETAILS_PAGE
-#define IDS_LAYOUT_INFO_PAGE
-#define IDS_TITLE_TIMEOUT
-#define IDS_DISPLAY_OFF_NEVER
-#define IDS_DISPLAY_OFF_10SEC
-#define IDS_DISPLAY_OFF_1MIN
-#define IDS_DISPLAY_OFF_5MIN
-#define IDS_DISPLAY_OFF_15MIN
-#define IDS_DISPLAY_OFF_30MIN
-#define IDS_TITLE_LED_INTENSITY
-#define IDS_LED_INTENSITY_100
-#define IDS_LED_INTENSITY_75
-#define IDS_LED_INTENSITY_50
-#define IDS_LED_INTENSITY_25
-#define IDS_LED_INTENSITY_10
-#define IDS_LED_INTENSITY_1
-*/
 
 const char* AppString::get(int _language, int64_t _id) {
     if (_id >= (int64_t)65536) {
