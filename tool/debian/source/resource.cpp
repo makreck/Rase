@@ -95,7 +95,8 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Initializing ...",
         "Reload data",
         "Firmware upload",
-
+        "Execute command",
+        
         "No connected device found!\n\nPlease connect a device first and ensure\nthat the config interface is enabled.",
         "Unable to read config data from device!\n\nPlease ensure that the config interface\nis enabled.",
 

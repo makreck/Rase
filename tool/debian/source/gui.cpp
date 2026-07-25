@@ -21,82 +21,6 @@
 
 #include "includes.h"
 
-
-const ToolbarItems main_toolbar[] = {
-    { svg_search, (void*)IDS_SEARCH       },
-    { nullptr,    (void*)nullptr               },
-    { svg_reload, (void*)IDS_RELOAD_DATA       },
-    { svg_upload, (void*)IDS_PROGRAM_DEV       },
-    { nullptr,    (void*)nullptr               },
-    { svg_reset,  (void*)IDS_RESET_DEVICE      },
-    { nullptr,    (void*)nullptr               },
-    { svg_ic,     (void*)IDS_FIRMWARE_UPLOAD   },
-    { svg_init,   (void*)IDS_INITIALIZE_DEVICE },
-};
-const size_t sizeOf_main_toolbar = SIZEOFARRAY(main_toolbar);
-
-MenuTree menu_tree[] = {
-    { 1, IDS_FILE},
-    {  2, IDS_QUIT},
-
-    { 1, IDS_EDIT},
-    {  2, IDS_COPY},
-    {  2, IDS_PASTE},
-
-    { 1, IDS_DEVICE_MENU},
-    {  2, IDS_TITLE_MAIN},
-    {  2, IDS_EXIT},
-    {  2, IDS_LAYOUT},
-    {   3, IDS_TITLE_LAYOUT},
-    {   3, IDS_MAIN},
-    {   3, IDS_LAYOUT_VALUE_PAGE},
-    {   3, IDS_LAYOUT_DETAILS_PAGE},
-    {   3, IDS_LAYOUT_INFO_PAGE},
-    {  2, IDS_CONFIG},
-    {   3, IDS_TITLE_CONFIG},
-    {   3, IDS_MAIN},
-    {   3, IDS_DISPLAY},
-    {    4, IDS_TITLE_DISPLAY},
-    {    4, IDS_MAIN},
-    {    4, IDS_ROTATE},
-    {    4, IDS_CONTRAST},
-    {     5, IDS_TITLE_CONTRAST},
-    {     5, IDS_MAIN},
-    {     5, IDS_CONTRAST_100},
-    {     5, IDS_CONTRAST_80},
-    {     5, IDS_CONTRAST_60},
-    {     5, IDS_CONTRAST_40},
-    {     5, IDS_CONTRAST_20},
-    {     5, IDS_CONTRAST_10},
-    {     5, IDS_CONTRAST_20},
-    {     5, IDS_CONTRAST_10},
-    {    4, IDS_DISPLAY_OFF},
-    {     5, IDS_TITLE_TIMEOUT},
-    {     5, IDS_MAIN},
-    {     5, IDS_DISPLAY_OFF_NEVER},
-    {     5, IDS_DISPLAY_OFF_10SEC},
-    {     5, IDS_DISPLAY_OFF_1MIN},
-    {     5, IDS_DISPLAY_OFF_5MIN},
-    {     5, IDS_DISPLAY_OFF_15MIN},
-    {     5, IDS_DISPLAY_OFF_30MIN},
-    {   3, IDS_INTENSITY},
-    {    4, IDS_TITLE_LED_INTENSITY},
-    {    4, IDS_MAIN},
-    {    4, IDS_LED_INTENSITY_100},
-    {    4, IDS_LED_INTENSITY_75},
-    {    4, IDS_LED_INTENSITY_50},
-    {    4, IDS_LED_INTENSITY_25},
-    {    4, IDS_LED_INTENSITY_10},
-    {    4, IDS_LED_INTENSITY_1},
-    {   3, IDS_MQTT_CLIENT},
-    {   3, IDS_CONFIG_INTERFACE},
-    {   3, IDS_SENSOR_SELECT},
-    {  2, IDS_REBOOT},
-    {  2, IDS_FACTORY_RESET},
-
-    { 0, -1 }, // End of the list
-};
-
 void App::run_gui(void) {
     gtk_init(&m.argc, &m.argv);
 
@@ -262,57 +186,6 @@ GdkPixbuf* App::svg2image(const char* _svg_string, int _width, int _height, Colo
     return (pixbuf);
 }
 
-GtkWidget* App::create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size,
-    const char** _stringList, size_t _str_list_size, int _icon_size, GCallback cb, void* _user_par) {
-
-    if ((_item_list == nullptr) || (_item_list_size < 1) || (_item_list_size > TOOLBAR_BUTTON_COUNT_MAX)) {
-        return (nullptr);
-    }
-
-    GtkToolbar* tool_bar = (GtkToolbar*)gtk_toolbar_new();
-    gtk_toolbar_set_style(tool_bar, GtkToolbarStyle::GTK_TOOLBAR_ICONS);
-    gtk_toolbar_set_icon_size(tool_bar, GtkIconSize::GTK_ICON_SIZE_LARGE_TOOLBAR);
-
-    for (size_t i = 0; i < _item_list_size; i++) {
-        GdkPixbuf* pixbuf = App::svg2image(_item_list[i].svg, _icon_size, _icon_size, C_WHITE);        
-        if (pixbuf != nullptr) {
-            GtkWidget* image = gtk_image_new_from_pixbuf(pixbuf);
-            g_object_unref(pixbuf);
-            const char* name = nullptr;
-            if ((uint64_t)(_item_list[i].text_id) > 255) {
-                name = (const char*)_item_list[i].text_id;
-            } else {
-                int stringIndex = (int)(((uint64_t)_item_list[i].text_id) & 0xff);
-                if ((stringIndex > 0) && (stringIndex < _str_list_size)) {
-                    name = _stringList[stringIndex];
-                }
-            }
-
-            GtkToolItem* item = (GtkToolItem *)gtk_tool_button_new(image, name);
-            gtk_tool_item_set_tooltip_text(item, name);
-
-            if (cb != nullptr) {
-                g_signal_connect(G_OBJECT(item), "clicked", G_CALLBACK(cb), new CallbackParameter(_user_par, (void*)_item_list[i].text_id));
-            }
-
-            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), item, -1);
-        } else if ((_item_list[i].svg == nullptr) && (_item_list[i].text_id == nullptr)) {
-            GtkToolItem* seperator = gtk_separator_tool_item_new();
-            gtk_toolbar_insert(GTK_TOOLBAR(tool_bar), seperator, -1);
-        }
-    }
-
-    return ((GtkWidget*)tool_bar);
-}
-
-GtkWidget* App::create_main_toolbar(void) {
-    m.gtk.tool_bar = App::create_toolbar(main_toolbar, sizeOf_main_toolbar, 
-                                        &app_strings_main[APPLANG][0], IDS_MAIN_COUNT, 
-                                        m.toolIconSize, G_CALLBACK(App::_on_command), this);
-    gtk_widget_set_hexpand(m.gtk.tool_bar, true);
-    return (m.gtk.tool_bar);
-}
-
 GtkWidget* App::add_grid(const char* _label, GtkWidget* _parent) {
     GtkWidget* frame = gtk_frame_new(_label);
     gtk_container_set_border_width(GTK_CONTAINER(frame), 8);
@@ -414,193 +287,6 @@ DialogItem* App::add_text_field(GtkWidget* _grid, int _item_id, int _width, int 
     return (item);
 }
 
-GtkWidget* App::create_dialog(void) {
-    m.gtk.dialog = gtk_frame_new(nullptr);
-    gtk_frame_set_shadow_type(GTK_FRAME(m.gtk.dialog), GTK_SHADOW_IN);
-
-    m.gtk.scrolled = gtk_scrolled_window_new(NULL, NULL);
-    gtk_container_set_border_width((GtkContainer *)m.gtk.scrolled, 4);
-    gtk_scrolled_window_set_policy((GtkScrolledWindow *)m.gtk.scrolled, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-    gtk_container_add(GTK_CONTAINER(m.gtk.dialog), m.gtk.scrolled);
-
-    GtkWidget* box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(m.gtk.scrolled), box);
-
-    GtkWidget* grid_wifi = add_grid(APPSTRING(IDS_BOX_WIFI_CONFIG), box);
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_SSID,        APP_WINDOW_LONG_WIDTH,  0, 0, m.device.cfg.wifi_ssid,         sizeof (m.device.cfg.wifi_ssid)));
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 0, m.device.cfg.wifi_password,     sizeof (m.device.cfg.wifi_password)));
-    m.gtk.items.push_back(add_text_field(grid_wifi, IDS_WIFI_CHANNEL,     APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.wifi_channel,      sizeof (m.device.cfg.wifi_channel)));
-
-    GtkWidget* grid_mqtt = add_grid(APPSTRING(IDS_BOX_MQTT_CONFIG), box);
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_BROKER,      APP_WINDOW_LONG_WIDTH,  0, 0, m.device.cfg.mqtt_broker,       sizeof (m.device.cfg.mqtt_broker)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_ENABLE,      APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.mqtt_enable,       sizeof (m.device.cfg.mqtt_enable),       APPSTRING(IDS_LIST_ENABLE_DISABLE)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_USERNAME,    APP_WINDOW_LONG_WIDTH,  0, 1, m.device.cfg.mqtt_username,     sizeof (m.device.cfg.mqtt_username)));
-    m.gtk.items.push_back(add_text_field(grid_mqtt, IDS_MQTT_PASSWORD,    APP_WINDOW_LONG_WIDTH,  2, 1, m.device.cfg.mqtt_password,     sizeof (m.device.cfg.mqtt_password)));
-
-    GtkWidget* grid_oled = add_grid(APPSTRING(IDS_BOX_DISPLAY_CONFIG), box);
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_TIMEOUT,  APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.display_timeout_s, sizeof (m.device.cfg.display_timeout_s), APPSTRING(IDS_LIST_DISPLAY_TIMEOUTS)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_CONTRAST, APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.display_contrast,  sizeof (m.device.cfg.display_contrast),  APPSTRING(IDS_LIST_DISPLAY_CONTRAST)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_ROTATION, APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.cfg.display_rotoation, sizeof (m.device.cfg.display_rotoation), APPSTRING(IDS_LIST_DISPLAY_ROTATION)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_LAYOUT,   APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.display_layout,    sizeof (m.device.cfg.display_layout),    APPSTRING(IDS_LIST_DISPLAY_PAGE)));
-    m.gtk.items.push_back(add_text_field(grid_oled, IDS_DISPLAY_PARAM,    APP_WINDOW_SHORT_WIDTH, 2, 1, m.device.cfg.display_param,     sizeof (m.device.cfg.display_param)));
-
-    GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     APPSTRING(IDS_LIST_LED_INTENSITY)));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       m.device.cfg._sensor_type_list));
-
-    DialogItem* item;
-    item = get_item(IDS_WIFI_PASSWORD);
-    if (item != nullptr) {
-        gtk_entry_set_visibility(GTK_ENTRY(item->widget), FALSE);
-    }
-    item = get_item(IDS_MQTT_PASSWORD);
-    if (item != nullptr) {
-        gtk_entry_set_visibility(GTK_ENTRY(item->widget), FALSE);
-    }
-
-    
-    GtkWidget* grid_id = add_grid(APPSTRING(IDS_BOX_ID), box);
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_IDENTIFICATION,   APP_WINDOW_INFO_WIDTH, 0, 0, m.device.id.identification,       sizeof (m.device.id.identification),       nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_MANUFACTURER,     APP_WINDOW_INFO_WIDTH, 2, 0, m.device.id.manufacturer,         sizeof (m.device.id.manufacturer),         nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_PRODUCT,          APP_WINDOW_INFO_WIDTH, 0, 1, m.device.id.product,              sizeof (m.device.id.product),              nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_SERIAL_NUMBER,    APP_WINDOW_INFO_WIDTH, 2, 1, m.device.id.device_serial_number, sizeof (m.device.id.device_serial_number), nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_FIRMWARE_VERSION, APP_WINDOW_INFO_WIDTH, 0, 2, m.device.id.firmware_version,     sizeof (m.device.id.firmware_version),     nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_FIRMWARE_DATE,    APP_WINDOW_INFO_WIDTH, 2, 2, m.device.id.firmware_date,        sizeof (m.device.id.firmware_date),        nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_IP_ADDRESS,       APP_WINDOW_INFO_WIDTH, 0, 3, m.device.id.ip_addr,              sizeof (m.device.id.ip_addr),              nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_CHIP_TYPE,        APP_WINDOW_INFO_WIDTH, 2, 3, m.device.id.chip_type,            sizeof (m.device.id.chip_type),            nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_SENSOR_HEAD,      APP_WINDOW_INFO_WIDTH, 0, 4, m.device.id.head,                 sizeof (m.device.id.head),                 nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_HEAD_SERIAL_NO,   APP_WINDOW_INFO_WIDTH, 2, 4, m.device.id.head_serial,          sizeof (m.device.id.head_serial),          nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_RSSI,        APP_WINDOW_INFO_WIDTH, 0, 5, m.device.id.rssi,                 sizeof (m.device.id.rssi),                 nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_TX_POWER,    APP_WINDOW_INFO_WIDTH, 2, 5, m.device.id.tx_power,             sizeof (m.device.id.tx_power),             nullptr));
-
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_STATION_MAC, APP_WINDOW_INFO_WIDTH, 0, 6, m.device.id.wifi_station_mac,     sizeof (m.device.id.wifi_station_mac),     nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 6, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
-    
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 7, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 7, m.device.id.system_time,          sizeof (m.device.id.system_time),          nullptr));
-
-    return (m.gtk.dialog);
-}
-
-DialogItem* App::get_item(int _item_id) {
-    for (DialogItem*& item : m.gtk.items) {
-        if (item != nullptr) {
-            if (item->id == _item_id) {
-                return (item);
-            }
-        }
-    }
-    return (nullptr);
-}
-
-void App::handle_item_change(DialogItem *_item, bool _setup) {
-    if ((_item->field != nullptr) && (_item->widget != nullptr)) {
-        if (_setup) {
-            if (_item->list == nullptr) {
-                gtk_entry_set_text(GTK_ENTRY(_item->widget), _item->field);
-            } else {
-                App::string_combobox_setup(_item->widget, _item->field, _item->list);
-            }
-        } else {
-            if (_item->list == nullptr) {
-                const gchar* item_text = gtk_entry_get_text(GTK_ENTRY(_item->widget));
-                if (item_text != nullptr) {
-                    memset(_item->field, 0, _item->length);
-                    strncpy(_item->field, item_text, _item->length - 1);
-                }
-            } else {
-                gchar* item_text = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(_item->widget));
-                if (item_text != nullptr) {
-                    memset(_item->field, 0, _item->length);
-                    strncpy(_item->field, item_text, _item->length - 1);
-                    g_free(item_text);
-                }
-            }
-        }
-    }
-}
-
-void App::handle_dialog_items(bool _setup) {
-    for (DialogItem*& item : m.gtk.items) {
-        if (item != nullptr) {
-            handle_item_change(item, _setup);
-        }
-    }
-}
-
-void App::_on_command(GtkApplication* gtk, void* callback_parameter) {
-    CallbackParameter* cbp = CALLBACK_PARAMETER(callback_parameter);
-    OBJ_PTR(App, cbp->get_this())->on_command(cbp);
-}
-void App::on_command(CallbackParameter* p) {
-    int64_t item_id = (int64_t)(p->get_pointer());
-
-    switch (item_id) {
-        case IDS_QUIT: {
-            gtk_main_quit();
-        } break;
-
-        case IDS_COPY: {
-        } break;
-
-        case IDS_PASTE: {
-        } break;
-
-        case IDS_SEARCH:
-        case IDS_PROGRAM_DEV:
-        case IDS_RELOAD_DATA:
-        case IDS_RESET_DEVICE:
-        case IDS_FIRMWARE_UPLOAD:
-        case IDS_INITIALIZE_DEVICE: {
-            set_status(nullptr, nullptr, APPSTRING(item_id));
-            gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, item_id));
-        } break;
-
-        default: {
-            DialogItem* item = get_item(item_id);
-            if (item != nullptr) {
-                handle_item_change(item, false);
-            }
-        } break;
-    }
-}
-
-GtkWidget* App::create_main_menu(void) {
-    m.gtk.menu_bar = App::create_menu_bar(this, G_CALLBACK(App::_on_command), menu_tree, SIZEOFARRAY(menu_tree), m.gtk.menu_items);
-    return (m.gtk.menu_bar);
-}
-
-GtkWidget* App::create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items) {
-    GtkWidget* menu_bar = gtk_menu_bar_new();
-    _menu_items.push_back(menu_bar);
-
-    GtkWidget* menu_stack[MENU_LEVEL_MAX]{ nullptr };
-    menu_stack[0] = menu_bar;
-
-    for (int i = 0; i < (int)_size - 1; i++) {
-        const char* menu_string = APPSTRING(_menu_tree[i].id);
-        GtkWidget* item = gtk_menu_item_new_with_label(menu_string);
-        _menu_items.push_back(item);
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu_stack[_menu_tree[i].level - 1]), item);
-
-        if (_menu_tree[i + 1].level > _menu_tree[i].level) {
-            menu_stack[_menu_tree[i].level] = gtk_menu_new();
-            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item), menu_stack[_menu_tree[i].level]);
-        } else {
-            if (_callback != nullptr) {
-                g_signal_connect(G_OBJECT(item), "activate", G_CALLBACK(_callback), ON_ITEM(_instance, _menu_tree[i].id));
-            }
-        }
-    }
-
-    return (menu_bar);
-}
-
 GtkWidget* App::create_statusbar(void) {
     m.gtk.status_box = gtk_box_new(GtkOrientation::GTK_ORIENTATION_VERTICAL, 4);
     gtk_widget_set_size_request(m.gtk.status_box, -1, APP_WINDOW_STATUSBAR_HEIGHT);
@@ -664,7 +350,7 @@ gboolean App::_idle_task(gpointer _callback_parameter) {
     return ((gboolean)false);
 }
 void App::idle_task(CallbackParameter* p) {
-    int64_t item_id = (int64_t)(p->get_pointer());
+    int item_id = p->get_item_id();
     switch(item_id) {
         case -1: {
             const char* status = (strlen(m.ifac) > 4) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
@@ -720,6 +406,15 @@ printf("Programmed:\n%s\n", json_string); // ****
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
+            m.update_request = true;
+        } break;
+
+        case IDS_EXEC_COMMAND: {
+            const char* command = (const char*)p->get_parameter();
+            char* response = DevConfig::transact_command(m.ifac, command);
+            if (response != nullptr) {
+                free(response);
+            }
             m.update_request = true;
         } break;
 

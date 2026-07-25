@@ -69,6 +69,8 @@ class App {
             pthread_t thread_handle = 0;
 
             DevConfig device;
+            char cmd[64]{ 0 };
+
         } m;
 
         static void print_help(void);
@@ -85,6 +87,11 @@ class App {
         
         static void _on_command(GtkApplication* gtk, void* callback_parameter);
         void on_command(CallbackParameter* p);
+        static void _on_menu(GtkApplication* gtk, void* callback_parameter);
+        void on_menu(CallbackParameter* p);
+        static void _on_toolbar(GtkApplication* gtk, void* callback_parameter);
+        void on_toolbar(CallbackParameter* p);
+
         static gboolean _idle_task(gpointer _callback_parameter);
         void idle_task(CallbackParameter* p);
         static void* _interval_thread(void* _object);
@@ -112,6 +119,9 @@ class App {
         GtkWidget* create_main_toolbar(void);
         GtkWidget* create_dialog(void);
         GtkWidget* create_statusbar(void);
+
+        void app_menu_display_rotation(void);
+        void app_menu_display_contrast(int _item_id);
 
         void run_command(char* cmd);
         char* load_config_json(char* cmd);
