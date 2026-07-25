@@ -54,6 +54,7 @@ void App::print_help(void) {
     printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
     printf("\t\"/broker=<MQTT broker>:<username>:<password>\"\tConfigure a MQTT broker/server link.\n");
     printf("\t\"/config=<JSON.file>\"\t\tConfigure device by given JSON file.\n");
+    printf("\t\"/par=JSON.key:JSON.value\"\t\tSet a single parameter by given key. All keys of config JSON are supported.\n");
     printf("\t\"/initialize\"\t\t\tPerform a factory reset.\n");
     printf("\t\"/reboot\"\t\t\tReboot the device.\n");
     printf("\t\"/root\"\t\t\t\tQuery the root website source.\n");
