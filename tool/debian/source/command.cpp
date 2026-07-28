@@ -62,7 +62,7 @@ char* App::load_config_json(char* cmd) {
 }
 
 void App::run_command(char* cmd) {
-    if (!DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
+    if (!EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
         printf("No interface (\"ttyACM<n>\" ot \"ttyUSB<n>\") found, plase connect a device!\n");
         return;
     }

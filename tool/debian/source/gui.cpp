@@ -26,7 +26,7 @@ void App::run_gui(void) {
 
     const gchar* error_text = nullptr;
 
-    if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
+    if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
         if (m.device.read_data(m.ifac)) {
             m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
             g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
@@ -358,7 +358,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_SEARCH: {
-            if (DevConfig::find_interface(m.ifac, sizeof (m.ifac))) {
+            if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
                 if (m.device.read_data(m.ifac)) {
                     handle_dialog_items(true);
                 }
@@ -379,7 +379,6 @@ void App::idle_task(CallbackParameter* p) {
             size_t length = 0;
             char* json_string = m.device.get_config_json("/config=", &length);
             if (json_string != nullptr) {
-printf("Programmed:\n%s\n", json_string); // ****
                 char* response = DevConfig::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
                     free(response);
@@ -407,7 +406,12 @@ printf("Programmed:\n%s\n", json_string); // ****
 
         case IDS_FIRMWARE_UPLOAD: {
             m.update_request = true;
-        } break;
+            // **** Testing...
+            const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
+            EspTool::upload_2nd_level(firmware_file, m.ifac);
+            // ****
+        }
+        break;
 
         case IDS_EXEC_COMMAND: {
             const char* command = (const char*)p->get_parameter();
