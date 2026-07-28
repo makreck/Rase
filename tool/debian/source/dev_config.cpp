@@ -19,7 +19,7 @@
  * ==============================================================================
  */
 
-// #define ENABLE_FILTER
+// #define DISABLE_FILTER
 
 #include "includes.h"
 
@@ -47,35 +47,12 @@ void DevConfig::clear(void) {
     memset(&id,  0, sizeof (id));
 }
 
-int DevConfig::open_port(const char* _ifac, speed_t _baudrate) {
-    if (_ifac == nullptr) return (-1);
-
-    int fd = open(_ifac, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (fd < 0) {
-        return (fd);
-    }
-
-    termios terminal{ 0 };
-    terminal.c_cflag = CS8 | CREAD;
-    terminal.c_iflag = IGNCR | IGNBRK | IGNPAR | IXANY;
-    terminal.c_oflag = 0;
-    terminal.c_lflag = IEXTEN | CLOCAL | NOFLSH;
-    terminal.c_cc[VTIME] = 1;
-    terminal.c_cc[VMIN] = 1;
-
-    cfsetspeed(&terminal, _baudrate);
-    tcsetattr(fd, TCSANOW, &terminal);
-    tcflush(fd, TCIOFLUSH);
-
-    return (fd);
-}
-
 bool DevConfig::open_interface(const char* _ifac, int& _fd) {
     if (_fd > -1) {
         close(_fd);
     }
 
-    _fd = DevConfig::open_port(_ifac, 115200);
+    _fd = EspTool::open_serial_port(_ifac, 115200);
 
     if (_fd < 0) {
         return (false);
@@ -95,30 +72,6 @@ bool DevConfig::close_interface(int& _fd) {
     close(_fd);
     _fd = -1;
     return (true);
-}
-
-bool DevConfig::find_interface(char* _ifac, size_t _length) {
-    char ifac[PATH_MAX]{ 0 };
-    int fd = -1;
-    int index = 0;
-    do {
-        snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyACM%d", index);
-        fd = open_port(ifac, 115200);
-        if (fd >= 0) break;
-        snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyUSB%d", index);
-        fd = open_port(ifac, 115200);
-        if (fd >= 0) break;
-    } while (++index < 10);
-
-    if (fd >= 0) {
-        close(fd);
-        if (_ifac != nullptr) {
-            memset(_ifac, 0, _length);
-            strncpy(_ifac, ifac, _length - 1);
-        }
-    }
-
-    return (fd >= 0);
 }
 
 size_t DevConfig::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {
@@ -226,7 +179,7 @@ char* DevConfig::transact_command(const char* _ifac, const char* _cmd) {
             p[7] = '\0';
         }
         length = strlen(response);
-#ifdef ENABLE_FILTER
+#ifndef DISABLE_FILTER
     } else {
         int level = -1;
         int i;
