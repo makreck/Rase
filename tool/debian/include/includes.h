@@ -30,6 +30,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <termios.h>
 
@@ -39,5 +40,6 @@
 #include "typedefs.h"
 #include "colors.h"
 #include "resource.h"
+#include "esp_tool.h"
 #include "dev_config.h"
 #include "app.h"
