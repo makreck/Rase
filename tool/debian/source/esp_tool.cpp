@@ -19,33 +19,29 @@
  * ==============================================================================
  */
 
-
-/*
-# Name,   Type, SubType, Offset,   Size,     Flags
-nvs,      data, nvs,     0x9000,   0x5000,
-otadata,  data, ota,     0xe000,   0x2000,
-app0,     app,  ota_0,   0x10000,  0x180000,
-app1,     app,  ota_1,   0x190000, 0x180000,
-spiffs,   data, spiffs,  0x310000, 0xE0000,
-coredump, data, coredump,0x3F0000, 0x10000,
-*/
-
 #include "includes.h"
 
-// void EspTool::init(const char* _ifac, EspLoaderCB _callback, void* _user_param) {
-// }
 
-// void EspTool::cleanup(void) {
-// }
+const PartitionEntry EspTool::partitions[6] = {
+    { "nvs",      0x01, 0x00, 0x009000, 0x005000, 0 },
+    { "otadata",  0x01, 0x01, 0x00e000, 0x002000, 0 },
+    { "app0",     0x00, 0x00, 0x010000, 0x180000, 0 },
+    { "app1",     0x00, 0x01, 0x190000, 0x180000, 0 },
+    { "spiffs",   0x01, 0x02, 0x310000, 0x0E0000, 0 },
+    { "coredump", 0x01, 0x03, 0x3F0000, 0x010000, 0 }
+};
+
 
 bool EspTool::force_reset_over_tty(int _fd) {
     if (_fd < 0) {
         return (false);
     }
 
-    int status = 0;
-    ioctl(_fd, TIOCMGET, &status);
 
+    int original = 0;
+    ioctl(_fd, TIOCMGET, &original);
+
+    int status = original;
     status &= ~TIOCM_DTR;
     ioctl(_fd, TIOCMSET, &status);
     usleep(1000);
@@ -56,6 +52,9 @@ bool EspTool::force_reset_over_tty(int _fd) {
     
     status &= ~TIOCM_RTS;
     ioctl(_fd, TIOCMSET, &status);
+    usleep(1000);
+
+    ioctl(_fd, TIOCMSET, &original);
     
     return (true);
 }
@@ -97,8 +96,8 @@ int EspTool::open_serial_port(const char* _ifac, speed_t _baudrate) {
     terminal.c_iflag = IGNCR | IGNBRK | IGNPAR | IXANY;
     terminal.c_oflag = 0;
     terminal.c_lflag = IEXTEN | CLOCAL | NOFLSH;
-    terminal.c_cc[VTIME] = 5;
-    terminal.c_cc[VMIN] = 1;
+    terminal.c_cc[VTIME] = 10;
+    terminal.c_cc[VMIN] = 0;
 
     cfsetspeed(&terminal, _baudrate);
     tcsetattr(fd, TCSANOW, &terminal);
@@ -154,24 +153,92 @@ bool EspTool::load_binary(const char* _filename, uint8_t** _image, ssize_t* _len
     return (true);
 }
 
-bool EspTool::upload_2nd_level(const char* _filename, const char* _ifac, EspLoaderCB _callback, void* _user_param) {
-    uint8_t* data = nullptr;
-    ssize_t length = 0;
-    if (!load_binary(_filename, &data, &length)) {
+bool EspTool::firmware_loader(const char* _ifac, const char* _filename) {
+printf("EspTool::firmware_loader(\"%s\", \"%s\")\n", _ifac, _filename);
+
+    uint8_t* firmware_image = nullptr;
+    ssize_t size = 0;
+    if (!EspTool::load_binary(_filename, &firmware_image, &size)) {
+        printf("Error loading firmware image!\n");
         return (false);
     }
 
-    int fd = open_serial_port(_ifac);
-    if (fd < 0) {
+    bool result = EspTool::ota_loader(_ifac, firmware_image, size);
+
+    free(firmware_image);
+    return (result);
+}
+
+bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size) {
+    
+    printf("EspTool::ota_loader(\"%s\", <image>, %d bytes)\n", _ip_addr, (int)_size);
+
+    struct addrinfo hints{ 0 };
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    struct addrinfo* res = nullptr; 
+    int s = getaddrinfo(_ip_addr, "80", &hints, &res);
+    if (s != 0) {
+        printf("getaddrinfo: %s\n", gai_strerror(s));
+        return (true);
+    }
+
+    int sockfd = -1;
+    for (struct addrinfo* rp = res; rp != nullptr; rp = rp->ai_next) {
+        sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sockfd == -1) {
+            continue;
+        }
+        if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+            break;
+        }
+        close(sockfd);
+        sockfd = -1;
+    }
+
+    freeaddrinfo(res);
+    if (sockfd == -1) {
+        printf("Not connected!\n");
         return (false);
     }
 
+    printf("Connected...\n");
 
+    // /* ---------- build HTTP PUT request -------------------------------------- */
+    char request[256]{ 0 };
+    ssize_t req_len  = snprintf(request, sizeof(request),
+                                "PUT /update HTTP/1.1\r\n"
+                                "Host: %s\r\n"
+                                "Content-Length: %ld\r\n"
+                                "Connection: close\r\n"
+                                "\r\n",
+                                _ip_addr,
+                                _size);
 
+    printf("Request (%d bytes):\n\"%s\"\n", (int)req_len, request);
 
+    ssize_t sent_len = send(sockfd, request, req_len, 0);
+    if (sent_len != req_len) {
+        perror("send request");
+        close(sockfd);
+        return (false);
+    }
 
-    free(data);
-    close(fd);
+    ssize_t i = 0;
+    while (i < _size) {
+        ssize_t chunk_len = ((_size - i) > 4096) ? 4096 : (_size - i);
+        sent_len = send(sockfd, &_firmware_image[i], chunk_len, 0);
+        if (sent_len == -1) {
+            perror("send file");
+            close(sockfd);
+            return (false);
+        }
+        i += sent_len;
+    }
+
+    close(sockfd);
+    printf("Disconnected.\n");
 
     return (true);
 }

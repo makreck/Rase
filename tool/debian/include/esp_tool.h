@@ -22,52 +22,65 @@
 
 #pragma once
 
+// enum class EspCmd {
+//     sync      = 0x01,
+//     mem_begin = 0x02,
+//     mem_data  = 0x03,
+//     mem_end   = 0x04,
+//     run_flash = 0x05,
+// };
+
 enum class EspCmd {
-    sync      = 0x01,
-    mem_begin = 0x02,
-    mem_data  = 0x03,
-    mem_end   = 0x04,
-    run_flash = 0x05,
-    reserved  = 0x06,
-    ack       = 0x07,
-    nak       = 0x08,
-    get_info  = 0x0b,
+    CMD_SYNC        = 0x07,
+    CMD_READ_REG    = 0x08,
+    CMD_WRITE_REG   = 0x0A,
+    CMD_ERASE_FLASH = 0x41,
+    CMD_WRITE_FLASH = 0x3B,
+    CMD_READ_FLASH  = 0x32,
 };
 
-#define DEFAULT_BAUDRATE    (B115200)
-#define ESP_MAX_BUFFER_SIZE (4096)
-#define ESP_RESPONSE_SIZE   (10)
+// Register addresses
+#define REG_SYS_CONF                0x6000800C
+#define REG_UART_CONF               0x60009014
+#define REG_FLASH_CRYPT_CNTRL       0x6000A030
 
-#define ENTER_BOOTLOADER_CMD "\x07\x07\x12\x20\x00\x00\x00\x00"
-#define EXIT_BOOTLOADER_CMD  "\x08\x07\x12\x20\x00\x00\x00\x00"
+#define APP0_OFFSET                 0x10000
+#define APP_SIZE                    0x180000
+
+#define DEFAULT_BAUDRATE            (B115200)
+#define ESP_MAX_BUFFER_SIZE         (4096)
+
+// #define ENTER_BOOTLOADER_CMD "\x07\x07\x12\x20\x00\x00\x00\x00"
+// #define EXIT_BOOTLOADER_CMD  "\x08\x07\x12\x20\x00\x00\x00\x00"
+
+class PartitionEntry {
+    public:
+        const char* name;
+        uint8_t     type;
+        uint8_t     subtype;
+        uint32_t    offset;
+        uint32_t    size;
+        uint32_t    flags;
+};
+
 
 typedef bool (*EspLoaderCB)(void* _user_param);
 
 class EspTool {
     private:
-        struct {
-            char        ifac[PATH_MAX]{ 0 };
-            int         fd = -1;
-            EspLoaderCB callback;
-            void*       user_param;
-        } m;
-
-        void init(const char* _ifac, EspLoaderCB _callback, void* _user_param);
-        void cleanup(void);
+        static const PartitionEntry partitions[6];
 
     public:
-        EspTool(const char* _ifac, EspLoaderCB _callback, void* _user_param) {
-            init(_ifac, _callback, _user_param);
-        }
-
-        ~EspTool() {
-            cleanup();
-        }
-
         static bool find_interface(char* _ifac, size_t _length);
         static int  open_serial_port(const char* _ifac, speed_t _baudrate = B115200);
         static bool force_reset_over_tty(int _fd);
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);
+
         static bool upload_2nd_level(const char* _filename, const char* _ifac, EspLoaderCB _callback = nullptr, void* _user_param = nullptr);
+        static bool send_command(int _fd, EspCmd _cmd, uint8_t* _data, size_t _length);
+        static bool enter_2nd_level_bootloader(int _fd);
+        static bool firmware_loader(const char* _ifac, const char* _filename);
+        static bool ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size);
 
 };
+

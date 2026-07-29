@@ -83,7 +83,7 @@ void App::create_window(void) {
     gtk_window_set_geometry_hints(GTK_WINDOW(m.gtk.win), GTK_WIDGET(m.gtk.win), &hints, (GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
     gtk_window_set_default_size(GTK_WINDOW(m.gtk.win), m.rc.client.width, m.rc.client.height);
     gtk_window_set_resizable(GTK_WINDOW(m.gtk.win), TRUE);
-    gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_CENTER);
+    gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_NONE); // **** GTK_WIN_POS_CENTER);
 
     gtk_container_set_border_width(GTK_CONTAINER(m.gtk.win), 0);
     gtk_window_set_title(GTK_WINDOW(m.gtk.win), APP_WINDOW_NAME);
@@ -407,8 +407,9 @@ void App::idle_task(CallbackParameter* p) {
         case IDS_FIRMWARE_UPLOAD: {
             m.update_request = true;
             // **** Testing...
-            const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
-            EspTool::upload_2nd_level(firmware_file, m.ifac);
+            // const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
+            const char* firmware_file = "../../firmware/esp32/.pio/build/waveshare_esp32s3_mini/firmware.bin";
+            EspTool::firmware_loader(m.device.id.ip_addr, firmware_file);
             // ****
         }
         break;

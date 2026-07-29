@@ -45,17 +45,17 @@ class App {
 
             GtkApplication* gtkApp = nullptr;
             struct {
-                GtkWidget* win            = nullptr;
-                GtkWidget* base_v_box     = nullptr;
-                GtkWidget*  menu_bar      = nullptr;
-                GtkWidget*  tool_bar      = nullptr;
+                GtkWidget* win         = nullptr;
+                GtkWidget* base_v_box  = nullptr;
+                GtkWidget* menu_bar    = nullptr;
+                GtkWidget* tool_bar    = nullptr;
                 
-                GtkWidget*  dialog        = nullptr;
-                GtkWidget*   scrolled     = nullptr;
-                GtkWidget*  status_box    = nullptr;
-                GtkWidget*   status_grid  = nullptr;
+                GtkWidget* dialog      = nullptr;
+                GtkWidget* scrolled    = nullptr;
+                GtkWidget* status_box  = nullptr;
+                GtkWidget* status_grid = nullptr;
                 
-                GtkWidget*    status[4]{ nullptr, nullptr, nullptr, nullptr };
+                GtkWidget* status[4]{ nullptr, nullptr, nullptr, nullptr };
 
                 std::vector<GtkWidget*>  menu_items;
                 std::vector<DialogItem*> items;

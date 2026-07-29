@@ -52,7 +52,7 @@ bool DevConfig::open_interface(const char* _ifac, int& _fd) {
         close(_fd);
     }
 
-    _fd = EspTool::open_serial_port(_ifac, 115200);
+    _fd = EspTool::open_serial_port(_ifac, B115200);
 
     if (_fd < 0) {
         return (false);
