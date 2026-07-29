@@ -33,6 +33,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <termios.h>
+#include <netdb.h>
 
 #include "gtk_headers.h"
 
