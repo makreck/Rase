@@ -34,10 +34,6 @@ const char* SensorDevice::sensor_header =
     "\t\"channels\": %d,\n"
     "\t\"nodes\": [\n";
 
-const char* SensorDevice::opcua_header = 
-    "{\n"
-    "\t\"nodes\": [\n";
-
 const char* SensorDevice::end_of_list = 
     "\t]\n"
     "}\n";
@@ -61,12 +57,6 @@ SensorDevice::~SensorDevice() {
         free(m.json);
         m.json = nullptr;
         m.length = 0;
-    }
-
-    if (m.opcua_json != nullptr) {
-        free(m.opcua_json);
-        m.opcua_json = nullptr;
-        m.opcua_length = 0;
     }
 
     xSemaphoreGive(m.mutex);
@@ -216,75 +206,4 @@ char* SensorDevice::get_json(size_t& length) {
     xSemaphoreGive(m.mutex);
 
     return (json_copy);
-}
-
-
-char* SensorDevice::get_opcua_json(size_t& length) {
-#ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "SensorDevice::get_opcua_json()");
-#endif
-    update_opcua_json();
-
-    xSemaphoreTake(m.mutex, portMAX_DELAY);
-    char* json_copy = (char*)malloc(m.opcua_length);
-    memset(json_copy, 0, m.opcua_length);
-    strncpy(json_copy, m.opcua_json, m.opcua_length);
-    length = strlen(json_copy);
-    xSemaphoreGive(m.mutex);
-
-    return (json_copy);
-}
-
-void SensorDevice::update_opcua_json(void) {
-#ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "SensorDevice::update_opcua_json()");
-#endif
-    xSemaphoreTake(m.mutex, portMAX_DELAY);
-
-    size_t count = m.node.size();
-
-    char time_string[TIME_STAMP_LENGTH]{0};
-    snprintf(time_string, sizeof (time_string), "%ld", (unsigned long)Tools::get_tick_seconds());
-
-    char device_serial_number[22]{0};
-    Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
-    
-    size_t length = strlen(SensorDevice::opcua_header); // snprintf(nullptr, 0, SensorDevice::opcua_header);
-    for (size_t i = 0; i < count; i++) {
-        length += m.node[i]->get_opcua_length();
-        if (i < (count - 1)) {
-            length += strlen(",\n");
-        } else {
-            length += strlen("\n");
-        }
-    }
-    length += (strlen(end_of_list) + 1);
-
-    if (m.opcua_json != nullptr) {
-#ifdef DISPLAY_STATE        
-        ESP_LOGI(TAG, "Free allocated OPCUA-JSON memory...................");
-#endif
-        m.opcua_length = 0;
-        free(m.opcua_json);
-    }
-
-#ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "Allocate new OPCUA-JSON memory...................");
-#endif
-    m.opcua_length = length;
-    m.opcua_json = (char*)malloc(m.opcua_length + 8);
-    memset(m.opcua_json, 0, length + 8);
-
-    strncat(m.opcua_json, SensorDevice::opcua_header, m.opcua_length);
-    for (size_t i = 0; i < count; i++) {
-        strcat(m.opcua_json, m.node[i]->get_opcua_json());
-        if (i < (count - 1)) {
-            strcat(m.opcua_json, ",\n");
-        } else {
-            strcat(m.opcua_json, "\n");
-        }
-    }
-    strncat(m.opcua_json, SensorDevice::end_of_list, m.opcua_length);
-
-    xSemaphoreGive(m.mutex);
 }

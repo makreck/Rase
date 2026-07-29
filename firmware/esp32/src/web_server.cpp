@@ -82,15 +82,6 @@ esp_err_t WebServer::start(SensorDevice* _sensor, const char* _ip_addr) {
         err = httpd_register_uri_handler(m.server, &sensors_uri);
         if (err != ESP_OK) break;
 
-        httpd_uri_t opcua_uri = {
-            .uri       = "/opcua/nodes",
-            .method    = HTTP_GET,
-            .handler   = WebServer::_opcua_get_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &opcua_uri);
-        if (err != ESP_OK) break;
-
         httpd_uri_t id_uri = {
             .uri       = "/api/id",
             .method    = HTTP_GET,
@@ -213,23 +204,6 @@ esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
     free(device_id_json);
-    
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
-    return (ESP_OK);
-}
-
-esp_err_t WebServer::_opcua_get_handler(httpd_req_t *req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->opcua_get_handler(req));
-}
-esp_err_t WebServer::opcua_get_handler(httpd_req_t *req) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_opcua_get_handler() event.");
-#endif
-    size_t length = 0;
-    char* opcua_json_response = m.sensor->get_opcua_json(length); 
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, opcua_json_response, length);
-    free(opcua_json_response);
     
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);

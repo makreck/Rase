@@ -26,7 +26,6 @@
 class SensorDevice {
     private:
         static const char* sensor_header;
-        static const char* opcua_header;
         static const char* end_of_list;
 
         struct {
@@ -34,18 +33,12 @@ class SensorDevice {
             SemaphoreHandle_t mutex = nullptr;
             std::vector<SensorNode*> node;
             float rec_interval_s = 0.01f;
-
             SensorDriver* driver = nullptr;
-
             char* json = nullptr;
             size_t length = 0;
-
-            char* opcua_json = nullptr;
-            size_t opcua_length = 0;
         } m;
 
         void update_json(void);
-        void update_opcua_json(void);
 
     public:
         SensorDevice(const char* _device_name = SENSOR_ID ".ESP32");
@@ -61,5 +54,4 @@ class SensorDevice {
         void update(SensorReading* reading);
 
         char* get_json(size_t& length);
-        char* get_opcua_json(size_t& length);
 };
