@@ -28,6 +28,7 @@ enum class AppState : int32_t {
     menu            =  3,
     exit            =  4,
     warning         =  5,
+    busy            =  6,
     
     failed          = -1,
     access_denied   = -2,
