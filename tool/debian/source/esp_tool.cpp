@@ -31,6 +31,11 @@ const PartitionEntry EspTool::partitions[6] = {
     { "coredump", 0x01, 0x03, 0x3F0000, 0x010000, 0 }
 };
 
+const char* EspTool::ota_put_req_string =   "PUT /update HTTP/1.1\r\n"
+                                            "Host: %s\r\n"
+                                            "Content-Length: %ld\r\n"
+                                            "Connection: close\r\n"
+                                            "\r\n";
 
 bool EspTool::force_reset_over_tty(int _fd) {
     if (_fd < 0) {
@@ -153,91 +158,102 @@ bool EspTool::load_binary(const char* _filename, uint8_t** _image, ssize_t* _len
     return (true);
 }
 
-bool EspTool::firmware_loader(const char* _ifac, const char* _filename) {
-printf("EspTool::firmware_loader(\"%s\", \"%s\")\n", _ifac, _filename);
-
-    uint8_t* firmware_image = nullptr;
-    ssize_t size = 0;
-    if (!EspTool::load_binary(_filename, &firmware_image, &size)) {
-        printf("Error loading firmware image!\n");
-        return (false);
-    }
-
-    bool result = EspTool::ota_loader(_ifac, firmware_image, size);
-
-    free(firmware_image);
-    return (result);
+pthread_t EspTool::firmware_loader(const char* _ifac, const char* _filename, EspLoaderCB _callback, void* _user_param) {
+    pthread_t thread_handle = 0;
+    pthread_create(&thread_handle, nullptr, EspTool::_loader_thread, new EspToolParms(_ifac, _filename, _callback, _user_param));
+    return (thread_handle);
 }
 
-bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size) {
-    printf("EspTool::ota_loader(\"%s\", <image>, %d bytes)\n", _ip_addr, (int)_size);
+void* EspTool::_loader_thread(void* _object) {
+    EspToolParms* parms = (EspToolParms*)_object;
+
+    if ((parms->image_data != nullptr) && (parms->image_length > 0)) {
+        EspTool::ota_loader(parms->ifac, parms->image_data, parms->image_length, parms->callback, parms->user_param);
+    }
+
+    delete (parms);
+    return (nullptr);
+}
+
+
+bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, EspLoaderCB _callback, void* _user_param) {
+    const char* topic = "OTA update";
 
     struct addrinfo hints{ 0 };
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
+    if (_callback != nullptr) {
+        const char* p = "Connect...";
+        (*_callback)(_user_param, topic, p);
+    }
+
     struct addrinfo* res = nullptr; 
     int s = getaddrinfo(_ip_addr, "80", &hints, &res);
     if (s != 0) {
-        printf("getaddrinfo: %s\n", gai_strerror(s));
         return (true);
     }
 
-    int sockfd = -1;
+    int fd = -1;
     for (struct addrinfo* rp = res; rp != nullptr; rp = rp->ai_next) {
-        sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sockfd == -1) {
+        fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (fd == -1) {
             continue;
         }
-        if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+        if (connect(fd, rp->ai_addr, rp->ai_addrlen) == 0) {
             break;
         }
-        close(sockfd);
-        sockfd = -1;
+        close(fd);
+        fd = -1;
     }
 
     freeaddrinfo(res);
-    if (sockfd == -1) {
-        printf("Not connected!\n");
+    if (fd == -1) {
         return (false);
     }
 
-    printf("Connected...\n");
+    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, _ip_addr, _size);
+    char* request = (char*)malloc(req_len + 2);
+    if (request == nullptr) {
+        return (false);
+    }
+    snprintf(request, req_len + 1, ota_put_req_string, _ip_addr, _size);
 
-    // /* ---------- build HTTP PUT request -------------------------------------- */
-    char request[256]{ 0 };
-    ssize_t req_len  = snprintf(request, sizeof(request),
-                                "PUT /update HTTP/1.1\r\n"
-                                "Host: %s\r\n"
-                                "Content-Length: %ld\r\n"
-                                "Connection: close\r\n"
-                                "\r\n",
-                                _ip_addr,
-                                _size);
-
-    printf("Request (%d bytes):\n\"%s\"\n", (int)req_len, request);
-
-    ssize_t sent_len = send(sockfd, request, req_len, 0);
+    ssize_t sent_len = send(fd, request, req_len, 0);
+    free(request);
     if (sent_len != req_len) {
-        perror("send request");
-        close(sockfd);
+        close(fd);
         return (false);
     }
 
     ssize_t i = 0;
+    float percent = 0.0f;
     while (i < _size) {
         ssize_t chunk_len = ((_size - i) > OTA_CHUNK_SIZE) ? OTA_CHUNK_SIZE : (_size - i);
-        sent_len = send(sockfd, &_firmware_image[i], chunk_len, 0);
+        sent_len = send(fd, &_firmware_image[i], chunk_len, 0);
         if (sent_len == -1) {
-            perror("send file");
-            close(sockfd);
+            close(fd);
             return (false);
         }
         i += sent_len;
+
+        float progress = (float)i * 100.0f / (float)_size;
+        if (fabsf(progress - percent) >= 5.0f) {
+            percent = progress;
+            if (_callback != nullptr) {
+                char string[64]{ 0 };
+                snprintf(string, sizeof (string), "%.0f%%, %zu / %zu", percent, i, _size);
+                (*_callback)(_user_param, topic, string);
+            }
+        }
     }
 
-    close(sockfd);
-    printf("Disconnected.\n");
+    close(fd);
+
+    if (_callback != nullptr) {
+        const char* p = "Complete.";
+        (*_callback)(_user_param, topic, p);
+    }
 
     return (true);
 }

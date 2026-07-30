@@ -47,7 +47,7 @@ enum class EspCmd {
 #define APP0_OFFSET                 0x10000
 #define APP_SIZE                    0x180000
 
-#define OTA_CHUNK_SIZE              (1024)
+#define OTA_CHUNK_SIZE              (4096)
 
 #define DEFAULT_BAUDRATE            (B115200)
 #define ESP_MAX_BUFFER_SIZE         (4096)
@@ -65,24 +65,55 @@ class PartitionEntry {
         uint32_t    flags;
 };
 
-
-typedef bool (*EspLoaderCB)(void* _user_param);
+typedef bool (*EspLoaderCB)(void* _user_param, const char* _topic, const char* _message);
 
 class EspTool {
     private:
         static const PartitionEntry partitions[6];
+        static const char* ota_put_req_string;
+
+        static bool ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, EspLoaderCB _callback, void* _user_param);
+        static void* _loader_thread(void* _object);
 
     public:
         static bool find_interface(char* _ifac, size_t _length);
         static int  open_serial_port(const char* _ifac, speed_t _baudrate = B115200);
         static bool force_reset_over_tty(int _fd);
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);
+        static pthread_t firmware_loader(const char* _ifac, const char* _filename, EspLoaderCB _callback = nullptr, void* _user_param = nullptr);
 
-        static bool upload_2nd_level(const char* _filename, const char* _ifac, EspLoaderCB _callback = nullptr, void* _user_param = nullptr);
-        static bool send_command(int _fd, EspCmd _cmd, uint8_t* _data, size_t _length);
-        static bool enter_2nd_level_bootloader(int _fd);
-        static bool firmware_loader(const char* _ifac, const char* _filename);
-        static bool ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size);
+};
+
+class EspToolParms {
+    public:
+        char        ifac[PATH_MAX]{ 0 };
+        char        filename[PATH_MAX]{ 0 };
+
+        EspLoaderCB callback     = nullptr;
+        void*       user_param   = nullptr;
+
+        uint8_t*    image_data   = nullptr;
+        ssize_t     image_length = 0;
+
+        EspToolParms(const char* _ifac, const char* _filename, EspLoaderCB _callback = nullptr, void* _user_param = nullptr) {
+            if (_ifac != nullptr) {
+                strncpy(ifac, _ifac, sizeof (ifac) - 1);
+            }
+
+            if (_filename != nullptr) {
+                strncpy(filename, _filename, sizeof (filename) - 1);
+                EspTool::load_binary(filename, &image_data, &image_length);
+            }
+
+            callback   = _callback;
+            user_param = _user_param;
+        }
+
+        ~EspToolParms() {
+            if (image_data != nullptr) {
+                free (image_data);
+            }
+        }
 
 };
 
