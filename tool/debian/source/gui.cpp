@@ -83,7 +83,7 @@ void App::create_window(void) {
     gtk_window_set_geometry_hints(GTK_WINDOW(m.gtk.win), GTK_WIDGET(m.gtk.win), &hints, (GdkWindowHints)(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE));
     gtk_window_set_default_size(GTK_WINDOW(m.gtk.win), m.rc.client.width, m.rc.client.height);
     gtk_window_set_resizable(GTK_WINDOW(m.gtk.win), TRUE);
-    gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_NONE); // **** GTK_WIN_POS_CENTER);
+    gtk_window_set_position(GTK_WINDOW(m.gtk.win), GTK_WIN_POS_CENTER);
 
     gtk_container_set_border_width(GTK_CONTAINER(m.gtk.win), 0);
     gtk_window_set_title(GTK_WINDOW(m.gtk.win), APP_WINDOW_NAME);
@@ -102,8 +102,8 @@ void App::create_gui(void) {
 }
 
 void App::set_main_window_callbacks(void) {
-    g_signal_connect(m.gtk.win, "destroy",            G_CALLBACK(gtk_main_quit),   nullptr);
-    g_signal_connect(m.gtk.win, "configure-event",    G_CALLBACK(App::_configure), this);
+    g_signal_connect(m.gtk.win, "destroy",         G_CALLBACK(gtk_main_quit),   nullptr);
+    g_signal_connect(m.gtk.win, "configure-event", G_CALLBACK(App::_configure), this);
 }
 
 gboolean App::_configure(GtkWidget* widget, GdkEvent* event, void* user_data) {
@@ -301,33 +301,43 @@ GtkWidget* App::create_statusbar(void) {
 
     int width = m.rc.client.width / 4 - 16;
     for (int i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
-        m.gtk.status[i] = gtk_label_new("---");
-        gtk_label_set_xalign(GTK_LABEL(m.gtk.status[i]), 0.0f);
-        gtk_widget_set_size_request(m.gtk.status[i], width, -1);
-        gtk_grid_attach(GTK_GRID(m.gtk.status_grid), m.gtk.status[i], i, 0, 1, 1);
+        m.gtk.status[i].widget = gtk_label_new("---");
+        gtk_label_set_xalign(GTK_LABEL(m.gtk.status[i].widget), 0.0f);
+        gtk_widget_set_size_request(m.gtk.status[i].widget, width, -1);
+        gtk_grid_attach(GTK_GRID(m.gtk.status_grid), m.gtk.status[i].widget, i, 0, 1, 1);
     }
 
     return (m.gtk.status_box);
 }
 
 void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2, const char* _box_3) {
-    if (_box_0 != nullptr) {
-        gtk_label_set_text(GTK_LABEL(m.gtk.status[0]), _box_0);
+    const char* items[4] = { _box_0, _box_1, _box_2, _box_3 };
+    for (int i = 0; i < 4; i++) {
+        if (items[i] != nullptr) {
+            if (strncmp(m.gtk.status[i].message, items[i], sizeof (m.gtk.status[i].message)) != 0) {
+                strncpy(m.gtk.status[i].message, items[i], sizeof (m.gtk.status[i].message) - 1);
+                m.gtk.status[i].modified = true;
+                m.update_request = true;
+            }
+        }
     }
-    if (_box_1 != nullptr) {
-        gtk_label_set_text(GTK_LABEL(m.gtk.status[1]), _box_1);
-    }
-    if (_box_2 != nullptr) {
-        gtk_label_set_text(GTK_LABEL(m.gtk.status[2]), _box_2);
-    }
-    if (_box_3 != nullptr) {
-        gtk_label_set_text(GTK_LABEL(m.gtk.status[3]), _box_3);
-    }
+}
 
-    usleep(250000);
-    gtk_widget_queue_draw(m.gtk.status_box);
-    gtk_widget_show_all(m.gtk.win);
-    usleep(250000);
+void App::update_status_items(void) {
+    bool modified = false;
+    for (int i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
+        printf("<%s>%c ", m.gtk.status[i].message, (m.gtk.status[i].modified) ? 'x' : ' ');
+        if (m.gtk.status[i].modified) {
+            m.gtk.status[i].modified = false;
+            gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
+            gtk_widget_queue_draw(m.gtk.status[i].widget);
+            modified = true;
+        }
+    }
+    printf("\n");
+    if (modified) {
+        gtk_widget_show_all(m.gtk.win);
+    }
 }
 
 void* App::_interval_thread(void* _object) {
@@ -353,8 +363,7 @@ void App::idle_task(CallbackParameter* p) {
     int item_id = p->get_item_id();
     switch(item_id) {
         case -1: {
-            const char* status = (strlen(m.ifac) > 4) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
-            set_status(status, m.ifac, "---", "---");
+            update_status_items();
         } break;
 
         case IDS_SEARCH: {
@@ -405,12 +414,15 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
-            m.update_request = true;
-            // **** Testing...
+            if (m.loader_thread != 0) {
+                pthread_join(m.loader_thread, nullptr);
+                m.loader_thread = 0;
+                break;
+            }
+
             // const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
             const char* firmware_file = "../../firmware/esp32/.pio/build/waveshare_esp32s3_mini/firmware.bin";
-            EspTool::firmware_loader(m.device.id.ip_addr, firmware_file);
-            // ****
+            m.loader_thread = EspTool::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
         }
         break;
 
@@ -426,4 +438,12 @@ void App::idle_task(CallbackParameter* p) {
         default: {
         } break;
     }
+}
+
+bool App::_gui_status(void* _user_param, const char* _topic, const char* _message) {
+    return (APP_PTR(_user_param)->gui_status(_topic, _message));
+}
+bool App::gui_status(const char* _topic, const char* _message) {
+    set_status(nullptr, nullptr, _topic, _message);
+    return (true);
 }

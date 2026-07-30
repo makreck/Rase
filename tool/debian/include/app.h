@@ -36,6 +36,13 @@ class MenuTree {
         int id;
 };
 
+class StatusItem {
+    public:
+        GtkWidget* widget   = nullptr;
+        char       message[64]{ 0 };
+        bool       modified = true;
+};
+
 class App {
     private:
         struct {
@@ -55,11 +62,11 @@ class App {
                 GtkWidget* status_box  = nullptr;
                 GtkWidget* status_grid = nullptr;
                 
-                GtkWidget* status[4]{ nullptr, nullptr, nullptr, nullptr };
-
                 std::vector<GtkWidget*>  menu_items;
                 std::vector<DialogItem*> items;
+                StatusItem               status[4];
             } gtk;
+
             struct {
                 GdkRectangle client;
             } rc;
@@ -67,9 +74,11 @@ class App {
             int toolIconSize = 28;
             bool update_request = false;
             pthread_t thread_handle = 0;
+            pthread_t loader_thread = 0;
 
             DevConfig device;
             char cmd[64]{ 0 };
+
 
         } m;
 
@@ -96,6 +105,9 @@ class App {
         void idle_task(CallbackParameter* p);
         static void* _interval_thread(void* _object);
         void interval_thread(void);
+
+        static bool _gui_status(void* _user_param, const char* _topic, const char* _message);
+        bool gui_status(const char* _topic, const char* _message);
         
         void init(int argc, char* argv[]);
         void cleanup(void);
@@ -113,6 +125,7 @@ class App {
         void handle_dialog_items(bool _setup);
         void handle_item_change(DialogItem* _item, bool _setup);
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
+        void update_status_items(void);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);
