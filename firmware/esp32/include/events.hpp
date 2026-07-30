@@ -31,6 +31,8 @@ enum class AppEvent:uint32_t {
     display_ready     = 100,
     display_off       = 101,
     display_config    = 102,
+    display_lock      = 103,
+    display_unlock    = 104,
     
     wifi_enabled      = 200,
     wifi_connected    = 201,
