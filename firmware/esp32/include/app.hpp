@@ -62,6 +62,7 @@
 #define TASK_SMALL_STACKSIZE    (1024)
 #define TASK_DEFAULT_STACKSIZE  (4096)
 #define TASK_EXTENDED_STACKSIZE (8192)
+#define TASK_WATCHDOG_TIMEOUT   (90000)
 
 #define APP_DRV_LIST_MAX (16)
 
@@ -114,6 +115,7 @@ class App {
                 struct {
                     uint32_t error            : 1;
                     uint32_t display_off      : 1;
+                    uint32_t display_lock     : 1;
 
                     uint32_t reboot_req       : 1;
                     uint32_t factory_init_req : 1;
@@ -140,7 +142,7 @@ class App {
             SensorType       drv_scan_type[APP_DRV_LIST_MAX]{ SensorType::invalid };
         } m;
 
-        AppState init_watchdog(uint32_t timeout_ms = 60000);
+        AppState init_watchdog(void);
         AppState init_config(void);
         AppState init_event_loop(void);
         AppState init_display(void);
@@ -206,7 +208,8 @@ class App {
         AppState request_sys_config_update(void);
         AppState set_display_page(DisplayPage page);
         AppState reload_screensaver(void);
-
+        AppState lock_display(bool _locked);
+        
         SysConfig*       get_config(void)    { return (m.cfg);       }
         LEDController*   get_LED(void)       { return (m.led);       }
         Button*          get_button(void)    { return (m.button);    }
