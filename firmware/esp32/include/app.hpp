@@ -112,24 +112,26 @@ class App {
             union {
                 uint32_t f = 0;
                 struct {
-                    uint32_t error           : 1;
-                    uint32_t display_off     : 1;
+                    uint32_t error            : 1;
+                    uint32_t display_off      : 1;
 
-                    uint32_t nvm_update_req  : 1;
-                    uint32_t display_cfg_req : 1;
-                    uint32_t driver_cfg_req  : 1;
+                    uint32_t reboot_req       : 1;
+                    uint32_t factory_init_req : 1;
+                    uint32_t nvm_update_req   : 1;
+                    uint32_t display_cfg_req  : 1;
+                    uint32_t driver_cfg_req   : 1;
 
-                    uint32_t button_ready    : 1;
-                    uint32_t display_ready   : 1;
-                    uint32_t driver_ready    : 1;
-                    uint32_t wifi_enabled    : 1;
-                    uint32_t wifi_connected  : 1;
-                    uint32_t website_ready   : 1;
+                    uint32_t button_ready     : 1;
+                    uint32_t display_ready    : 1;
+                    uint32_t driver_ready     : 1;
+                    uint32_t wifi_enabled     : 1;
+                    uint32_t wifi_connected   : 1;
+                    uint32_t website_ready    : 1;
 
-                    uint32_t button_event    : 1;
-                    uint32_t driver_query    : 1;
-                    uint32_t web_api_query   : 1;
-                    uint32_t website_query   : 1;
+                    uint32_t button_event     : 1;
+                    uint32_t driver_query     : 1;
+                    uint32_t web_api_query    : 1;
+                    uint32_t website_query    : 1;
                 } b;
             } flags;
 
@@ -176,6 +178,7 @@ class App {
         AppState handle_config_interface(void);
         AppState handle_mqtt_client(void);
         AppState handle_config_changes(void);
+        AppState handle_reboot_request(void);
 
         AppState check_screensaver(void);
 
@@ -201,7 +204,6 @@ class App {
         AppState run(void);
         AppState cleanup(void);
         AppState request_sys_config_update(void);
-        AppState handle_reset(bool init_flash = false);
         AppState set_display_page(DisplayPage page);
         AppState reload_screensaver(void);
 

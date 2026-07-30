@@ -135,24 +135,6 @@ AppState App::trigger_watchdog(void) {
     return ((esp_task_wdt_reset() == ESP_OK) ? AppState::OK : AppState::watchdog);
 }
 
-AppState App::handle_reset(bool init_flash) {
-    if (m.display != nullptr) {
-        m.display->clear();
-        m.display->print(0, 0, (init_flash) ? "Factory reset..." : "System restart..");
-        m.display->update();
-    }
-
-    if (init_flash) {
-        m.cfg->perform_factory_reset();
-    }
-
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    cleanup();
-    esp_restart();
-    
-    return (AppState::OK);
-}
-
 AppState App::switch_driver_to(uint8_t i2c_addr) {
     if ((m.driver == nullptr) || (m.sensor == nullptr)) {
         return (AppState::not_ready);
@@ -326,11 +308,11 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::factory_reset: {
-            handle_reset(true);
+            m.flags.b.factory_init_req = 1;
         } break;
 
         case AppEvent::reboot: {
-            handle_reset(false);
+            m.flags.b.reboot_req = 1;
         } break;
 
         case AppEvent::display_config: {
@@ -400,13 +382,53 @@ AppState App::handle_nvm_update(void) {
     return (AppState::idle);
 }
 
+AppState App::handle_reboot_request(void) {
+    if (m.flags.b.factory_init_req == 1) {
+        m.flags.b.factory_init_req = 0;
+
+        if (m.display != nullptr) {
+            m.display->clear();
+            m.display->print(0, 0, "Factory reset...");
+            m.display->update();
+        }
+
+        m.cfg->perform_factory_reset();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        m.flags.b.reboot_req = 1;
+        return (AppState::OK);
+    }
+
+    if (m.flags.b.reboot_req == 1) {
+        m.flags.b.reboot_req = 0;
+        
+        if (m.display != nullptr) {
+            m.display->clear();
+            m.display->print(0, 0, "System reboot...");
+            m.display->update();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+
+        cleanup();
+        esp_restart();
+
+        return (AppState::failed);
+    }
+
+    return (AppState::idle);
+}
+
 AppState App::run(void) {
     while (trigger_watchdog() == AppState::OK) {
+
         handle_config_changes();
         handle_nvm_update();
+        handle_reboot_request();
+
         handle_LEDs();
         handle_display();
         handle_menu();
+
         vTaskDelay(pdMS_TO_TICKS(40));
     }
     return (AppState::OK);
