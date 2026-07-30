@@ -38,4 +38,5 @@ class Tools {
         static void get_iso_build_date(char* buffer, size_t size);
         static size_t json_get(const char* json_data, const char* _key, char* _buffer, size_t _length);
         static float string2number(const char* _string);
+        static const esp_partition_t* get_next_ota_partition(void);
 };
