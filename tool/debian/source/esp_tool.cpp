@@ -170,7 +170,6 @@ printf("EspTool::firmware_loader(\"%s\", \"%s\")\n", _ifac, _filename);
 }
 
 bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size) {
-    
     printf("EspTool::ota_loader(\"%s\", <image>, %d bytes)\n", _ip_addr, (int)_size);
 
     struct addrinfo hints{ 0 };
@@ -208,7 +207,7 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
     // /* ---------- build HTTP PUT request -------------------------------------- */
     char request[256]{ 0 };
     ssize_t req_len  = snprintf(request, sizeof(request),
-                                "POST /update HTTP/1.1\r\n"
+                                "PUT /update HTTP/1.1\r\n"
                                 "Host: %s\r\n"
                                 "Content-Length: %ld\r\n"
                                 "Connection: close\r\n"
