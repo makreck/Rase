@@ -25,6 +25,8 @@
 #define CONFIG_SNTP_SERVER_1 "time.google.com"
 #define CONFIG_SNTP_SERVER_2 "time.cloudflare.com"
 
+#define OTA_CHUNK_SIZE (1024)
+
 class WebServerHandlers {
     public:
         const char* uri;
@@ -62,6 +64,9 @@ class WebServer {
 
         static esp_err_t _api_id_handler(httpd_req_t *req);
         esp_err_t api_id_handler(httpd_req_t *req);
+
+        static esp_err_t _api_update_handler(httpd_req_t *req);
+        esp_err_t api_update_handler(httpd_req_t *req);
 
         static void _time_sync_notification(struct timeval* tv);
 

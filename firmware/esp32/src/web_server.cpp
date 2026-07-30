@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 static const char* favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
                                     "stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > "
@@ -89,6 +89,15 @@ esp_err_t WebServer::start(SensorDevice* _sensor, const char* _ip_addr) {
             .user_ctx  = this,
         };
         err = httpd_register_uri_handler(m.server, &id_uri);
+        if (err != ESP_OK) break;
+
+        httpd_uri_t update_uri = {
+            .uri       = "/update",
+            .method    = HTTP_POST,
+            .handler   = WebServer::_api_update_handler,
+            .user_ctx  = this,
+        };
+        err = httpd_register_uri_handler(m.server, &update_uri);
         if (err != ESP_OK) break;
 
     } while(false);
@@ -206,5 +215,133 @@ esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
     free(device_id_json);
     
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
+    return (ESP_OK);
+}
+
+esp_err_t WebServer::_api_update_handler(httpd_req_t* req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_update_handler(req));
+}
+esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::api_update_handler() event.");
+    ESP_LOGI(TAG, "Received OTA request, Content‑Length = %zu", req->content_len);
+#endif
+
+    if (req->method != HTTP_POST) {
+        httpd_resp_send_404(req);
+        return (ESP_FAIL);
+    }
+
+    if (req->content_len == 0) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "No payload – aborting");
+#endif
+        httpd_resp_send_err(req, HTTPD_411_LENGTH_REQUIRED, nullptr);
+        return (ESP_FAIL);
+    }
+
+    const esp_partition_t* update_partition = Tools::get_next_ota_partition();
+    if (!update_partition) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Could not locate OTA partition");
+#endif
+        httpd_resp_send_500(req);
+        return (ESP_FAIL);
+    }
+
+    uint8_t* chunk_buf = (uint8_t*)malloc(OTA_CHUNK_SIZE);
+    if (chunk_buf == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Out od memory while allocating chunk buffer");
+#endif
+        httpd_resp_send_500(req);
+        return (ESP_FAIL);
+    }
+
+    esp_ota_handle_t ota_handle = -1;
+    esp_err_t ret = esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &ota_handle);
+    if (ret != ESP_OK) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "esp_ota_begin(\"%s\") failed: %s", update_partition->label, esp_err_to_name(ret));
+#endif
+        free(chunk_buf);
+        httpd_resp_send_500(req);
+        return (ret);
+    }
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "Start uploading firmware image to partition \"%s\".", update_partition->label);
+#endif
+
+    size_t received = 0;
+    float percent = 0.0f;
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+
+        int read_bytes = httpd_req_recv(req, (char*)chunk_buf, OTA_CHUNK_SIZE);
+        if (read_bytes < 0) {
+#ifdef DISPLAY_STATE
+            ESP_LOGE(TAG, "httpd_req_recv error: %s", esp_err_to_name(read_bytes));
+#endif
+            esp_ota_abort(ota_handle);
+            free(chunk_buf);
+            httpd_resp_send_500(req);
+            return (ESP_FAIL);
+        }
+
+        if (read_bytes == 0) {   // client closed connection
+            break;
+        }
+
+        ret = esp_ota_write(ota_handle, chunk_buf, read_bytes);
+        if (ret != ESP_OK) {
+#ifdef DISPLAY_STATE
+            ESP_LOGE(TAG, "esp_ota_write error: %s", esp_err_to_name(ret));
+#endif
+            esp_ota_abort(ota_handle);
+            free(chunk_buf);
+            httpd_resp_send_500(req);
+            return (ret);
+        }
+
+        received += read_bytes;
+
+#ifdef DISPLAY_STATE
+        float progress = (float)received * 100.0f / (float)req->content_len;
+        if (fabs(progress - percent) >= 5.0f) {
+            percent = progress;
+            ESP_LOGI(TAG, "%.1f%% received, %zu of %zu bytes. ", percent, received, req->content_len);
+        }
+#endif
+    }
+
+    free(chunk_buf);
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "Successfully streamed %zu bytes to OTA", received);
+#endif
+
+    ret = esp_ota_end(ota_handle);
+    if (ret != ESP_OK) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "esp_ota_end failed: %s", esp_err_to_name(ret));
+#endif
+        httpd_resp_send_500(req);
+        return (ret);
+    }
+
+    ret = esp_ota_set_boot_partition(update_partition);
+    if (ret != ESP_OK) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Failed to set boot partition: %s", esp_err_to_name(ret));
+#endif
+        return (ret);
+    }
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "Update installed, swap to active application partition \"%s\". Restarting system now.", update_partition->label);
+#endif
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::reboot, nullptr, 0, pdMS_TO_TICKS(1));
+
     return (ESP_OK);
 }
