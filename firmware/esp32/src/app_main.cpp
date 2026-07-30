@@ -61,9 +61,9 @@ AppState App::cleanup(void) {
     return (AppState::OK);
 }
 
-AppState App::init_watchdog(uint32_t timeout_ms) {
+AppState App::init_watchdog(void) {
     esp_task_wdt_config_t wdt = {
-        .timeout_ms     = timeout_ms,
+        .timeout_ms     = TASK_WATCHDOG_TIMEOUT,
         .idle_core_mask = 0x03,
         .trigger_panic  = true,
     };
@@ -173,6 +173,92 @@ AppState App::request_sys_config_update(void) {
     return (AppState::OK);
 }
 
+AppState App::handle_config_changes(void) {
+    if (m.flags.b.display_cfg_req == 1) {
+        m.flags.b.display_cfg_req = 0;
+        if (m.display != nullptr) {
+            m.display->set_contrast(m.cfg->get_display_contrast());
+            m.display->set_rotation(m.cfg->get_display_rotation());
+            request_sys_config_update();
+        }
+    }
+
+    if (m.flags.b.driver_cfg_req == 1) {
+        m.flags.b.driver_cfg_req = 0;
+        uint8_t i2c_addr = SensorDriver::get_bus_addr_by_type(m.cfg->get_sensor_type());
+        switch_driver_to(i2c_addr);
+        request_sys_config_update();
+    }
+
+    return (AppState::OK);
+}
+
+AppState App::handle_nvm_update(void) {
+    if (m.flags.b.nvm_update_req == 1) {
+
+        if (m.update_thr_time != 0) {
+            if (Tools::get_tickcount64() < m.update_thr_time) {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "handle_nvm_update() -> delayed...");
+#endif
+                return (AppState::not_ready);
+            }
+            m.update_thr_time = 0;
+        }
+
+        reload_screensaver();
+
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "handle_nvm_update() -> saving data...");
+#endif
+        m.flags.b.nvm_update_req = 0;
+        m.cfg->update();
+        vTaskDelay(pdMS_TO_TICKS(250));
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "handle_nvm_update() -> Update finished.");
+#endif
+    }
+    return (AppState::idle);
+}
+
+AppState App::handle_reboot_request(void) {
+    if (m.flags.b.factory_init_req == 1) {
+        m.flags.b.factory_init_req = 0;
+
+        if (m.display != nullptr) {
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
+            m.display->clear();
+            m.display->setLogo();
+            m.display->print(0, 0, "Factory reset...");
+            m.display->update();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+
+        m.cfg->perform_factory_reset();
+        m.flags.b.reboot_req = 1;
+    }
+
+    if (m.flags.b.reboot_req == 1) {
+        m.flags.b.reboot_req = 0;
+        
+        if (m.display != nullptr) {
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
+            m.display->clear();
+            m.display->setLogo();
+            m.display->print(0, 0, "System reboot...");
+            m.display->update();
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+
+        cleanup();
+        esp_restart();
+
+        return (AppState::failed);
+    }
+
+    return (AppState::idle);
+}
+
 void App::_app_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     (reinterpret_cast<App*>(arg))->app_event_handler(event_base, (AppEvent)event_id, event_data);
 }
@@ -263,7 +349,7 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             if ((m.flags.b.website_ready  == 0) && 
                 (m.flags.b.wifi_connected == 1) && 
                 (m.flags.b.driver_ready   == 1)) {
-                m.webserver->start(m.sensor, m.station->get_ip());
+                m.webserver->start(this, m.station->get_ip());
             } else {
                 vTaskDelay(pdMS_TO_TICKS(1000));
                 esp_event_post(APP_EVENT, (int32_t)AppEvent::web_start_server, nullptr, 0, pdMS_TO_TICKS(1));
@@ -319,6 +405,20 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             m.flags.b.display_cfg_req = 1;
         } break;
 
+        case AppEvent::display_lock: {
+            m.flags.b.display_lock = 1;
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "Display lock SET event.");
+#endif
+        } break;
+
+        case AppEvent::display_unlock: {
+            m.flags.b.display_lock = 0;
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "Display lock CLEAR event.");
+#endif
+        } break;
+
         case AppEvent::driver_config: {
             m.flags.b.driver_cfg_req = 1;
         } break;
@@ -332,90 +432,6 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
     }
 
     return (ESP_OK);
-}
-
-AppState App::handle_config_changes(void) {
-    if (m.flags.b.display_cfg_req == 1) {
-        m.flags.b.display_cfg_req = 0;
-        if (m.display != nullptr) {
-            m.display->set_contrast(m.cfg->get_display_contrast());
-            m.display->set_rotation(m.cfg->get_display_rotation());
-            request_sys_config_update();
-        }
-    }
-
-    if (m.flags.b.driver_cfg_req == 1) {
-        m.flags.b.driver_cfg_req = 0;
-        uint8_t i2c_addr = SensorDriver::get_bus_addr_by_type(m.cfg->get_sensor_type());
-        switch_driver_to(i2c_addr);
-        request_sys_config_update();
-    }
-
-    return (AppState::OK);
-}
-
-AppState App::handle_nvm_update(void) {
-    if (m.flags.b.nvm_update_req == 1) {
-
-        if (m.update_thr_time != 0) {
-            if (Tools::get_tickcount64() < m.update_thr_time) {
-#ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "handle_nvm_update() -> delayed...");
-#endif
-                return (AppState::not_ready);
-            }
-            m.update_thr_time = 0;
-        }
-
-        reload_screensaver();
-
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "handle_nvm_update() -> saving data...");
-#endif
-        m.flags.b.nvm_update_req = 0;
-        m.cfg->update();
-        vTaskDelay(pdMS_TO_TICKS(250));
-#ifdef DISPLAY_STATE
-        ESP_LOGI(TAG, "handle_nvm_update() -> Update finished.");
-#endif
-    }
-    return (AppState::idle);
-}
-
-AppState App::handle_reboot_request(void) {
-    if (m.flags.b.factory_init_req == 1) {
-        m.flags.b.factory_init_req = 0;
-
-        if (m.display != nullptr) {
-            m.display->clear();
-            m.display->print(0, 0, "Factory reset...");
-            m.display->update();
-        }
-
-        m.cfg->perform_factory_reset();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        m.flags.b.reboot_req = 1;
-        return (AppState::OK);
-    }
-
-    if (m.flags.b.reboot_req == 1) {
-        m.flags.b.reboot_req = 0;
-        
-        if (m.display != nullptr) {
-            m.display->clear();
-            m.display->print(0, 0, "System reboot...");
-            m.display->update();
-            vTaskDelay(pdMS_TO_TICKS(1000));
-        }
-
-        cleanup();
-        esp_restart();
-
-        return (AppState::failed);
-    }
-
-    return (AppState::idle);
 }
 
 AppState App::run(void) {
