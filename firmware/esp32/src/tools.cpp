@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 const char* intrinsic_date_month_names[] = { "not-a-month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
 
@@ -131,7 +131,7 @@ AppState Tools::get_timestamp(char* buffer, size_t size, char div_char) {
     Tools::timedate(timeinfo);
 
     snprintf(buffer, size,
-        "%04d-%02d-%02d%c%02d:%02d:%02d", // .%03d",
+        "%04d-%02d-%02d%c%02d:%02d:%02d",
         timeinfo.tm_year + 1900,
         timeinfo.tm_mon + 1,
         timeinfo.tm_mday,
@@ -139,7 +139,6 @@ AppState Tools::get_timestamp(char* buffer, size_t size, char div_char) {
         timeinfo.tm_hour,
         timeinfo.tm_min,
         timeinfo.tm_sec);
-        // (int)(tv.tv_usec / 1000));
 
     return (AppState::OK);
 }
@@ -284,4 +283,41 @@ float Tools::string2number(const char* _string) {
 #endif
 
     return (value);
+}
+
+const esp_partition_t* Tools::get_next_ota_partition(void) {
+    const esp_partition_t* running_partition = esp_ota_get_running_partition();
+    if (running_partition == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Failed to get running partition");
+#endif
+        return (nullptr);
+    }
+    
+    const esp_partition_t* ota_data_partition = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_OTA, nullptr);
+    if (ota_data_partition == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Failed to find OTA data partition");
+#endif
+        return (nullptr);
+    }
+    
+    const esp_partition_t* target_partition = nullptr;
+    if (running_partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_0) {
+        target_partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, nullptr);
+    } else if (running_partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_1) {
+        target_partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, nullptr);
+    }
+    
+    if (target_partition == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Failed to find target OTA partition");
+#endif
+        return (nullptr);
+    }
+    
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "Target OTA partition: %s", target_partition->label);
+#endif
+    return (target_partition);
 }
