@@ -25,7 +25,7 @@
 #define CONFIG_SNTP_SERVER_1 "time.google.com"
 #define CONFIG_SNTP_SERVER_2 "time.cloudflare.com"
 
-#define OTA_CHUNK_SIZE (1024)
+#define OTA_CHUNK_SIZE (4096)
 
 class WebServerHandlers {
     public:
