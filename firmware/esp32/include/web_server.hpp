@@ -46,6 +46,19 @@ class WebServer {
             "\t}\n"
             "}\n";
 
+        const char* end_of_ota_update =
+            "http\n"
+            "HTTP/1.1 200 OK\n"
+            "Content-Type: application/json\n"
+            "Content-Length: 58\n"
+            "Connection: close\n"
+            "\r\n"
+            "{"
+            "\t\"status\": \"success\",\n"
+            "\t\"message\": \"OTA update complete\"\n"
+            "}\n";
+
+
         struct {
             httpd_config_t config = HTTPD_DEFAULT_CONFIG();
             httpd_handle_t server = nullptr;

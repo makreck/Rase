@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 static const char* favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
                                     "stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > "
@@ -93,7 +93,7 @@ esp_err_t WebServer::start(SensorDevice* _sensor, const char* _ip_addr) {
 
         httpd_uri_t update_uri = {
             .uri       = "/update",
-            .method    = HTTP_POST,
+            .method    = HTTP_PUT,
             .handler   = WebServer::_api_update_handler,
             .user_ctx  = this,
         };
@@ -223,66 +223,47 @@ esp_err_t WebServer::_api_update_handler(httpd_req_t* req) {
 }
 esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
 #ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_update_handler() event.");
-    ESP_LOGI(TAG, "Received OTA request, Content‑Length = %zu", req->content_len);
+    ESP_LOGI(TAG, "WebServer::api_update_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
 #endif
-
-    if (req->method != HTTP_POST) {
-        httpd_resp_send_404(req);
-        return (ESP_FAIL);
-    }
 
     if (req->content_len == 0) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "No payload – aborting");
-#endif
         httpd_resp_send_err(req, HTTPD_411_LENGTH_REQUIRED, nullptr);
         return (ESP_FAIL);
     }
 
+    esp_ota_mark_app_valid_cancel_rollback();
+
     const esp_partition_t* update_partition = Tools::get_next_ota_partition();
     if (!update_partition) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Could not locate OTA partition");
-#endif
         httpd_resp_send_500(req);
         return (ESP_FAIL);
     }
 
     uint8_t* chunk_buf = (uint8_t*)malloc(OTA_CHUNK_SIZE);
     if (chunk_buf == nullptr) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Out od memory while allocating chunk buffer");
-#endif
         httpd_resp_send_500(req);
         return (ESP_FAIL);
     }
 
+    vTaskDelay(pdMS_TO_TICKS(10));
+
     esp_ota_handle_t ota_handle = -1;
-    esp_err_t ret = esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &ota_handle);
+    esp_err_t ret = esp_ota_begin(update_partition, req->content_len, &ota_handle);
     if (ret != ESP_OK) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "esp_ota_begin(\"%s\") failed: %s", update_partition->label, esp_err_to_name(ret));
-#endif
         free(chunk_buf);
         httpd_resp_send_500(req);
         return (ret);
     }
 
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "Start uploading firmware image to partition \"%s\".", update_partition->label);
-#endif
-
     size_t received = 0;
+#ifdef DISPLAY_STATE
     float percent = 0.0f;
+#endif
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1));
 
         int read_bytes = httpd_req_recv(req, (char*)chunk_buf, OTA_CHUNK_SIZE);
         if (read_bytes < 0) {
-#ifdef DISPLAY_STATE
-            ESP_LOGE(TAG, "httpd_req_recv error: %s", esp_err_to_name(read_bytes));
-#endif
             esp_ota_abort(ota_handle);
             free(chunk_buf);
             httpd_resp_send_500(req);
@@ -295,9 +276,6 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
 
         ret = esp_ota_write(ota_handle, chunk_buf, read_bytes);
         if (ret != ESP_OK) {
-#ifdef DISPLAY_STATE
-            ESP_LOGE(TAG, "esp_ota_write error: %s", esp_err_to_name(ret));
-#endif
             esp_ota_abort(ota_handle);
             free(chunk_buf);
             httpd_resp_send_500(req);
@@ -323,12 +301,12 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
 
     ret = esp_ota_end(ota_handle);
     if (ret != ESP_OK) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "esp_ota_end failed: %s", esp_err_to_name(ret));
-#endif
         httpd_resp_send_500(req);
         return (ret);
     }
+
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, WebServer::end_of_ota_update, HTTPD_RESP_USE_STRLEN);
 
     ret = esp_ota_set_boot_partition(update_partition);
     if (ret != ESP_OK) {
