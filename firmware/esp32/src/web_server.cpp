@@ -40,8 +40,10 @@ esp_err_t WebServer::init(void) {
     return (ESP_OK);
 }
 
-esp_err_t WebServer::start(SensorDevice* _sensor, const char* _ip_addr) {
-    m.sensor = _sensor;
+esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
+    m.sensor  = _app->get_sensor();
+    m.display = _app->get_display();
+
     if (_ip_addr != nullptr) {
         strncpy(m.ip_addr, _ip_addr, sizeof (m.ip_addr));
     }
@@ -150,6 +152,7 @@ esp_err_t WebServer::init_time_server(void) {
     return (ESP_OK);
 }
 
+
 esp_err_t WebServer::_root_handler(httpd_req_t *req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->root_handler(req));
 }
@@ -163,6 +166,7 @@ esp_err_t WebServer::root_handler(httpd_req_t *req) {
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
 }
+
 
 esp_err_t WebServer::_api_favicon_handler(httpd_req_t *req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_favicon_handler(req));
@@ -178,6 +182,7 @@ esp_err_t WebServer::api_favicon_handler(httpd_req_t *req) {
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_favicon_req, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
 }
+
 
 esp_err_t WebServer::_api_sensors_handler(httpd_req_t *req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_sensors_handler(req));
@@ -201,6 +206,7 @@ esp_err_t WebServer::api_sensors_handler(httpd_req_t *req) {
     return (ESP_OK);
 }
 
+
 esp_err_t WebServer::_api_id_handler(httpd_req_t *req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_id_handler(req));
 }
@@ -218,10 +224,12 @@ esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
     return (ESP_OK);
 }
 
+
 esp_err_t WebServer::_api_update_handler(httpd_req_t* req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_update_handler(req));
 }
 esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
+
 #ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "WebServer::api_update_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
 #endif
@@ -245,7 +253,18 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
         return (ESP_FAIL);
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10));
+    if (m.display != nullptr) {
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
+        m.display->clear();
+        m.display->print( 0, 0, "Firmware upload:");
+        m.display->print( 0, 1, "Partition:");
+        m.display->print(10, 1, update_partition->label);
+        char string[20]{ 0 };
+        snprintf(string, sizeof (string), "Size:  %9.9zu", req->content_len);
+        m.display->print( 0, 2, string);
+        m.display->print( 0, 3, "State: Ereasing");
+        m.display->update();
+    }
 
     esp_ota_handle_t ota_handle = -1;
     esp_err_t ret = esp_ota_begin(update_partition, req->content_len, &ota_handle);
@@ -256,12 +275,8 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
     }
 
     size_t received = 0;
-#ifdef DISPLAY_STATE
     float percent = 0.0f;
-#endif
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(1));
-
         int read_bytes = httpd_req_recv(req, (char*)chunk_buf, OTA_CHUNK_SIZE);
         if (read_bytes < 0) {
             esp_ota_abort(ota_handle);
@@ -270,34 +285,40 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
             return (ESP_FAIL);
         }
 
-        if (read_bytes == 0) {   // client closed connection
+        if (read_bytes == 0) {
             break;
         }
 
         ret = esp_ota_write(ota_handle, chunk_buf, read_bytes);
         if (ret != ESP_OK) {
             esp_ota_abort(ota_handle);
-            free(chunk_buf);
-            httpd_resp_send_500(req);
-            return (ret);
+            break;
         }
 
         received += read_bytes;
 
-#ifdef DISPLAY_STATE
         float progress = (float)received * 100.0f / (float)req->content_len;
         if (fabs(progress - percent) >= 5.0f) {
             percent = progress;
+#ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "%.1f%% received, %zu of %zu bytes. ", percent, received, req->content_len);
-        }
 #endif
+            if (m.display != nullptr) {
+                char string[20]{ 0 };
+                snprintf(string, 16, "%9.9zu", received);
+                m.display->print( 7, 3, string);
+                m.display->update();
+            }
+        }
     }
 
     free(chunk_buf);
 
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "Successfully streamed %zu bytes to OTA", received);
-#endif
+    if (received == req->content_len) {
+
+    } else {
+
+    }
 
     ret = esp_ota_end(ota_handle);
     if (ret != ESP_OK) {
@@ -305,20 +326,27 @@ esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
         return (ret);
     }
 
+
+    if (m.display != nullptr) {
+        m.display->print(7, 3, "Complete ");
+        m.display->update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, WebServer::end_of_ota_update, HTTPD_RESP_USE_STRLEN);
 
     ret = esp_ota_set_boot_partition(update_partition);
     if (ret != ESP_OK) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Failed to set boot partition: %s", esp_err_to_name(ret));
-#endif
         return (ret);
     }
 
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "Update installed, swap to active application partition \"%s\". Restarting system now.", update_partition->label);
-#endif
+    if (m.display != nullptr) {
+        m.display->print(7, 3, "Success  ");
+        m.display->update();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
     esp_event_post(APP_EVENT, (int32_t)AppEvent::reboot, nullptr, 0, pdMS_TO_TICKS(1));
 
     return (ESP_OK);

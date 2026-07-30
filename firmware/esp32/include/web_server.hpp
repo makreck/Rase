@@ -60,9 +60,11 @@ class WebServer {
 
 
         struct {
-            httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-            httpd_handle_t server = nullptr;
-            SensorDevice*  sensor = nullptr;
+            httpd_config_t config  = HTTPD_DEFAULT_CONFIG();
+            httpd_handle_t server  = nullptr;
+            SensorDevice*  sensor  = nullptr;
+            DisplayI2C*    display = nullptr;
+
             char           ip_addr[32]{ 0 };
         } m;
 
@@ -99,7 +101,7 @@ class WebServer {
             cleanup();
         }
 
-        esp_err_t start(SensorDevice* _sensor, const char* ip_addr = "0.0.0.0");
+        esp_err_t start(App* _app, const char* ip_addr = "0.0.0.0");
         esp_err_t stop(void);
         esp_err_t update(SensorReading* reading);
 };
