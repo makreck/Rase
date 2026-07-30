@@ -47,6 +47,8 @@ enum class EspCmd {
 #define APP0_OFFSET                 0x10000
 #define APP_SIZE                    0x180000
 
+#define OTA_CHUNK_SIZE              (1024)
+
 #define DEFAULT_BAUDRATE            (B115200)
 #define ESP_MAX_BUFFER_SIZE         (4096)
 

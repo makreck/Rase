@@ -208,7 +208,7 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
     // /* ---------- build HTTP PUT request -------------------------------------- */
     char request[256]{ 0 };
     ssize_t req_len  = snprintf(request, sizeof(request),
-                                "PUT /update HTTP/1.1\r\n"
+                                "POST /update HTTP/1.1\r\n"
                                 "Host: %s\r\n"
                                 "Content-Length: %ld\r\n"
                                 "Connection: close\r\n"
@@ -227,7 +227,7 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
 
     ssize_t i = 0;
     while (i < _size) {
-        ssize_t chunk_len = ((_size - i) > 4096) ? 4096 : (_size - i);
+        ssize_t chunk_len = ((_size - i) > OTA_CHUNK_SIZE) ? OTA_CHUNK_SIZE : (_size - i);
         sent_len = send(sockfd, &_firmware_image[i], chunk_len, 0);
         if (sent_len == -1) {
             perror("send file");
