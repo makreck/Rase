@@ -27,9 +27,10 @@ AppState App::init_display(void) {
 #ifdef _ENABLE_LCD
     m.display = new DisplayI2C();
     if (m.display != nullptr) {
-        m.display_page     = DisplayPage::invalid;
-        m.display_request  = 1;
-        m.display_update   = 0;
+        m.display_page         = DisplayPage::invalid;
+        m.display_request      = 1;
+        m.display_update       = 0;
+        m.flags.b.display_lock = 0;
         reload_display_timeout();
 
         m.display->clear();
@@ -49,6 +50,13 @@ AppState App::init_display(void) {
 AppState App::handle_display(void) {
     if (m.display == nullptr) {
         return (AppState::not_implemented);
+    }
+
+    if (m.flags.b.display_lock == 1) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "Display lock is SET.");
+#endif
+        return (AppState::busy);
     }
 
     if (m.display_page == DisplayPage::invalid) {
