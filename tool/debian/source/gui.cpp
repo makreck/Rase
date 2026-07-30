@@ -326,7 +326,6 @@ void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2,
 void App::update_status_items(void) {
     bool modified = false;
     for (int i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
-        printf("<%s>%c ", m.gtk.status[i].message, (m.gtk.status[i].modified) ? 'x' : ' ');
         if (m.gtk.status[i].modified) {
             m.gtk.status[i].modified = false;
             gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
@@ -334,7 +333,6 @@ void App::update_status_items(void) {
             modified = true;
         }
     }
-    printf("\n");
     if (modified) {
         gtk_widget_show_all(m.gtk.win);
     }
