@@ -5,212 +5,590 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RASE Sensor Configuration</title>
     <style>
-        body {
-            background-color: #2c3e50; /* dark blue-ish background */
-            color: #ecf0f1;
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #13579b;
+            --primary-dark: #0f4788;
+            --primary-light: #7ac2fd;
+            --secondary: #4caf50;
+            --background: #000308;
+            --surface: #001025;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --error: #f44336;
+            --success: #4caf50;
+            --warning: #ff9800;
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
             padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
+
         .container {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        label {
-            display: block;
-            margin-bottom: 5px;
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--primary-light);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background-color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
         }
-        input[type="text"], select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: none;
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        button {
-            background-color: #16a085; /* teal-ish button */
+
+        .card-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+            color: var(--primary-light);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            background-color: #012f85;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
             color: white;
-            padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+        }
+
+        .btn-success:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: var(--primary-dark);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--error);
+        }
+
+        .status-dot.connected {
+            background-color: var(--success);
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+        }
+
+        .firmware-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #1abc9c;
+
+        .file-input-button {
+            display: block;
+            padding: 12px;
+            background-color: var(--primary-dark);
+            border: 1px dashed #444;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-button:hover {
+            background-color: #3a3a3a;
+            border-color: var(--primary);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            background-color: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background-color: var(--error);
+        }
+
+        .notification.warning {
+            background-color: var(--warning);
+        }
+
+        .section-divider {
+            height: 1px;
+            background-color: #333;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
         }
     </style>
 </head>
+
 <body>
+    <div class="container">
+        <header>
+            <h1>RASE Sensor Configuration</h1>
+            <div class="logo">
+                <div class="logo-icon">ESP</div>
+                <div>Device Manager</div>
+            </div>
+        </header>
 
-<div class="container">
-    <h1>RASE Sensor Configuration</h1>
+        <div class="status-indicator">
+            <div class="status-dot connected"></div>
+            <div class="status-text">Connected to RASE Sensor Device</div>
+        </div>
 
-    <div id="config-form">
-        <label for="ssid">SSID:</label>
-        <input type="text" id="ssid" name="ssid"><br>
+        <div class="card">
+            <h2 class="card-title">WiFi Configuration</h2>
+            <div class="form-group">
+                <label for="ssid">Network Name (SSID)</label>
+                <input type="text" id="ssid" placeholder="Enter WiFi SSID">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter WiFi password">
+            </div>
+            <div class="form-group">
+                <label for="wifi-channel">WiFi Channel</label>
+                <select id="wifi-channel">
+                    <option value="1">Channel 1</option>
+                    <option value="2">Channel 2</option>
+                    <option value="3">Channel 3</option>
+                    <option value="4">Channel 4</option>
+                    <option value="5">Channel 5</option>
+                    <option value="6">Channel 6</option>
+                    <option value="7">Channel 7</option>
+                    <option value="8">Channel 8</option>
+                    <option value="9">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                </select>
+            </div>
+        </div>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"><br>
+        <div class="card">
+            <h2 class="card-title">MQTT Configuration</h2>
+            <div class="form-group">
+                <label for="mqtt-enable">MQTT Status</label>
+                <select id="mqtt-enable">
+                    <option value="enabled">Enabled</option>
+                    <option value="disabled">Disabled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="mqtt-broker">Broker Address</label>
+                <input type="text" id="mqtt-broker" placeholder="Enter MQTT broker IP">
+            </div>
+            <div class="form-group">
+                <label for="mqtt-username">Username (Optional)</label>
+                <input type="text" id="mqtt-username" placeholder="Enter MQTT username">
+            </div>
+            <div class="form-group">
+                <label for="mqtt-password">Password (Optional)</label>
+                <input type="password" id="mqtt-password" placeholder="Enter MQTT password">
+            </div>
+        </div>
 
-        <label for="wifi-channel">WiFi Channel:</label>
-        <select id="wifi-channel" name="wifi_channel">
-            <option value="1">1</option>
-            <option value="6">6</option>
-            <option value="11">11</option>
-        </select><br>
+        <div class="card">
+            <h2 class="card-title">Display Configuration</h2>
+            <div class="form-group">
+                <label for="display-layout">Display Layout</label>
+                <select id="display-layout">
+                    <option value="Value page">Value page</option>
+                    <option value="Details page">Details page</option>
+                    <option value="Info page">Info page</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="display-param">Display Parameter</label>
+                <input type="number" id="display-param" min="0" max="255" placeholder="Enter parameter value (0-255)">
+            </div>
+            <div class="form-group">
+                <label for="display-rotation">Display Rotation</label>
+                <select id="display-rotation">
+                    <option value="0°">0°</option>
+                    <option value="180°">180°</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="display-timeout">Display Timeout</label>
+                <select id="display-timeout">
+                    <option value="Never">Never</option>
+                    <option value="10 s">10 seconds</option>
+                    <option value="1 min">1 minute</option>
+                    <option value="5 min">5 minutes</option>
+                    <option value="15 min">15 minutes</option>
+                    <option value="30 min">30 minutes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="display-contrast">Display Contrast</label>
+                <input type="range" id="display-contrast" min="0" max="100" value="50">
+                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span>Low</span>
+                    <span>High</span>
+                </div>
+            </div>
+        </div>
 
-        <label for="mqtt-broker">MQTT Broker IP:</label>
-        <input type="text" id="mqtt-broker" name="mqtt_broker"><br>
+        <div class="card">
+            <h2 class="card-title">Sensor Configuration</h2>
+            <div class="form-group">
+                <label for="sensor-type">Sensor Type</label>
+                <select id="sensor-type">
+                    <option value="autoscan">autoscan</option>
+                    <option value="Null">Null</option>
+                    <option value="SHT2x">SHT2x</option>
+                    <option value="SHT3x">SHT3x</option>
+                    <option value="HTU21d">HTU21d</option>
+                    <option value="ATHxx">ATHxx</option>
+                    <option value="HDC1080">HDC1080</option>
+                    <option value="BMx280">BMx280</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="led-intensity">LED intensity</label>
+                <input type="range" id="led-intensity" min="0" max="100" value="50">
+                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span>Low</span>
+                    <span>High</span>
+                </div>
+            </div>
+        </div>
 
-        <label for="mqtt-username">MQTT Username:</label>
-        <input type="text" id="mqtt-username" name="mqtt_username"><br>
+        <div class="section-divider"></div>
 
-        <label for="mqtt-password">MQTT Password:</label>
-        <input type="password" id="mqtt-password" name="mqtt_password"><br>
+        <div class="card">
+            <h2 class="card-title">Firmware Update</h2>
+            <div class="firmware-upload">
+                <div class="file-input-wrapper">
+                    <div class="file-input-button" id="select-file-button">
+                        Select Firmware File (.bin)
+                    </div>
+                    <input type="file" id="firmware-file" accept=".bin">
+                </div>
+                <div class="file-name" id="file-name">No file selected</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <button class="btn btn-success btn-block" id="update-firmware">
+                    Update Firmware
+                </button>
+            </div>
+        </div>
 
-        <label for="mqtt-enable">Enable MQTT:</label>
-        <select id="mqtt-enable" name="mqtt_enable">
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-        </select><br>
-
-        <label for="display-layout">Display Layout:</label>
-        <select id="display-layout" name="display_layout">
-            <option value="Value page">Value Page</option>
-            <option value="Details page">Details Page</option>
-            <option value="Info page">Info Page</option>
-        </select><br>
-
-        <label for="display-param">Display Parameter:</label>
-        <input type="number" id="display-param" name="display_param" min="0" max="255"><br>
-
-        <label for="display-rotation">Display Rotation:</label>
-        <select id="display-rotation" name="display_rotation">
-            <option value="0°">0°</option>
-            <option value="180°">180°</option>
-        </select><br>
-
-        <label for="display-timeout">Display Timeout:</label>
-        <select id="display-timeout" name="display_timeout">
-            <option value="Never">Never</option>
-            <option value="10 s">10 s</option>
-            <option value="1 min">1 min</option>
-            <option value="5 min">5 min</option>
-            <option value="15 min">15 min</option>
-            <option value="30 min">30 min</option>
-        </select><br>
-
-        <label for="display-contrast">Display Contrast:</label>
-        <input type="number" id="display-contrast" name="display_contrast" min="1" max="100"><br>
-
-        <label for="sensor-type">Sensor Type:</label>
-        <select id="sensor-type" name="sensor_type">
-            <option value="BMx280">BME280</option>
-            <option value="autoscan">Auto Scan</option>
-            <option value="Null">Null</option>
-            <option value="SHT2x">SHT2x</option>
-            <option value="SHT3x">SHT3x</option>
-            <option value="HTU21d">HTU21D</option>
-            <option value="ATHxx">ATH Sensor</option>
-            <option value="HDC1080">HDC1080</option>
-        </select><br>
-
-        <label for="led-intensity">LED Intensity:</label>
-        <input type="number" id="led-intensity" name="led_intensity" min="1" max="100"><br>
-
-        <button onclick="fetchConfig()">Load Configuration</button>
-        <button onclick="saveConfig()">Save Configuration</button>
+        <div class="btn-group">
+            <button class="btn btn-success" id="save-config">
+                Save Configuration
+            </button>
+            <button class="btn" id="reset-device">
+                Reset Device
+            </button>
+        </div>
     </div>
 
-    <h2>Firmware Update</h2>
-    <input type="file" id="firmware-file" accept=".bin">
-    <button onclick="uploadFirmware()">Upload Firmware</button>
-</div>
+    <div class="notification" id="notification"></div>
 
-<script>
-function fetchConfig() {
-    fetch('/api/config')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('ssid').value = data.ssid;
-            document.getElementById('password').value = '********'.repeat(data.password.length);
-            document.getElementById('wifi-channel').value = data.wifi_channel;
-            document.getElementById('mqtt-broker').value = data.mqtt_broker;
-            document.getElementById('mqtt-username').value = data.mqtt_username;
-            document.getElementById('mqtt-password').value = '********'.repeat(data.mqtt_password.length);
-            document.getElementById('mqtt-enable').value = data.mqtt_enable;
-            document.getElementById('display-layout').value = data.display_layout;
-            document.getElementById('display-param').value = data.display_param;
-            document.getElementById('display-rotation').value = data.display_rotation;
-            document.getElementById('display-timeout').value = data.display_timeout;
-            document.getElementById('display-contrast').value = data.display_contrast;
-            document.getElementById('sensor-type').value = data.sensor_type.split(',')[0];
-            document.getElementById('led-intensity').value = parseInt(data.led_intensity);
-        })
-        .catch(error => console.error('Error fetching config:', error));
-}
+    <script>
+        const ssidInput = document.getElementById('ssid');
+        const passwordInput = document.getElementById('password');
+        const wifiChannelSelect = document.getElementById('wifi-channel');
+        const mqttEnableSelect = document.getElementById('mqtt-enable');
+        const mqttBrokerInput = document.getElementById('mqtt-broker');
+        const mqttUsernameInput = document.getElementById('mqtt-username');
+        const mqttPasswordInput = document.getElementById('mqtt-password');
+        const displayLayoutSelect = document.getElementById('display-layout');
+        const displayParamInput = document.getElementById('display-param');
+        const displayRotationSelect = document.getElementById('display-rotation');
+        const displayTimeoutSelect = document.getElementById('display-timeout');
+        const displayContrastSlider = document.getElementById('display-contrast');
+        const sensorTypeSelect = document.getElementById('sensor-type');
+        const sensorUnitSelect = document.getElementById('sensor-unit');
+        const ledIntensitySlider = document.getElementById('led-intensity');
+        const firmwareFileInput = document.getElementById('firmware-file');
+        const selectFileButton = document.getElementById('select-file-button');
+        const fileNameElement = document.getElementById('file-name');
+        const progressBar = document.getElementById('progress-bar');
+        const saveConfigBtn = document.getElementById('save-config');
+        const resetDeviceBtn = document.getElementById('reset-device');
+        const updateFirmwareBtn = document.getElementById('update-firmware');
+        const notification = document.getElementById('notification');
 
-function saveConfig() {
-    const formData = new FormData(document.getElementById('config-form'));
-
-    const data = {};
-    for (const [key, value] of formData.entries()) {
-        if (key === 'password') {
-            data[key] = document.getElementById(key).type === 'password' ? value : '';
-        } else if (key === 'sensor_type') {
-            data[key] = `${value},${fetchConfigData('sensor_type').split(',').join(',')}`;
-        } else {
-            data[key] = value;
+        function initializeForm() {
+            // Simulate loading configuration from device
+            setTimeout(() => {
+                ssidInput.value = "MyNetwork";
+                passwordInput.value = "password123";
+                wifiChannelSelect.value = "6";
+                mqttEnableSelect.value = "enabled";
+                mqttBrokerInput.value = "192.168.1.100";
+                mqttUsernameInput.value = "";
+                mqttPasswordInput.value = "";
+                displayLayoutSelect.value = "Value page";
+                displayParamInput.value = "128";
+                displayRotationSelect.value = "0°";
+                displayTimeoutSelect.value = "5 min";
+                displayContrastSlider.value = "75";
+                sensorTypeSelect.value = "SHT3x";
+                ledIntensitySlider.value = "60";
+            }, 500);
         }
-    }
 
-    fetch('/api/config', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(() => alert('Configuration saved successfully!'))
-    .catch(error => console.error('Error saving config:', error));
-}
+        selectFileButton.addEventListener('click', () => {
+            firmwareFileInput.click();
+        });
 
-function uploadFirmware() {
-    const fileInput = document.getElementById('firmware-file');
-    if (fileInput.files.length === 0) {
-        alert('Please select a firmware file.');
-        return;
-    }
+        firmwareFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileNameElement.textContent = file.name;
+                fileNameElement.style.color = '#4CAF50';
+            } else {
+                fileNameElement.textContent = 'No file selected';
+                fileNameElement.style.color = '#999';
+            }
+        });
 
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('firmware', file);
 
-    fetch('/update', {
-        method: 'PUT',
-        body: formData
-    })
-    .then(() => alert('Firmware upload successful!'))
-    .catch(error => console.error('Error uploading firmware:', error));
-}
+        // Simulate firmware update progress
+        updateFirmwareBtn.addEventListener('click', () => {
+            if (!firmwareFileInput.files[0]) {
+                showNotification('Please select a firmware file first', 'error');
+                return;
+            }
 
-function fetchConfigData(key) {
-    return (async () => {
-        const response = await fetch('/api/config');
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const data = await response.json();
-        return data[key];
-    })();
-}
-</script>
+            updateFirmwareBtn.disabled = true;
+            updateFirmwareBtn.textContent = 'Updating...';
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        updateFirmwareBtn.disabled = false;
+                        updateFirmwareBtn.textContent = 'Update Firmware';
+                        showNotification('Firmware updated successfully', 'success');
+                    }, 500);
+                }
+                progressBar.style.width = `${progress}%`;
+            }, 200);
+        });
+
+        // Save configuration
+        saveConfigBtn.addEventListener('click', () => {
+            const config = {
+                ssid: ssidInput.value,
+                password: passwordInput.value,
+                wifiChannel: wifiChannelSelect.value,
+                mqttEnable: mqttEnableSelect.value,
+                mqttBroker: mqttBrokerInput.value,
+                mqttUsername: mqttUsernameInput.value,
+                mqttPassword: mqttPasswordInput.value,
+                displayLayout: displayLayoutSelect.value,
+                displayParam: displayParamInput.value,
+                displayRotation: displayRotationSelect.value,
+                displayTimeout: displayTimeoutSelect.value,
+                displayContrast: displayContrastSlider.value,
+                sensorType: sensorTypeSelect.value,
+                sensorUnit: sensorUnitSelect.value,
+                ledIntensity: ledIntensitySlider.value
+            };
+
+            
+            // Simulate saving to device
+            saveConfigBtn.textContent = 'Saving...';
+            setTimeout(() => {
+                saveConfigBtn.textContent = 'Save Configuration';
+                showNotification('Configuration saved successfully', 'success');
+            }, 1000);
+
+
+        });
+
+        // Reset device
+        resetDeviceBtn.addEventListener('click', () => {
+            resetDeviceBtn.textContent = 'Resetting...';
+            setTimeout(() => {
+                resetDeviceBtn.textContent = 'Reset Device';
+                showNotification('Device reset completed', 'success');
+            }, 3000);
+        });
+
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', initializeForm);
+    </script>
 </body>
 </html>
-
