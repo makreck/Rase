@@ -227,15 +227,18 @@ AppState App::handle_reboot_request(void) {
 
         if (m.display != nullptr) {
             esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
+            int y = (m.cfg->get_display_rotation() == 0) ? 0 : 3;
             m.display->clear();
             m.display->setLogo();
-            m.display->print(0, 0, "Factory reset...");
+            m.display->print(0, y, "Factory reset...");
             m.display->update();
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
 
         m.cfg->perform_factory_reset();
         m.flags.b.reboot_req = 1;
+
+        return (AppState::OK);
     }
 
     if (m.flags.b.reboot_req == 1) {
@@ -243,9 +246,10 @@ AppState App::handle_reboot_request(void) {
         
         if (m.display != nullptr) {
             esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
+            int y = (m.cfg->get_display_rotation() == 0) ? 0 : 3;
             m.display->clear();
             m.display->setLogo();
-            m.display->print(0, 0, "System reboot...");
+            m.display->print(0, y, "System reboot...");
             m.display->update();
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
