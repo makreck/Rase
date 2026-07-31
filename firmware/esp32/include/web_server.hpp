@@ -27,6 +27,10 @@
 
 #define OTA_CHUNK_SIZE (4096)
 
+class SensorDevice;
+class DisplayI2C;
+class SysConfig;
+
 class WebServerHandlers {
     public:
         const char* uri;
@@ -62,9 +66,11 @@ class WebServer {
         struct {
             httpd_config_t config  = HTTPD_DEFAULT_CONFIG();
             httpd_handle_t server  = nullptr;
+
             SensorDevice*  sensor  = nullptr;
             DisplayI2C*    display = nullptr;
-
+            SysConfig*     cfg     = nullptr;
+            
             char           ip_addr[32]{ 0 };
         } m;
 
@@ -82,6 +88,12 @@ class WebServer {
 
         static esp_err_t _api_update_handler(httpd_req_t *req);
         esp_err_t api_update_handler(httpd_req_t *req);
+
+        static esp_err_t _api_cfg_get_handler(httpd_req_t *req);
+        esp_err_t api_cfg_get_handler(httpd_req_t *req);
+
+        static esp_err_t _api_cfg_put_handler(httpd_req_t* req);
+        esp_err_t api_cfg_put_handler(httpd_req_t* req);
 
         static void _time_sync_notification(struct timeval* tv);
 
