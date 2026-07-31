@@ -59,7 +59,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
 
     do {
         httpd_uri_t root_uri = {
-            .uri       = "/",
+            .uri       = WEB_KEY_ROOT,
             .method    = HTTP_GET,
             .handler   = WebServer::_root_handler,
             .user_ctx  = this,
@@ -68,7 +68,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t favicon_uri = {
-            .uri       = "/favicon.ico",
+            .uri       = WEB_KEY_APP_ICON,
             .method    = HTTP_GET,
             .handler   = WebServer::_api_favicon_handler,
             .user_ctx  = this,
@@ -77,7 +77,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t sensors_uri = {
-            .uri       = "/api/sensors",
+            .uri       = WEB_KEY_SENSOR_RESPONSE,
             .method    = HTTP_GET,
             .handler   = WebServer::_api_sensors_handler,
             .user_ctx  = this,
@@ -86,7 +86,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t id_uri = {
-            .uri       = "/api/id",
+            .uri       = WEB_KEY_ID_RESPONSE,
             .method    = HTTP_GET,
             .handler   = WebServer::_api_id_handler,
             .user_ctx  = this,
@@ -95,7 +95,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t cfg_get_uri = {
-            .uri       = "/api/config",
+            .uri       = WEB_KEY_CONFIG,
             .method    = HTTP_GET,
             .handler   = WebServer::_api_cfg_get_handler,
             .user_ctx  = this,
@@ -104,7 +104,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t cfg_put_uri = {
-            .uri       = "/api/config",
+            .uri       = WEB_KEY_CONFIG,
             .method    = HTTP_PUT,
             .handler   = WebServer::_api_cfg_put_handler,
             .user_ctx  = this,
@@ -113,7 +113,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         if (err != ESP_OK) break;
 
         httpd_uri_t update_uri = {
-            .uri       = "/update",
+            .uri       = WEB_KEY_UPDATE,
             .method    = HTTP_PUT,
             .handler   = WebServer::_api_update_handler,
             .user_ctx  = this,

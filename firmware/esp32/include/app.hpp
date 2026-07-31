@@ -29,6 +29,7 @@
 #include "io_mapping.hpp"
 
 #include "app_state.hpp"
+#include "web_interface.hpp"
 #include "tools.hpp"
 #include "events.hpp"
 #include "color.hpp"

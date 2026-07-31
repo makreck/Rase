@@ -24,17 +24,6 @@
 #define RX_BUFFER_SIZE  (1024)
 #define TX_BUFFER_SIZE  (1024)
 
-#define CFG_KEY_WEBSITE_RESPONSE "/root"
-#define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
-#define CFG_KEY_ID_RESPONSE      "/api/id"
-#define CFG_KEY_WIFI_SETUP       "/connect"
-#define CFG_KEY_MQTT_BROKER      "/broker"
-#define CFG_KEY_CONFIG           "/config"
-#define CFG_KEY_INITIALIZE       "/initialize"
-#define CFG_KEY_REBOOT           "/reboot"
-#define CFG_KEY_PAR              "/par"
-#define CFG_KEY_TEST             "/test"
-
 class App;
 class ConfigInterface;
 
