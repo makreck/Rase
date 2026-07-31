@@ -25,7 +25,8 @@
 #define WEB_KEY_APP_ICON         "/favicon.ico"
 #define WEB_KEY_SENSOR_RESPONSE  "/api/sensors"
 #define WEB_KEY_ID_RESPONSE      "/api/id"
-#define WEB_KEY_CONFIG           "/api/config"
+#define WEB_KEY_CONFIG_ROOT      "/config"
+#define WEB_KEY_CONFIG_API       "/api/config"
 #define WEB_KEY_UPDATE           "/update"
 
 #define CFG_KEY_WEBSITE_RESPONSE "/root"

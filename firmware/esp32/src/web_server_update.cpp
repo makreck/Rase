@@ -22,13 +22,13 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-esp_err_t WebServer::_api_update_handler(httpd_req_t* req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_update_handler(req));
+esp_err_t WebServer::_update_handler(httpd_req_t* req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->update_handler(req));
 }
-esp_err_t WebServer::api_update_handler(httpd_req_t* req) {
+esp_err_t WebServer::update_handler(httpd_req_t* req) {
 
 #ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_update_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
+    ESP_LOGI(TAG, "WebServer::update_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
 #endif
 
     if (req->content_len == 0) {

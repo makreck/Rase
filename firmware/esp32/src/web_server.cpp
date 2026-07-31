@@ -24,6 +24,17 @@
 
 // #define DISPLAY_STATE
 
+const WebServerURI WebServer::web_uri_tab[] = {
+    { WEB_KEY_ROOT,            HTTP_GET, WebServer::_root_handler         },
+    { WEB_KEY_APP_ICON,        HTTP_GET, WebServer::_api_favicon_handler  },
+    { WEB_KEY_SENSOR_RESPONSE, HTTP_GET, WebServer::_api_sensors_handler  },
+    { WEB_KEY_ID_RESPONSE,     HTTP_GET, WebServer::_api_id_handler       },
+    { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_config_root_handler  },
+    { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_cfg_get_handler  },
+    { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_cfg_put_handler  },
+    { WEB_KEY_UPDATE,          HTTP_PUT, WebServer::_update_handler       },
+};
+
 static const char* favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
                                     "stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > "
                                     "<path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z\"></path></svg>";
@@ -57,72 +68,17 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
         return (err);
     }
 
-    do {
-        httpd_uri_t root_uri = {
-            .uri       = WEB_KEY_ROOT,
-            .method    = HTTP_GET,
-            .handler   = WebServer::_root_handler,
+    for (size_t i = 0; i < SIZEOFARRAY(WebServer::web_uri_tab); i++) {
+        httpd_uri_t web_uri = {
+            .uri       = WebServer::web_uri_tab[i].http_uri,
+            .method    = WebServer::web_uri_tab[i].method,
+            .handler   = WebServer::web_uri_tab[i].handler,
             .user_ctx  = this,
         };
-        err = httpd_register_uri_handler(m.server, &root_uri);
+        err = httpd_register_uri_handler(m.server, &web_uri);
         if (err != ESP_OK) break;
-
-        httpd_uri_t favicon_uri = {
-            .uri       = WEB_KEY_APP_ICON,
-            .method    = HTTP_GET,
-            .handler   = WebServer::_api_favicon_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &favicon_uri);
-        if (err != ESP_OK) break;
-
-        httpd_uri_t sensors_uri = {
-            .uri       = WEB_KEY_SENSOR_RESPONSE,
-            .method    = HTTP_GET,
-            .handler   = WebServer::_api_sensors_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &sensors_uri);
-        if (err != ESP_OK) break;
-
-        httpd_uri_t id_uri = {
-            .uri       = WEB_KEY_ID_RESPONSE,
-            .method    = HTTP_GET,
-            .handler   = WebServer::_api_id_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &id_uri);
-        if (err != ESP_OK) break;
-
-        httpd_uri_t cfg_get_uri = {
-            .uri       = WEB_KEY_CONFIG,
-            .method    = HTTP_GET,
-            .handler   = WebServer::_api_cfg_get_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &cfg_get_uri);
-        if (err != ESP_OK) break;
-
-        httpd_uri_t cfg_put_uri = {
-            .uri       = WEB_KEY_CONFIG,
-            .method    = HTTP_PUT,
-            .handler   = WebServer::_api_cfg_put_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &cfg_put_uri);
-        if (err != ESP_OK) break;
-
-        httpd_uri_t update_uri = {
-            .uri       = WEB_KEY_UPDATE,
-            .method    = HTTP_PUT,
-            .handler   = WebServer::_api_update_handler,
-            .user_ctx  = this,
-        };
-        err = httpd_register_uri_handler(m.server, &update_uri);
-        if (err != ESP_OK) break;
-
-    } while(false);
-
+    }
+    
 #ifdef DISPLAY_STATE        
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start HTTP server: %s", esp_err_to_name(err));

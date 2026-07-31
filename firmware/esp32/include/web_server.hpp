@@ -31,11 +31,11 @@ class SensorDevice;
 class DisplayI2C;
 class SysConfig;
 
-class WebServerHandlers {
+class WebServerURI {
     public:
-        const char* uri;
+        const char* http_uri;
         httpd_method_t method;
-        esp_err_t (*handler)(httpd_req_t *r);
+        esp_err_t (*handler)(httpd_req_t* _req);
 };
 
 class WebServer {
@@ -62,6 +62,7 @@ class WebServer {
             "\t\"message\": \"OTA update complete\"\n"
             "}\n";
 
+        static const WebServerURI web_uri_tab[];
 
         struct {
             httpd_config_t config  = HTTPD_DEFAULT_CONFIG();
@@ -86,8 +87,11 @@ class WebServer {
         static esp_err_t _api_id_handler(httpd_req_t *req);
         esp_err_t api_id_handler(httpd_req_t *req);
 
-        static esp_err_t _api_update_handler(httpd_req_t *req);
-        esp_err_t api_update_handler(httpd_req_t *req);
+        static esp_err_t _update_handler(httpd_req_t *req);
+        esp_err_t update_handler(httpd_req_t *req);
+
+        static esp_err_t _config_root_handler(httpd_req_t *req);
+        esp_err_t config_root_handler(httpd_req_t *req);
 
         static esp_err_t _api_cfg_get_handler(httpd_req_t *req);
         esp_err_t api_cfg_get_handler(httpd_req_t *req);
