@@ -39,6 +39,9 @@
 #define JSON_KEY_SENSOR_TYPE      "sensor_type"
 #define JSON_KEY_LED_INTENSITY    "led_intensity"
 
+#define JSON_KEY_PASSWORD         "password"
+#define JSON_KEY_PWD_HIDDEN       "********"
+
 const char* SysConfig::str_display_layout[3] = {
     "Value page",
     "Details page",
@@ -82,7 +85,13 @@ const JsonScan SysConfig::config_scan_table[] = {
     { JSON_KEY_LED_INTENSITY,    SysConfig::set_LED_intensity_str     },
 };
 
-char* SysConfig::get_json(void) {
+char* SysConfig::get_json(bool _hide_passwords) {
+    const char* wifi_password = JSON_KEY_PWD_HIDDEN;
+    const char* mqtt_password = JSON_KEY_PWD_HIDDEN;
+    if (_hide_passwords == false) {
+        wifi_password = get_password();
+        mqtt_password = get_mqtt_password();
+    }
 
     char sensor_support[256]{ 0 };
     strncpy(sensor_support, SensorDriver::get_driver_name(get_sensor_type()), sizeof (sensor_support));
@@ -95,11 +104,11 @@ char* SysConfig::get_json(void) {
         config_json_format,
         (unsigned int)cfg.version,
         get_ssid(),
-        get_password(),
+        wifi_password,
         get_wifi_channel(),
         get_mqtt_broker(),
         get_mqtt_username(),
-        get_mqtt_password(),
+        mqtt_password,
         (get_mqtt_enable()) ? "enabled" : "disabled",
         get_display_layout_str(),
         (int)get_display_parameter(),
@@ -118,11 +127,11 @@ char* SysConfig::get_json(void) {
             config_json_format,
             (unsigned int)cfg.version,
             get_ssid(),
-            get_password(),
+            wifi_password,
             get_wifi_channel(),
             get_mqtt_broker(),
             get_mqtt_username(),
-            get_mqtt_password(),
+            mqtt_password,
             (get_mqtt_enable()) ? "enabled" : "disabled",
             get_display_layout_str(),
             (int)get_display_parameter(),
@@ -149,6 +158,10 @@ AppState SysConfig::import_json(const char* _json_string, size_t _length) {
         char parameter[64]{ 0 };
         size_t len = Tools::json_get(_json_string, SysConfig::config_scan_table[i].key, parameter, sizeof (parameter));
         if (len > 0) {
+            if ((strstr(parameter, JSON_KEY_PWD_HIDDEN) != nullptr) &&
+                (strstr(SysConfig::config_scan_table[i].key, JSON_KEY_PASSWORD) != nullptr)) {
+                continue;
+            }
             (*config_scan_table[i].scan_function)(this, parameter);
         }
     }
