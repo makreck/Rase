@@ -159,8 +159,9 @@ void ConfigInterface::handle_sensor_response(ConfigInterface* instance, int mode
 }
 
 void ConfigInterface::handle_website_output(ConfigInterface* instance, int mode, const char* data, size_t length) {
-    size_t len = strlen(WEB_SITE_BASE_STRING);
-    send(WEB_SITE_BASE_STRING, len);
+    const char* website = WebServer::webserver_resp_str_1;
+    size_t len = strlen(website);
+    send(website, len);
 }
 
 void ConfigInterface::handle_restart(ConfigInterface* instance, int mode, const char* data, size_t length) {

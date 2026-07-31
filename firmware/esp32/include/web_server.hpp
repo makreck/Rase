@@ -107,7 +107,7 @@ class WebServer {
 
     public:
         static const char* webserver_resp_str_1;
-        static const char* webserver_resp_str_2;
+        static const char* config_website_resp_str;
 
         WebServer(void) {
             init();

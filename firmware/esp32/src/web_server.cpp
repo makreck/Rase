@@ -135,8 +135,10 @@ esp_err_t WebServer::root_handler(httpd_req_t *req) {
 #ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "WebServer::root_handler() event.");
 #endif
+    const char* website = WebServer::webserver_resp_str_1;
+    
     httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, WEB_SITE_BASE_STRING, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
 
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
