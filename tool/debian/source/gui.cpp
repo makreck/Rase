@@ -418,8 +418,9 @@ void App::idle_task(CallbackParameter* p) {
                 break;
             }
 
-            // const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
-            const char* firmware_file = "../../firmware/esp32/.pio/build/waveshare_esp32s3_mini/firmware.bin";
+            // const char* firmware_file = "../../firmware/esp32/.pio/build/seeed_xiao_esp32s3/firmware.bin";
+            const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
+            // const char* firmware_file = "../../firmware/esp32/.pio/build/waveshare_esp32s3_mini/firmware.bin";
             m.loader_thread = EspTool::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
         }
         break;
