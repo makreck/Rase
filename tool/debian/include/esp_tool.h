@@ -22,35 +22,10 @@
 
 #pragma once
 
-// enum class EspCmd {
-//     sync      = 0x01,
-//     mem_begin = 0x02,
-//     mem_data  = 0x03,
-//     mem_end   = 0x04,
-//     run_flash = 0x05,
-// };
-
-enum class EspCmd {
-    CMD_SYNC        = 0x07,
-    CMD_READ_REG    = 0x08,
-    CMD_WRITE_REG   = 0x0A,
-    CMD_ERASE_FLASH = 0x41,
-    CMD_WRITE_FLASH = 0x3B,
-    CMD_READ_FLASH  = 0x32,
-};
-
-// Register addresses
-#define REG_SYS_CONF                0x6000800C
-#define REG_UART_CONF               0x60009014
-#define REG_FLASH_CRYPT_CNTRL       0x6000A030
-
-#define APP0_OFFSET                 0x10000
-#define APP_SIZE                    0x180000
-
 #define OTA_CHUNK_SIZE              (4096)
 
 #define DEFAULT_BAUDRATE            (B115200)
-#define ESP_MAX_BUFFER_SIZE         (4096)
+// #define ESP_MAX_BUFFER_SIZE         (4096)
 
 // #define ENTER_BOOTLOADER_CMD "\x07\x07\x12\x20\x00\x00\x00\x00"
 // #define EXIT_BOOTLOADER_CMD  "\x08\x07\x12\x20\x00\x00\x00\x00"

@@ -41,6 +41,7 @@
 #include "typedefs.h"
 #include "colors.h"
 #include "resource.h"
+#include "web_interface.h"
 #include "esp_tool.h"
 #include "dev_config.h"
 #include "app.h"

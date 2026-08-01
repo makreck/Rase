@@ -31,7 +31,9 @@ const PartitionEntry EspTool::partitions[6] = {
     { "coredump", 0x01, 0x03, 0x3F0000, 0x010000, 0 }
 };
 
-const char* EspTool::ota_put_req_string =   "PUT /update HTTP/1.1\r\n"
+#define WEB_KEY_UPDATE  "/api/update"
+
+const char* EspTool::ota_put_req_string =   "PUT %s HTTP/1.1\r\n"
                                             "Host: %s\r\n"
                                             "Content-Length: %ld\r\n"
                                             "Connection: close\r\n"
@@ -212,12 +214,12 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
         return (false);
     }
 
-    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, _ip_addr, _size);
+    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, WEB_KEY_UPDATE, _ip_addr, _size);
     char* request = (char*)malloc(req_len + 2);
     if (request == nullptr) {
         return (false);
     }
-    snprintf(request, req_len + 1, ota_put_req_string, _ip_addr, _size);
+    snprintf(request, req_len + 1, ota_put_req_string, WEB_KEY_UPDATE, _ip_addr, _size);
 
     ssize_t sent_len = send(fd, request, req_len, 0);
     free(request);
