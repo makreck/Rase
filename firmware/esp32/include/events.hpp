@@ -45,8 +45,7 @@ enum class AppEvent:uint32_t {
     web_start_server  = 302,
     web_api_event     = 303,
     web_query_event   = 304,
-    web_favicon_req   = 305,
-    web_time_sync     = 306,
+    web_time_sync     = 305,
     
     mqtt_configure    = 400,
 

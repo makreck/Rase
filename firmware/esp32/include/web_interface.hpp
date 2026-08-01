@@ -22,7 +22,6 @@
 #pragma once
 
 #define WEB_KEY_ROOT             "/"
-#define WEB_KEY_APP_ICON         "/favicon.ico"
 #define WEB_KEY_SENSOR_RESPONSE  "/api/sensors"
 #define WEB_KEY_ID_RESPONSE      "/api/id"
 #define WEB_KEY_CONFIG_ROOT      "/config"

@@ -280,9 +280,6 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
             m.flags.b.website_query = 1;
         } break;
 
-        case AppEvent::web_favicon_req: {
-        } break;
-
         case AppEvent::web_api_event: {
             m.flags.b.web_api_query = 1;
         } break;

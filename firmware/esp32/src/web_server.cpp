@@ -24,21 +24,19 @@
 
 // #define DISPLAY_STATE
 
-const WebServerURI WebServer::web_uri_tab[] = {
+const WebServerURI WebServer::web_uri_tab[8] = {
     { WEB_KEY_ROOT,            HTTP_GET, WebServer::_root_handler         },
-    { WEB_KEY_APP_ICON,        HTTP_GET, WebServer::_api_favicon_handler  },
+
     { WEB_KEY_SENSOR_RESPONSE, HTTP_GET, WebServer::_api_sensors_handler  },
     { WEB_KEY_ID_RESPONSE,     HTTP_GET, WebServer::_api_id_handler       },
+
     { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_config_root_handler  },
     { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_cfg_get_handler  },
     { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_cfg_put_handler  },
-    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_update_handler       },
-    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_update_put_handler   },
-};
 
-static const char* favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
-                                    "stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > "
-                                    "<path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z\"></path></svg>";
+    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_update_put_handler   },
+    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_update_root_handler  },
+};
 
 esp_err_t WebServer::init(void) {
     m.config.stack_size       = TASK_EXTENDED_STACKSIZE;
@@ -82,7 +80,7 @@ esp_err_t WebServer::start(App* _app, const char* _ip_addr) {
     
 #ifdef DISPLAY_STATE        
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start HTTP server: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to register HTTP handler: %s", esp_err_to_name(err));
     }
 #endif
 
@@ -142,22 +140,6 @@ esp_err_t WebServer::root_handler(httpd_req_t *req) {
     httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
 
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
-    return (ESP_OK);
-}
-
-
-esp_err_t WebServer::_api_favicon_handler(httpd_req_t *req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_favicon_handler(req));
-}
-esp_err_t WebServer::api_favicon_handler(httpd_req_t *req) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_favicon_handler() event.");
-#endif
-    httpd_resp_set_type(req, "image/svg+xml");
-    httpd_resp_set_hdr(req, "Cache-Control", "max-age=3600");
-    httpd_resp_send(req, favicon_svg, HTTPD_RESP_USE_STRLEN);
-
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_favicon_req, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
 }
 

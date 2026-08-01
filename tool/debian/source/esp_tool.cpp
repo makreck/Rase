@@ -218,6 +218,7 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
         return (false);
     }
     snprintf(request, req_len + 1, ota_put_req_string, WEB_KEY_UPDATE_API, _ip_addr, _size);
+printf("\"\"\"\n%s\n\"\"\"", request); // ****
 
     ssize_t sent_len = send(fd, request, req_len, 0);
     free(request);

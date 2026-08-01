@@ -22,24 +22,27 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 
-esp_err_t WebServer::_update_handler(httpd_req_t* req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->update_handler(req));
+esp_err_t WebServer::_update_root_handler(httpd_req_t* req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->update_root_handler(req));
 }
-esp_err_t WebServer::update_handler(httpd_req_t* req) {
+esp_err_t WebServer::update_root_handler(httpd_req_t* req) {
 
 #ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::update_handler() event.");
+    ESP_LOGI(TAG, "WebServer::update_root_handler() event.");
 #endif
-    const char* website = WebServer::config_website_resp_str; // **** Use update website later.
+    // const char* website = WebServer::config_website_resp_str; // **** Use update website later.
 
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
+    // httpd_resp_set_type(req, "text/html");
+    // httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
 
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
-    return (ESP_OK);
+    // esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
+    // return (ESP_OK);
+
+    httpd_resp_send_500(req); // ****
+    return (ESP_FAIL);
 }
 
 
