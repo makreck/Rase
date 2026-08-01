@@ -27,7 +27,8 @@
 #define WEB_KEY_ID_RESPONSE      "/api/id"
 #define WEB_KEY_CONFIG_ROOT      "/config"
 #define WEB_KEY_CONFIG_API       "/api/config"
-#define WEB_KEY_UPDATE           "/api/update"
+#define WEB_KEY_UPDATE_ROOT      "/update"
+#define WEB_KEY_UPDATE_API       "/api/update"
 
 #define CFG_KEY_WEBSITE_RESPONSE "/root"
 #define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"

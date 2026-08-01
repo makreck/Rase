@@ -90,6 +90,9 @@ class WebServer {
         static esp_err_t _update_handler(httpd_req_t *req);
         esp_err_t update_handler(httpd_req_t *req);
 
+        static esp_err_t _update_put_handler(httpd_req_t *req);
+        esp_err_t update_put_handler(httpd_req_t *req);
+
         static esp_err_t _config_root_handler(httpd_req_t *req);
         esp_err_t config_root_handler(httpd_req_t *req);
 

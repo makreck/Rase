@@ -32,7 +32,8 @@ const WebServerURI WebServer::web_uri_tab[] = {
     { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_config_root_handler  },
     { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_cfg_get_handler  },
     { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_cfg_put_handler  },
-    { WEB_KEY_UPDATE,          HTTP_PUT, WebServer::_update_handler       },
+    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_update_handler       },
+    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_update_put_handler   },
 };
 
 static const char* favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
