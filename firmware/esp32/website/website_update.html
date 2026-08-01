@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RASE Firmware Uploader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .upload-container {
+            border: 3px dashed #1a2a6c;
+            border-radius: 10px;
+            padding: 40px 20px;
+            margin: 30px 0;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-container:hover {
+            background-color: #e9ecef;
+            border-color: #b21f1f;
+        }
+
+        .upload-container.drag-over {
+            background-color: #d1ecff;
+            border-color: #0d6efd;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #1a2a6c;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7fe;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            margin: 30px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .status-message {
+            margin-top: 15px;
+            font-size: 1rem;
+            min-height: 24px;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .device-info {
+            background-color: #f0f8ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .device-info h3 {
+            color: #1a2a6c;
+            margin-bottom: 15px;
+        }
+
+        .device-info p {
+            margin: 8px 0;
+            color: #444;
+        }
+
+        .device-id {
+            font-weight: bold;
+            color: #b21f1f;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>RASE Firmware Uploader</h1>
+        <p class="subtitle">Upload firmware images to your IoT device</p>
+
+        <div class="device-info">
+            <h3>Device Information</h3>
+            <p><strong>Device ID:</strong> <span class="device-id">ESP32-487293012</span></p>
+            <p><strong>Current Firmware:</strong> v2.1.4</p>
+            <p><strong>Status:</strong> <span style="color: #28a745;">Connected</span></p>
+        </div>
+
+        <div class="upload-container" id="dropArea">
+            <div class="upload-icon">📁</div>
+            <p class="upload-text">Drag & drop your firmware file here</p>
+            <p>or</p>
+            <button class="btn" id="browseBtn">Select Firmware File</button>
+            <input type="file" id="fileInput" accept=".bin,.hex,.img" style="display: none;">
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <p>Selected file: <span class="file-name" id="fileName">-</span></p>
+            <p>Size: <span class="file-size" id="fileSize">-</span></p>
+        </div>
+
+        <button class="btn" id="uploadBtn" disabled>Upload Firmware</button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="status-message" id="statusMessage">Preparing upload...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            const browseBtn = document.getElementById('browseBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const statusMessage = document.getElementById('statusMessage');
+
+            let selectedFile = null;
+
+            // Event listeners for file selection
+            browseBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    handleFile(this.files[0]);
+                }
+            });
+
+            // Drag and drop events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropArea.classList.add('drag-over');
+            }
+
+            function unhighlight() {
+                dropArea.classList.remove('drag-over');
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files && files[0]) {
+                    handleFile(files[0]);
+                }
+            }
+
+            function handleFile(file) {
+                selectedFile = file;
+
+                // Update file info display
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                fileInfo.style.display = 'block';
+
+                // Enable upload button
+                uploadBtn.disabled = false;
+
+                // Reset progress
+                progressContainer.style.display = 'none';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Upload button event
+            uploadBtn.addEventListener('click', function () {
+                if (!selectedFile) return;
+
+                // Show progress bar
+                progressContainer.style.display = 'block';
+                statusMessage.textContent = 'Starting upload...';
+                progressFill.style.width = '0%';
+
+                // Simulate upload process
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+
+                        // Simulate upload completion
+                        setTimeout(() => {
+                            statusMessage.textContent = 'Upload completed successfully!';
+                            statusMessage.className = 'status-message success';
+
+                            // Show success message after delay
+                            setTimeout(() => {
+                                alert('Firmware update initiated on device. Please wait for the device to restart.');
+                            }, 1000);
+                        }, 500);
+                    }
+
+                    progressFill.style.width = `${progress}%`;
+                    statusMessage.textContent = `Uploading... ${Math.round(progress)}%`;
+                }, 200);
+            });
+
+            // Simulate a successful connection
+            setTimeout(() => {
+                document.querySelector('.status-message').textContent = 'Device ready for firmware update';
+                document.querySelector('.status-message').className = 'status-message success';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
