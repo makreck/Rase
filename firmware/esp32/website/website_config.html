@@ -28,8 +28,8 @@
 
         * {
             box-sizing: border-box;
-            margin: 8px;
-            padding: 8px;
+            margin: 0;
+            padding: 0;
             font-family: var(--font-serif-1);
         }
 
@@ -78,11 +78,18 @@
         }
 
         .card {
-            margin-bottom: 25px;
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
             padding: 20px;
-            background: rgba(0, 16, 53, 0.6);
-            border-radius: 10px;
-            border-left: 4px solid #02cc5d;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .card-title {
@@ -95,7 +102,19 @@
         }
 
         .card-title i {
-            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
         .form-group {
