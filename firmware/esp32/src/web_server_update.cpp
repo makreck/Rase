@@ -54,6 +54,9 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
 
     if (req->content_len == 0) {
         httpd_resp_send_err(req, HTTPD_411_LENGTH_REQUIRED, nullptr);
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "HTTP header defines a content length of 0 bytes.");
+#endif
         return (ESP_FAIL);
     }
 
@@ -62,12 +65,18 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
     const esp_partition_t* update_partition = Tools::get_next_ota_partition();
     if (!update_partition) {
         httpd_resp_send_500(req);
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Unable to figure out the next update partition");
+#endif
         return (ESP_FAIL);
     }
 
     uint8_t* chunk_buf = (uint8_t*)malloc(OTA_CHUNK_SIZE);
     if (chunk_buf == nullptr) {
         httpd_resp_send_500(req);
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "Unable to allocate the chunk memory (%d bytes).", OTA_CHUNK_SIZE);
+#endif
         return (ESP_FAIL);
     }
 
@@ -89,6 +98,10 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
     if (ret != ESP_OK) {
         free(chunk_buf);
         httpd_resp_send_500(req);
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_unlock, nullptr, 0, pdMS_TO_TICKS(1));
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "WebServer::update_put_handler(), esp_ota_begin(), %s", esp_err_to_name(ret));
+#endif
         return (ret);
     }
 
@@ -100,6 +113,10 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
             esp_ota_abort(ota_handle);
             free(chunk_buf);
             httpd_resp_send_500(req);
+            esp_event_post(APP_EVENT, (int32_t)AppEvent::display_unlock, nullptr, 0, pdMS_TO_TICKS(1));
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "WebServer::update_put_handler(), unable to receive image data bytes, %s", esp_err_to_name(ret));
+#endif
             return (ESP_FAIL);
         }
 
@@ -116,7 +133,7 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
         received += read_bytes;
 
         float progress = (float)received * 100.0f / (float)req->content_len;
-        if (fabs(progress - percent) >= 5.0f) {
+        if ((fabs(progress - percent) >= 5.0f) || (progress == 0.0f)) {
             percent = progress;
 #ifdef DISPLAY_STATE
             ESP_LOGI(TAG, "%.1f%% received, %zu of %zu bytes. ", percent, received, req->content_len);
@@ -141,6 +158,10 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
     ret = esp_ota_end(ota_handle);
     if (ret != ESP_OK) {
         httpd_resp_send_500(req);
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_unlock, nullptr, 0, pdMS_TO_TICKS(1));
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "WebServer::update_put_handler(), esp_ota_end(), %s", esp_err_to_name(ret));
+#endif
         return (ret);
     }
 
@@ -156,6 +177,10 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
 
     ret = esp_ota_set_boot_partition(update_partition);
     if (ret != ESP_OK) {
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::display_unlock, nullptr, 0, pdMS_TO_TICKS(1));
+#ifdef DISPLAY_STATE
+        ESP_LOGE(TAG, "WebServer::update_put_handler(), esp_ota_set_boot_partition(), %s", esp_err_to_name(ret));
+#endif
         return (ret);
     }
 
@@ -165,6 +190,9 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::update_put_handler(), firmware update succeeded, reboot requested.");
+#endif
     esp_event_post(APP_EVENT, (int32_t)AppEvent::reboot, nullptr, 0, pdMS_TO_TICKS(1));
 
     return (ESP_OK);
