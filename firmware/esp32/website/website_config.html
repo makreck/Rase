@@ -5,22 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rase Configuration Manager</title>
     <style>
+        :root {
+            --bg-gradient-0: #020103;
+            --bg-gradient-1: #232141;
+            --bg-gradient-2: #03030c;
+            --bg-gradient-3: #121141;
+            --bar-gradient-0: #00b09b;
+            --bar-gradient-1: #96c93d;
+            --btn-gradient-0: #00805e;
+            --btn-gradient-1: #006080;
+            --btn-text: #ffffff;
+            --btn-text-disabled: #313131;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-color: #00d2ff;
+            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono-1: 'Courier New', Courier, monospace;
+            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 8px;
+            padding: 8px;
+            font-family: var(--font-serif-1);
         }
 
         body {
-            background: linear-gradient(135deg, #062433, #0d4968, #062433);
-            color: #effdb1;
+            font-family: var(--font-arial);
+            color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-size: 400% 400%;
             padding: 20px;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1600px;
             margin: 0 auto;
             background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);
             border-radius: 15px;
@@ -29,16 +53,19 @@
         }
 
         header {
-            background: rgba(5, 26, 66, 0.8);
-            padding: 20px;
             text-align: center;
-            border-bottom: 2px solid #ff6b6b;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(5, 26, 66, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
             color: #02cc5d;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .subtitle {
@@ -50,7 +77,7 @@
             padding: 30px;
         }
 
-        .section {
+        .card {
             margin-bottom: 25px;
             padding: 20px;
             background: rgba(0, 16, 53, 0.6);
@@ -58,15 +85,16 @@
             border-left: 4px solid #02cc5d;
         }
 
-        .section-title {
+        .card-title {
             font-size: 1.4rem;
             margin-bottom: 15px;
-            color: #02cc5d;
             display: flex;
+            gap: 10px;
+            color: #02cc5d;
             align-items: center;
         }
 
-        .section-title i {
+        .card-title i {
             margin-right: 10px;
         }
 
@@ -121,32 +149,37 @@
             flex-wrap: wrap;
         }
 
-        button {
-            padding: 14px 25px;
+        .btn {
+            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));
+            color: var(--btn-text);
             border: none;
-            border-radius: 50px;
-            background: linear-gradient(to right, #ff6b6b, #02cc5d);
-            color: #000;
-            font-weight: bold;
+            padding: 12px 25px;
             font-size: 1.1rem;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: inline-block;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
-        button:hover {
+        .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        button:active {
+        .btn:active {
             transform: translateY(1px);
         }
 
-        #save-btn {
-            background: linear-gradient(to right, #06d6a0, #118ab2);
+        .btn:disabled {
+            background: #555;
+            color: var(--btn-text-disabled);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
-
+        
         .status {
             text-align: center;
             padding: 15px;
@@ -221,7 +254,7 @@
                 align-items: center;
             }
 
-            button {
+            btn {
                 width: 80%;
             }
         }
@@ -236,8 +269,8 @@
         </header>
 
         <div class="config-container">
-            <div class="section">
-                <h2 class="section-title">WiFi Settings</h2>
+            <div class="card">
+                <h2 class="card-title">WiFi Settings</h2>
                 <div class="form-group">
                     <label for="ssid">SSID</label>
                     <input type="text" id="ssid" name="ssid">
@@ -268,8 +301,8 @@
                 </div>
             </div>
 
-            <div class="section">
-                <h2 class="section-title">MQTT Settings</h2>
+            <div class="card">
+                <h2 class="card-title">MQTT Settings</h2>
                 <div class="form-group">
                     <label for="mqtt_broker">MQTT Broker IP</label>
                     <input type="text" id="mqtt_broker" name="mqtt_broker">
@@ -294,8 +327,8 @@
                 </div>
             </div>
 
-            <div class="section">
-                <h2 class="section-title">Display Settings</h2>
+            <div class="card">
+                <h2 class="card-title">Display Settings</h2>
                 <div class="form-group">
                     <label for="display_layout">Display Layout</label>
                     <select id="display_layout" name="display_layout">
@@ -341,8 +374,8 @@
                 </div>
             </div>
 
-            <div class="section">
-                <h2 class="section-title">Sensor Settings</h2>
+            <div class="card">
+                <h2 class="card-title">Sensor Settings</h2>
                 <div class="form-group">
                     <label for="sensor_type">Sensor Type</label>
                     <select id="sensor_type" name="sensor_type">
@@ -358,8 +391,8 @@
                 </div>
             </div>
 
-            <div class="section">
-                <h2 class="section-title">LED Settings</h2>
+            <div class="card">
+                <h2 class="card-title">LED Settings</h2>
                 <div class="form-group">
                     <label for="led_intensity">LED Intensity</label>
                     <select id="led_intensity" name="led_intensity">
@@ -374,9 +407,8 @@
             </div>
 
             <div class="btn-container">
-                <button id="load-btn">Load Configuration</button>
-                <button id="save-btn">Save Configuration</button>
-                <!-- <button id="reset-btn">Reset Form</button> -->
+                <button class="btn" id="load-btn">Load Configuration</button>
+                <button class="btn" id="save-btn">Save Configuration</button>
             </div>
 
             <div class="loading" id="loading">
