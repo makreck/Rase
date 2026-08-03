@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 const char* intrinsic_date_month_names[] = { "not-a-month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
 
@@ -288,17 +288,11 @@ float Tools::string2number(const char* _string) {
 const esp_partition_t* Tools::get_next_ota_partition(void) {
     const esp_partition_t* running_partition = esp_ota_get_running_partition();
     if (running_partition == nullptr) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Failed to get running partition");
-#endif
         return (nullptr);
     }
     
     const esp_partition_t* ota_data_partition = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_OTA, nullptr);
     if (ota_data_partition == nullptr) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Failed to find OTA data partition");
-#endif
         return (nullptr);
     }
     
@@ -310,14 +304,8 @@ const esp_partition_t* Tools::get_next_ota_partition(void) {
     }
     
     if (target_partition == nullptr) {
-#ifdef DISPLAY_STATE
-        ESP_LOGE(TAG, "Failed to find target OTA partition");
-#endif
         return (nullptr);
     }
-    
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "Target OTA partition: %s", target_partition->label);
-#endif
+
     return (target_partition);
 }
