@@ -26,7 +26,7 @@
 #define VS_HIGH                (0)
 #define VS_LOW                 (0)
 #define VS_REV                 (1)
-#define VS_BUILD               (6)
+#define VS_BUILD               (7)
 
 #define VERSION_BUILD          (((VS_HIGH  << 24) & 0xff000000) | \
                                 ((VS_LOW   << 16) & 0x00ff0000) | \
