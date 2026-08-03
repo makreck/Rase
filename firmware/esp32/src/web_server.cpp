@@ -126,7 +126,6 @@ esp_err_t WebServer::init_time_server(void) {
     return (ESP_OK);
 }
 
-
 esp_err_t WebServer::_root_handler(httpd_req_t *req) {
     return ((reinterpret_cast<WebServer*>(req->user_ctx))->root_handler(req));
 }
@@ -135,7 +134,7 @@ esp_err_t WebServer::root_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "WebServer::root_handler() event.");
 #endif
     const char* website = WebServer::webserver_resp_str_1;
-    
+
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
 
