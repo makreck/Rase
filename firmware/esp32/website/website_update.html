@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -331,8 +332,8 @@
             const uploadBtn = document.getElementById('uploadBtn');
             const refreshBtn = document.getElementById('refreshBtn');
             const progressContainer = document.getElementById('progressContainer');
-            const progress = document.getElementById('progress');
-            const status = document.getElementById('status');
+            const progressBar = document.getElementById('progress');
+            const statusMessage = document.getElementById('status');
             const deviceId = document.getElementById('deviceId');
             const deviceInfo = document.getElementById('deviceInfo');
             const notification = document.getElementById('notification');
@@ -396,7 +397,7 @@
                 }
 
                 uploadBtn.disabled = false;
-                status.textContent = `Selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`;
+                statusMessage.textContent = `Selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`;
             }
 
             function formatFileSize(bytes) {
@@ -446,39 +447,61 @@
 
             function uploadFirmware() {
                 if (!selectedFile) {
-                    showNotification('Please select a firmware file first', 'error');
+                    statusMessage.className = 'status error';
+                    statusMessage.textContent = 'Please select a firmware file first';
+                    statusMessage.style.display = 'block';
                     return;
                 }
 
                 progressContainer.style.display = 'block';
-                status.textContent = 'Starting upload...';
-                progress.style.width = '0%';
+                progressBar.style.width = '0%';
+                statusMessage.className = 'status info';
+                statusMessage.textContent = 'Starting upload...';
+                statusMessage.style.display = 'block';
 
                 const formData = new FormData();
                 formData.append('firmware', selectedFile);
-                
-                fetch('/api/update', {
-                    method: 'PUT',
-                    body: formData
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.text();
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
                     }
-                })
-                .then(data => {
-                    status.textContent = 'Upload completed successfully';
-                    showNotification('Firmware uploaded successfully', 'success');
-                    progress.style.width = '100%';
-                })
-                .catch(error => {
-                    console.error('Error uploading firmware:', error);
-                    status.textContent = 'Upload failed';
-                    showNotification('Firmware upload failed', 'error');
-                    progress.style.width = '100%';
                 });
+
+                xhr.addEventListener('load', function () {
+                    if (xhr.status === 200) {
+                        statusMessage.className = 'status success';
+                        statusMessage.textContent = 'Firmware uploaded successfully!';
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            fileName.textContent = 'No file selected';
+                            uploadBtn.disabled = true;
+                            selectedFile = null;
+                        }, 2000);
+                    } else {
+                        statusMessage.className = 'status error';
+                        statusMessage.textContent = 'Upload failed: ' + xhr.statusText;
+                    }
+                });
+
+                xhr.addEventListener('error', function () {
+                    statusMessage.className = 'status error';
+                    statusMessage.textContent = 'Upload failed due to network error';
+                    progressContainer.style.display = 'none';
+                });
+
+                xhr.open('PUT', '/api/update');
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const arrayBuffer = reader.result;
+                    xhr.send(arrayBuffer);
+                };
+                reader.readAsArrayBuffer(selectedFile);
             }
 
             function showNotification(message, type) {
@@ -494,4 +517,5 @@
         });
     </script>
 </body>
+
 </html>
