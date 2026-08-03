@@ -48,7 +48,7 @@ esp_err_t WebServer::api_cfg_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "WebServer::api_cfg_get_handler() event.");
 #endif
 
-    char* config_json = m.cfg->get_json(true); 
+    char* config_json = m.cfg->get_json(true, false); 
     httpd_resp_set_type(req, "application/json");
     httpd_resp_send(req, config_json, HTTPD_RESP_USE_STRLEN);
     free(config_json);
