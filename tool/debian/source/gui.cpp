@@ -415,7 +415,6 @@ void App::idle_task(CallbackParameter* p) {
             if (m.loader_thread != 0) {
                 pthread_join(m.loader_thread, nullptr);
                 m.loader_thread = 0;
-                break;
             }
 
             // const char* firmware_file = "../../firmware/esp32/.pio/build/seeed_xiao_esp32s3/firmware.bin";
