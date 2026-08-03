@@ -458,7 +458,7 @@ const char *WebServer::firmware_update_resp_str =
 	"\n"
 	"                    const label = document.createElement('div');\n"
 	"                    label.className = 'info-label';\n"
-	"                    label.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());\n"
+	"                    label.textContent = key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase());\n"
 	"\n"
 	"                    const valueEl = document.createElement('div');\n"
 	"                    valueEl.className = 'info-value';\n"
