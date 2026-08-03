@@ -184,7 +184,7 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
                 free(buffer);
             }
         } else {
-            char* str_json = cfg->get_json(false);
+            char* str_json = cfg->get_json(false, true);
             if (str_json != nullptr) {
                 send(str_json, strlen(str_json));
                 free(str_json);
