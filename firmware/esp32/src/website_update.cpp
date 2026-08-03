@@ -22,660 +22,656 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-const char *WebServer::firmware_update_resp_str =
-	"<!DOCTYPE html>\n"
-	"<html lang=\"en\">\n"
-	"\n"
-	"<head>\n"
-	"    <meta charset=\"UTF-8\">\n"
-	"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-	"    <title>RASE Firmware Uploader</title>\n"
-	"    <style>\n"
-	"        :root {\n"
-	"            --bg-gradient-0: #01050a;\n"
-	"            --bg-gradient-1: #0b1e42;\n"
-	"            --bg-gradient-2: #0c1830;\n"
-	"            --bg-gradient-3: #071f42;\n"
-	"            --bar-gradient-0: #00b09b;\n"
-	"            --bar-gradient-1: #96c93d;\n"
-	"            --btn-gradient-0: #00805e;\n"
-	"            --btn-gradient-1: #006080;\n"
-	"            --btn-text: #ffffff;\n"
-	"            --btn-text-disabled: #313131;\n"
-	"            --card-bg: rgba(255, 255, 255, 0.05);\n"
-	"            --card-border: rgba(255, 255, 255, 0.1);\n"
-	"            --text-primary: #ffffff;\n"
-	"            --text-secondary: #a0a0a0;\n"
-	"            --text-card-title: #02cc5d;\n"
-	"            --accent-color: #00d2ff;\n"
-	"            --text-shadow: rgba(0, 0, 0, 0.3);\n"
-	"            --box_shadow: rgba(0, 0, 0, 0.5);\n"
-	"            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n"
-	"            --font-mono-1: 'Courier New', Courier, monospace;\n"
-	"            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n"
-	"        }\n"
-	"\n"
-	"        * {\n"
-	"            box-sizing: border-box;\n"
-	"            margin: 0;\n"
-	"            padding: 0;\n"
-	"            font-family: var(--font-serif-1);\n"
-	"        }\n"
-	"\n"
-	"        body {\n"
-	"            font-family: var(--font-arial);\n"
-	"            color: var(--text-primary);\n"
-	"            min-height: 100vh;\n"
-	"            overflow-x: hidden;\n"
-	"            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));\n"
-	"            background-size: 400% 400%;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .container {\n"
-	"            max-width: 2400px;\n"
-	"            margin: 0 auto;\n"
-	"            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        header {\n"
-	"            text-align: center;\n"
-	"            margin-bottom: 30px;\n"
-	"            padding: 15px;\n"
-	"            background: rgba(5, 26, 66, 0.8);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 8px 32px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        h1 {\n"
-	"            font-size: 2.5rem;\n"
-	"            margin-bottom: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            text-shadow: 0 2px 10px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .subtitle {\n"
-	"            font-size: 1.1rem;\n"
-	"            opacity: 0.9;\n"
-	"        }\n"
-	"\n"
-	"        label {\n"
-	"            display: block;\n"
-	"            margin-bottom: 5px;\n"
-	"            font-weight: 500;\n"
-	"        }\n"
-	"\n"
-	"        .card {\n"
-	"            background: var(--card-bg);\n"
-	"            backdrop-filter: blur(8px);\n"
-	"            -webkit-backdrop-filter: blur(8px);\n"
-	"            border: 1px solid var(--card-border);\n"
-	"            border-radius: 16px;\n"
-	"            padding: 20px;\n"
-	"            margin-bottom: 30px;\n"
-	"            transition: transform 0.3s ease, box-shadow 0.3s ease;\n"
-	"            position: relative;\n"
-	"            overflow: hidden;\n"
-	"            display: flex;\n"
-	"            flex-direction: column;\n"
-	"        }\n"
-	"\n"
-	"        .card-title {\n"
-	"            font-size: 1.4rem;\n"
-	"            font-weight: 500;\n"
-	"            margin-bottom: 15px;\n"
-	"            display: flex;\n"
-	"            gap: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            align-items: center;\n"
-	"        }\n"
-	"\n"
-	"        .card-title i {\n"
-	"            font-size: 1.8rem;\n"
-	"        }\n"
-	"\n"
-	"        .card:hover {\n"
-	"            transform: translateY(-5px);\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            border-color: rgba(255, 255, 255, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .card-header {\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            margin-bottom: 15px;\n"
-	"        }\n"
-	"\n"
-	"        .card-value {\n"
-	"            font-family: var(--font-mono);\n"
-	"            font-size: 2.2rem;\n"
-	"            font-weight: 700;\n"
-	"            margin-bottom: 5px;\n"
-	"            color: var(--text-primary);\n"
-	"        }\n"
-	"\n"
-	"        .card-unit {\n"
-	"            font-size: 1rem;\n"
-	"            color: var(--text-secondary);\n"
-	"            font-weight: 500;\n"
-	"            margin-left: 5px;\n"
-	"        }\n"
-	"\n"
-	"        .card-stats {\n"
-	"            display: flex;\n"
-	"            justify-content: space-between;\n"
-	"            margin-top: auto;\n"
-	"            padding-top: 15px;\n"
-	"            border-top: 1px solid rgba(255, 255, 255, 0.05);\n"
-	"            font-size: 0.8rem;\n"
-	"            color: var(--text-secondary);\n"
-	"        }\n"
-	"\n"
-	"        .icon-box {\n"
-	"            width: 40px;\n"
-	"            height: 40px;\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            justify-content: center;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 10px;\n"
-	"            margin-right: 12px;\n"
-	"        }\n"
-	"\n"
-	"        .btn-container {\n"
-	"            display: flex;\n"
-	"            justify-content: center;\n"
-	"            gap: 5px;\n"
-	"            margin-top: 10px;\n"
-	"            flex-wrap: wrap;\n"
-	"        }\n"
-	"\n"
-	"        .btn {\n"
-	"            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));\n"
-	"            color: var(--btn-text);\n"
-	"            border: none;\n"
-	"            padding: 12px 25px;\n"
-	"            font-size: 1.1rem;\n"
-	"            border-radius: 50px;\n"
-	"            cursor: pointer;\n"
-	"            transition: all 0.3s ease;\n"
-	"            display: inline-block;\n"
-	"            margin: 10px 5px;\n"
-	"            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .btn:hover {\n"
-	"            transform: translateY(-3px);\n"
-	"            box-shadow: 0 6px 20px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .btn:active {\n"
-	"            transform: translateY(1px);\n"
-	"        }\n"
-	"\n"
-	"        .btn:disabled {\n"
-	"            background: #555;\n"
-	"            color: var(--btn-text-disabled);\n"
-	"            cursor: not-allowed;\n"
-	"            transform: none;\n"
-	"            box-shadow: none;\n"
-	"        }\n"
-	"\n"
-	"        input,\n"
-	"        select {\n"
-	"            width: 100%;\n"
-	"            padding: 12px;\n"
-	"            border-radius: 5px;\n"
-	"            border: none;\n"
-	"            background: rgba(0, 42, 97, 0.25);\n"
-	"            color: rgb(241, 242, 245);\n"
-	"            font-size: 1rem;\n"
-	"        }\n"
-	"\n"
-	"        input:focus,\n"
-	"        select:focus {\n"
-	"            outline: 2px solid var(--text-card-title);\n"
-	"            background: rgba(1, 62, 119, 0.9);\n"
-	"        }\n"
-	"\n"
-	"        .password-field {\n"
-	"            position: relative;\n"
-	"        }\n"
-	"\n"
-	"        .toggle-password {\n"
-	"            position: absolute;\n"
-	"            right: 10px;\n"
-	"            top: 50%;\n"
-	"            transform: translateY(-50%);\n"
-	"            cursor: pointer;\n"
-	"            color: var(--text-card-title);\n"
-	"        }\n"
-	"\n"
-	"        .status {\n"
-	"            text-align: center;\n"
-	"            padding: 15px;\n"
-	"            margin-top: 20px;\n"
-	"            border-radius: 5px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-container {\n"
-	"            margin-top: 20px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-bar {\n"
-	"            height: 10px;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 5px;\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        .progress {\n"
-	"            height: 100%;\n"
-	"            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));\n"
-	"            width: 0%;\n"
-	"            transition: width 0.4s ease;\n"
-	"        }\n"
-	"\n"
-	"        .success {\n"
-	"            background: rgba(6, 214, 160, 0.2);\n"
-	"            border: 1px solid #06d6a0;\n"
-	"            color: #06d6a0;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .error {\n"
-	"            background: rgba(239, 71, 111, 0.2);\n"
-	"            border: 1px solid #ef476f;\n"
-	"            color: #ef476f;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .loading {\n"
-	"            display: none;\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .spinner {\n"
-	"            border: 4px solid rgba(13, 3, 59, 0.3);\n"
-	"            border-radius: 50%;\n"
-	"            border-top: 4px solid var(--text-card-title);\n"
-	"            width: 30px;\n"
-	"            height: 30px;\n"
-	"            animation: spin 1s linear infinite;\n"
-	"            margin: 0 auto;\n"
-	"        }\n"
-	"\n"
-	"        footer {\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"            font-size: 0.9rem;\n"
-	"            opacity: 0.7;\n"
-	"            border-top: 1px solid rgba(182, 6, 6, 0.1);\n"
-	"        }\n"
-	"\n"
-	"        @keyframes spin {\n"
-	"            0% {\n"
-	"                transform: rotate(0deg);\n"
-	"            }\n"
-	"\n"
-	"            100% {\n"
-	"                transform: rotate(360deg);\n"
-	"            }\n"
-	"        }\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"        .upload-area {\n"
-	"            border: 3px dashed rgba(255, 255, 255, 0.3);\n"
-	"            border-radius: 10px;\n"
-	"            padding: 40px 20px;\n"
-	"            text-align: center;\n"
-	"            cursor: pointer;\n"
-	"            transition: all 0.3s ease;\n"
-	"            margin-bottom: 25px;\n"
-	"        }\n"
-	"\n"
-	"        .upload-area:hover {\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-color: rgba(255, 255, 255, 0.5);\n"
-	"        }\n"
-	"\n"
-	"        .upload-area i {\n"
-	"            font-size: 3rem;\n"
-	"            margin-bottom: 15px;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .file-input {\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .device-info {\n"
-	"            display: grid;\n"
-	"            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n"
-	"            gap: 15px;\n"
-	"            margin-top: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .info-item {\n"
-	"            background: rgba(0, 0, 0, 0.2);\n"
-	"            padding: 15px;\n"
-	"            border-radius: 10px;\n"
-	"        }\n"
-	"\n"
-	"        .info-label {\n"
-	"            font-size: 0.9rem;\n"
-	"            opacity: 0.8;\n"
-	"            margin-bottom: 5px;\n"
-	"        }\n"
-	"\n"
-	"        .info-value {\n"
-	"            font-size: 1.1rem;\n"
-	"            font-weight: bold;\n"
-	"        }\n"
-	"\n"
-	"        .device-id {\n"
-	"            font-size: 1.8rem;\n"
-	"            text-align: center;\n"
-	"            margin: 20px 0;\n"
-	"            padding: 15px;\n"
-	"            background: rgba(0, 0, 0, 0.2);\n"
-	"            border-radius: 10px;\n"
-	"            word-break: break-all;\n"
-	"        }\n"
-	"\n"
-	"        .notification {\n"
-	"            position: fixed;\n"
-	"            top: 20px;\n"
-	"            right: 20px;\n"
-	"            padding: 15px 25px;\n"
-	"            border-radius: 10px;\n"
-	"            background: rgba(0, 0, 0, 0.8);\n"
-	"            color: white;\n"
-	"            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);\n"
-	"            transform: translateX(200%);\n"
-	"            transition: transform 0.3s ease;\n"
-	"            z-index: 1000;\n"
-	"        }\n"
-	"\n"
-	"        .notification.show {\n"
-	"            transform: translateX(0);\n"
-	"        }\n"
-	"\n"
-	"        @media (max-width: 768px) {\n"
-	"            .container {\n"
-	"                margin: 10px;\n"
-	"            }\n"
-	"\n"
-	"            .config-container {\n"
-	"                padding: 15px;\n"
-	"            }\n"
-	"\n"
-	"            h1 {\n"
-	"                font-size: 2rem;\n"
-	"            }\n"
-	"\n"
-	"            .btn-container {\n"
-	"                flex-direction: column;\n"
-	"                align-items: center;\n"
-	"            }\n"
-	"\n"
-	"            .btn {\n"
-	"                width: 80%;\n"
-	"            }\n"
-	"        }\n"
-	"    </style>\n"
-	"</head>\n"
-	"\n"
-	"<body>\n"
-	"    <div class=\"container\">\n"
-	"        <header>\n"
-	"            <h1>RASE Firmware Uploader</h1>\n"
-	"            <p class=\"subtitle\">Securely update firmware on your devices</p>\n"
-	"        </header>\n"
-	"\n"
-	"        <div class=\"card\">\n"
-	"            <h2 class=\"card-title\">Device Information</h2>\n"
-	"            <div class=\"device-id\" id=\"deviceId\">Retrieving device ID...</div>\n"
-	"\n"
-	"            <div class=\"device-info\" id=\"deviceInfo\">\n"
-	"                <!-- Device info will be populated here -->\n"
-	"            </div>\n"
-	"        </div>\n"
-	"\n"
-	"        <div class=\"card\">\n"
-	"            <h2 class=\"card-title\">Firmware Update</h2>\n"
-	"            <p>Select a firmware image file to upload:</p>\n"
-	"\n"
-	"            <div class=\"upload-area\" id=\"dropArea\">\n"
-	"                <i>📁</i>\n"
-	"                <p>Drag & drop your firmware file here</p>\n"
-	"                <p>or</p>\n"
-	"                <button class=\"btn\" id=\"browseBtn\">Browse Files</button>\n"
-	"                <input type=\"file\" id=\"fileInput\" class=\"file-input\" accept=\".bin,.hex,.img\">\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"progress-container\" id=\"progressContainer\">\n"
-	"                <div class=\"progress-bar\">\n"
-	"                    <div class=\"progress\" id=\"progress\"></div>\n"
-	"                </div>\n"
-	"                <div class=\"status\" id=\"status\">Uploading firmware...</div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"btn-container\">\n"
-	"                <button class=\"btn\" id=\"uploadBtn\" disabled>Upload Firmware</button>\n"
-	"                <button class=\"btn\" id=\"refreshBtn\">Refresh Device Info</button>\n"
-	"            </div>\n"
-	"        </div>\n"
-	"        <footer>\n"
-	"            <p>RASE Update Manager &copy; 2026</p>\n"
-	"        </footer>\n"
-	"    </div>\n"
-	"\n"
-	"    <div class=\"notification\" id=\"notification\"></div>\n"
-	"\n"
-	"\n"
-	"    <script>\n"
-	"        document.addEventListener('DOMContentLoaded', function () {\n"
-	"            const dropArea = document.getElementById('dropArea');\n"
-	"            const fileInput = document.getElementById('fileInput');\n"
-	"            const browseBtn = document.getElementById('browseBtn');\n"
-	"            const uploadBtn = document.getElementById('uploadBtn');\n"
-	"            const refreshBtn = document.getElementById('refreshBtn');\n"
-	"            const progressContainer = document.getElementById('progressContainer');\n"
-	"            const progressBar = document.getElementById('progress');\n"
-	"            const statusMessage = document.getElementById('status');\n"
-	"            const deviceId = document.getElementById('deviceId');\n"
-	"            const deviceInfo = document.getElementById('deviceInfo');\n"
-	"            const notification = document.getElementById('notification');\n"
-	"\n"
-	"            let selectedFile = null;\n"
-	"\n"
-	"            browseBtn.addEventListener('click', () => fileInput.click());\n"
-	"            fileInput.addEventListener('change', handleFileSelect);\n"
-	"            uploadBtn.addEventListener('click', uploadFirmware);\n"
-	"            refreshBtn.addEventListener('click', fetchDeviceInfo);\n"
-	"\n"
-	"            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {\n"
-	"                dropArea.addEventListener(eventName, preventDefaults, false);\n"
-	"            });\n"
-	"\n"
-	"            function preventDefaults(e) {\n"
-	"                e.preventDefault();\n"
-	"                e.stopPropagation();\n"
-	"            }\n"
-	"\n"
-	"            ['dragenter', 'dragover'].forEach(eventName => {\n"
-	"                dropArea.addEventListener(eventName, highlight, false);\n"
-	"            });\n"
-	"\n"
-	"            ['dragleave', 'drop'].forEach(eventName => {\n"
-	"                dropArea.addEventListener(eventName, unhighlight, false);\n"
-	"            });\n"
-	"\n"
-	"            function highlight() {\n"
-	"                dropArea.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';\n"
-	"                dropArea.style.borderColor = 'rgba(255, 255, 255, 0.7)';\n"
-	"            }\n"
-	"\n"
-	"            function unhighlight() {\n"
-	"                dropArea.style.backgroundColor = '';\n"
-	"                dropArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';\n"
-	"            }\n"
-	"\n"
-	"            dropArea.addEventListener('drop', handleDrop, false);\n"
-	"\n"
-	"            function handleDrop(e) {\n"
-	"                const dt = e.dataTransfer;\n"
-	"                const files = dt.files;\n"
-	"                if (files.length) {\n"
-	"                    handleFiles(files);\n"
-	"                }\n"
-	"            }\n"
-	"\n"
-	"            function handleFileSelect(e) {\n"
-	"                const files = e.target.files;\n"
-	"                if (files.length) {\n"
-	"                    handleFiles(files);\n"
-	"                }\n"
-	"            }\n"
-	"\n"
-	"            function handleFiles(files) {\n"
-	"                selectedFile = files[0];\n"
-	"                if (selectedFile.type !== 'application/octet-stream' && !selectedFile.name.endsWith('.bin')) {\n"
-	"                    showNotification('Please select a valid firmware file (.bin)', 'error');\n"
-	"                    return;\n"
-	"                }\n"
-	"\n"
-	"                uploadBtn.disabled = false;\n"
-	"                statusMessage.textContent = `Selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`;\n"
-	"            }\n"
-	"\n"
-	"            function formatFileSize(bytes) {\n"
-	"                if (bytes === 0) return '0 Bytes';\n"
-	"                const k = 1024;\n"
-	"                const sizes = ['Bytes', 'KB', 'MB', 'GB'];\n"
-	"                const i = Math.floor(Math.log(bytes) / Math.log(k));\n"
-	"                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];\n"
-	"            }\n"
-	"\n"
-	"            function fetchDeviceInfo() {\n"
-	"                showNotification('Fetching device information...', 'info');\n"
-	"                fetch('/api/id', { method: 'GET' })\n"
-	"                    .then(response => response.json())\n"
-	"                    .then(data => {\n"
-	"                        displayDeviceInfo(data);\n"
-	"                        showNotification('Device information retrieved successfully', 'success');\n"
-	"                    })\n"
-	"                    .catch(error => {\n"
-	"                        console.error('Error fetching device info:', error);\n"
-	"                        showNotification('Failed to retrieve device information', 'error');\n"
-	"                    });\n"
-	"            }\n"
-	"\n"
-	"            function displayDeviceInfo(data) {\n"
-	"                deviceId.textContent = data.identification;\n"
-	"\n"
-	"                deviceInfo.innerHTML = '';\n"
-	"\n"
-	"                Object.entries(data).forEach(([key, value]) => {\n"
-	"                    const item = document.createElement('div');\n"
-	"                    item.className = 'info-item';\n"
-	"\n"
-	"                    const label = document.createElement('div');\n"
-	"                    label.className = 'info-label';\n"
-	"                    label.textContent = key.replace(/_/g, ' ').replace(/\\b\\w/g, l => l.toUpperCase());\n"
-	"\n"
-	"                    const valueEl = document.createElement('div');\n"
-	"                    valueEl.className = 'info-value';\n"
-	"                    valueEl.textContent = value;\n"
-	"\n"
-	"                    item.appendChild(label);\n"
-	"                    item.appendChild(valueEl);\n"
-	"                    deviceInfo.appendChild(item);\n"
-	"                });\n"
-	"            }\n"
-	"\n"
-	"            function uploadFirmware() {\n"
-	"                if (!selectedFile) {\n"
-	"                    statusMessage.className = 'status error';\n"
-	"                    statusMessage.textContent = 'Please select a firmware file first';\n"
-	"                    statusMessage.style.display = 'block';\n"
-	"                    return;\n"
-	"                }\n"
-	"\n"
-	"                progressContainer.style.display = 'block';\n"
-	"                progressBar.style.width = '0%';\n"
-	"                statusMessage.className = 'status info';\n"
-	"                statusMessage.textContent = 'Starting upload...';\n"
-	"                statusMessage.style.display = 'block';\n"
-	"\n"
-	"                const formData = new FormData();\n"
-	"                formData.append('firmware', selectedFile);\n"
-	"\n"
-	"                const xhr = new XMLHttpRequest();\n"
-	"\n"
-	"                xhr.upload.addEventListener('progress', function (e) {\n"
-	"                    if (e.lengthComputable) {\n"
-	"                        const percentComplete = (e.loaded / e.total) * 100;\n"
-	"                        progressBar.style.width = percentComplete + '%';\n"
-	"                    }\n"
-	"                });\n"
-	"\n"
-	"                xhr.addEventListener('load', function () {\n"
-	"                    if (xhr.status === 200) {\n"
-	"                        statusMessage.className = 'status success';\n"
-	"                        statusMessage.textContent = 'Firmware uploaded successfully!';\n"
-	"                        setTimeout(() => {\n"
-	"                            progressContainer.style.display = 'none';\n"
-	"                            fileName.textContent = 'No file selected';\n"
-	"                            uploadBtn.disabled = true;\n"
-	"                            selectedFile = null;\n"
-	"                        }, 2000);\n"
-	"                    } else {\n"
-	"                        statusMessage.className = 'status error';\n"
-	"                        statusMessage.textContent = 'Upload failed: ' + xhr.statusText;\n"
-	"                    }\n"
-	"                });\n"
-	"\n"
-	"                xhr.addEventListener('error', function () {\n"
-	"                    statusMessage.className = 'status error';\n"
-	"                    statusMessage.textContent = 'Upload failed due to network error';\n"
-	"                    progressContainer.style.display = 'none';\n"
-	"                });\n"
-	"\n"
-	"                xhr.open('PUT', '/api/update');\n"
-	"                xhr.setRequestHeader('Content-Type', 'application/octet-stream');\n"
-	"\n"
-	"                const reader = new FileReader();\n"
-	"                reader.onload = function () {\n"
-	"                    const arrayBuffer = reader.result;\n"
-	"                    xhr.send(arrayBuffer);\n"
-	"                };\n"
-	"                reader.readAsArrayBuffer(selectedFile);\n"
-	"            }\n"
-	"\n"
-	"            function showNotification(message, type) {\n"
-	"                notification.textContent = message;\n"
-	"                notification.className = 'notification ' + type;\n"
-	"\n"
-	"                setTimeout(() => {\n"
-	"                    notification.className = 'notification';\n"
-	"                }, 3000);\n"
-	"            }\n"
-	"\n"
-	"            fetchDeviceInfo();\n"
-	"        });\n"
-	"    </script>\n"
-	"</body>\n"
-	"\n"
-	"</html>\n"
-	"";
+const char *WebServer::firmware_update_resp_str = R"(
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RASE Firmware Uploader</title>
+    <style>
+        :root {
+            --bg-gradient-0: #01050a;
+            --bg-gradient-1: #0b1e42;
+            --bg-gradient-2: #0c1830;
+            --bg-gradient-3: #071f42;
+            --bar-gradient-0: #00b09b;
+            --bar-gradient-1: #96c93d;
+            --btn-gradient-0: #00805e;
+            --btn-gradient-1: #006080;
+            --btn-text: #ffffff;
+            --btn-text-disabled: #313131;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-card-title: #02cc5d;
+            --accent-color: #00d2ff;
+            --text-shadow: rgba(0, 0, 0, 0.3);
+            --box_shadow: rgba(0, 0, 0, 0.5);
+            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono-1: 'Courier New', Courier, monospace;
+            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-serif-1);
+        }
+
+        body {
+            font-family: var(--font-arial);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-size: 400% 400%;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 2400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--box-shadow);
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(5, 26, 66, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--text-card-title);
+            text-shadow: 0 2px 10px var(--box-shadow);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            color: var(--text-card-title);
+            align-items: center;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--box-shadow);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-value {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .card-unit {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));
+            color: var(--btn-text);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--box-shadow);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background: #555;
+            color: var(--btn-text-disabled);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(0, 42, 97, 0.25);
+            color: rgb(241, 242, 245);
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid var(--text-card-title);
+            background: rgba(1, 62, 119, 0.9);
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-card-title);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .success {
+            background: rgba(6, 214, 160, 0.2);
+            border: 1px solid #06d6a0;
+            color: #06d6a0;
+            display: block;
+        }
+
+        .error {
+            background: rgba(239, 71, 111, 0.2);
+            border: 1px solid #ef476f;
+            color: #ef476f;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(13, 3, 59, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--text-card-title);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            border-top: 1px solid rgba(182, 6, 6, 0.1);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .device-id {
+            font-size: 1.8rem;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            word-break: break-all;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .config-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .btn-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>RASE Firmware Uploader</h1>
+            <p class="subtitle">Securely update firmware on your devices</p>
+        </header>
+
+        <div class="card">
+            <h2 class="card-title">Device Information</h2>
+            <div class="device-id" id="deviceId">Retrieving device ID...</div>
+
+            <div class="device-info" id="deviceInfo">
+                <!-- Device info will be populated here -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Firmware Update</h2>
+            <p>Select a firmware image file to upload:</p>
+
+            <div class="upload-area" id="dropArea">
+                <i>📁</i>
+                <p>Drag & drop your firmware file here</p>
+                <p>or</p>
+                <button class="btn" id="browseBtn">Browse Files</button>
+                <input type="file" id="fileInput" class="file-input" accept=".bin,.hex,.img">
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="status" id="status">Uploading firmware...</div>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn" id="uploadBtn" disabled>Upload Firmware</button>
+                <button class="btn" id="refreshBtn">Refresh Device Info</button>
+            </div>
+        </div>
+        <footer>
+            <p>RASE Update Manager &copy; 2026</p>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            const browseBtn = document.getElementById('browseBtn');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progress');
+            const statusMessage = document.getElementById('status');
+            const deviceId = document.getElementById('deviceId');
+            const deviceInfo = document.getElementById('deviceInfo');
+            const notification = document.getElementById('notification');
+
+            let selectedFile = null;
+
+            browseBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+            uploadBtn.addEventListener('click', uploadFirmware);
+            refreshBtn.addEventListener('click', fetchDeviceInfo);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropArea.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                dropArea.style.borderColor = 'rgba(255, 255, 255, 0.7)';
+            }
+
+            function unhighlight() {
+                dropArea.style.backgroundColor = '';
+                dropArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    handleFiles(files);
+                }
+            }
+
+            function handleFileSelect(e) {
+                const files = e.target.files;
+                if (files.length) {
+                    handleFiles(files);
+                }
+            }
+
+            function handleFiles(files) {
+                selectedFile = files[0];
+                if (selectedFile.type !== 'application/octet-stream' && !selectedFile.name.endsWith('.bin')) {
+                    showNotification('Please select a valid firmware file (.bin)', 'error');
+                    return;
+                }
+
+                uploadBtn.disabled = false;
+                statusMessage.textContent = `Selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`;
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function fetchDeviceInfo() {
+                showNotification('Fetching device information...', 'info');
+                fetch('/api/id', { method: 'GET' })
+                    .then(response => response.json())
+                    .then(data => {
+                        displayDeviceInfo(data);
+                        showNotification('Device information retrieved successfully', 'success');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching device info:', error);
+                        showNotification('Failed to retrieve device information', 'error');
+                    });
+            }
+
+            function displayDeviceInfo(data) {
+                deviceId.textContent = data.identification;
+
+                deviceInfo.innerHTML = '';
+
+                Object.entries(data).forEach(([key, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'info-item';
+
+                    const label = document.createElement('div');
+                    label.className = 'info-label';
+                    label.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                    const valueEl = document.createElement('div');
+                    valueEl.className = 'info-value';
+                    valueEl.textContent = value;
+
+                    item.appendChild(label);
+                    item.appendChild(valueEl);
+                    deviceInfo.appendChild(item);
+                });
+            }
+
+            function uploadFirmware() {
+                if (!selectedFile) {
+                    statusMessage.className = 'status error';
+                    statusMessage.textContent = 'Please select a firmware file first';
+                    statusMessage.style.display = 'block';
+                    return;
+                }
+
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                statusMessage.className = 'status info';
+                statusMessage.textContent = 'Starting upload...';
+                statusMessage.style.display = 'block';
+
+                const formData = new FormData();
+                formData.append('firmware', selectedFile);
+
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                    }
+                });
+
+                xhr.addEventListener('load', function () {
+                    if (xhr.status === 200) {
+                        statusMessage.className = 'status success';
+                        statusMessage.textContent = 'Firmware uploaded successfully!';
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            fileName.textContent = 'No file selected';
+                            uploadBtn.disabled = true;
+                            selectedFile = null;
+                        }, 2000);
+                    } else {
+                        statusMessage.className = 'status error';
+                        statusMessage.textContent = 'Upload failed: ' + xhr.statusText;
+                    }
+                });
+
+                xhr.addEventListener('error', function () {
+                    statusMessage.className = 'status error';
+                    statusMessage.textContent = 'Upload failed due to network error';
+                    progressContainer.style.display = 'none';
+                });
+
+                xhr.open('PUT', '/api/update');
+                xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const arrayBuffer = reader.result;
+                    xhr.send(arrayBuffer);
+                };
+                reader.readAsArrayBuffer(selectedFile);
+            }
+
+            function showNotification(message, type) {
+                notification.textContent = message;
+                notification.className = 'notification ' + type;
+
+                setTimeout(() => {
+                    notification.className = 'notification';
+                }, 3000);
+            }
+
+            fetchDeviceInfo();
+        });
+    </script>
+</body>
+
+</html>
+)";

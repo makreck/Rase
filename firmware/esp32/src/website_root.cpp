@@ -22,633 +22,630 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-const char *WebServer::webserver_resp_str_1 =
-	"<!DOCTYPE html>\n"
-	"<html lang=\"en\">\n"
-	"<head>\n"
-	"    <meta charset=\"UTF-8\">\n"
-	"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-	"    <title>Sensor Dashboard</title>\n"
-	"    <style>\n"
-	"        :root {\n"
-	"            --bg-gradient-0: #01050a;\n"
-	"            --bg-gradient-1: #0b1e42;\n"
-	"            --bg-gradient-2: #0c1830;\n"
-	"            --bg-gradient-3: #071f42;\n"
-	"            --bar-gradient-0: #00b09b;\n"
-	"            --bar-gradient-1: #96c93d;\n"
-	"            --btn-gradient-0: #00805e;\n"
-	"            --btn-gradient-1: #006080;\n"
-	"            --btn-text: #ffffff;\n"
-	"            --btn-text-disabled: #313131;\n"
-	"            --card-bg: rgba(255, 255, 255, 0.05);\n"
-	"            --card-border: rgba(255, 255, 255, 0.1);\n"
-	"            --text-primary: #ffffff;\n"
-	"            --text-secondary: #a0a0a0;\n"
-	"            --text-card-title: #02cc5d;\n"
-	"            --accent-color: #00d2ff;\n"
-	"            --text-shadow: rgba(0, 0, 0, 0.3);\n"
-	"            --box_shadow: rgba(0, 0, 0, 0.5);\n"
-	"            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n"
-	"            --font-mono-1: 'Courier New', Courier, monospace;\n"
-	"            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n"
-	"        }\n"
-	"\n"
-	"        * {\n"
-	"            box-sizing: border-box;\n"
-	"            margin: 0;\n"
-	"            padding: 0;\n"
-	"            font-family: var(--font-serif-1);\n"
-	"        }\n"
-	"\n"
-	"        body {\n"
-	"            font-family: var(--font-arial);\n"
-	"            color: var(--text-primary);\n"
-	"            min-height: 100vh;\n"
-	"            overflow-x: hidden;\n"
-	"            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));\n"
-	"            background-size: 400% 400%;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .container {\n"
-	"            max-width: 2400px;\n"
-	"            margin: 0 auto;\n"
-	"            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        header {\n"
-	"            text-align: center;\n"
-	"            margin-bottom: 30px;\n"
-	"            padding: 15px;\n"
-	"            background: rgba(5, 26, 66, 0.8);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 8px 32px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        h1 {\n"
-	"            font-size: 2.5rem;\n"
-	"            margin-bottom: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            text-shadow: 0 2px 10px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .subtitle {\n"
-	"            font-size: 1.1rem;\n"
-	"            opacity: 0.9;\n"
-	"        }\n"
-	"\n"
-	"        label {\n"
-	"            display: block;\n"
-	"            margin-bottom: 5px;\n"
-	"            font-weight: 500;\n"
-	"        }\n"
-	"\n"
-	"        .card {\n"
-	"            background: var(--card-bg);\n"
-	"            backdrop-filter: blur(8px);\n"
-	"            -webkit-backdrop-filter: blur(8px);\n"
-	"            border: 1px solid var(--card-border);\n"
-	"            border-radius: 16px;\n"
-	"            padding: 20px;\n"
-	"            margin-bottom: 30px;\n"
-	"            transition: transform 0.3s ease, box-shadow 0.3s ease;\n"
-	"            position: relative;\n"
-	"            overflow: hidden;\n"
-	"            display: flex;\n"
-	"            flex-direction: column;\n"
-	"        }\n"
-	"\n"
-	"        .card-title {\n"
-	"            font-size: 1.4rem;\n"
-	"            font-weight: 500;\n"
-	"            margin-bottom: 15px;\n"
-	"            display: flex;\n"
-	"            gap: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            align-items: center;\n"
-	"        }\n"
-	"\n"
-	"        .card-title i {\n"
-	"            font-size: 1.8rem;\n"
-	"        }\n"
-	"\n"
-	"        .card:hover {\n"
-	"            transform: translateY(-5px);\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            border-color: rgba(255, 255, 255, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .card-header {\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            margin-bottom: 15px;\n"
-	"        }\n"
-	"\n"
-	"        .card-value {\n"
-	"            font-family: var(--font-mono);\n"
-	"            font-size: 2.2rem;\n"
-	"            font-weight: 700;\n"
-	"            margin-bottom: 5px;\n"
-	"            color: var(--text-primary);\n"
-	"        }\n"
-	"\n"
-	"        .card-unit {\n"
-	"            font-size: 1rem;\n"
-	"            color: var(--text-secondary);\n"
-	"            font-weight: 500;\n"
-	"            margin-left: 5px;\n"
-	"        }\n"
-	"\n"
-	"        .card-stats {\n"
-	"            display: flex;\n"
-	"            justify-content: space-between;\n"
-	"            margin-top: auto;\n"
-	"            padding-top: 15px;\n"
-	"            border-top: 1px solid rgba(255, 255, 255, 0.05);\n"
-	"            font-size: 0.8rem;\n"
-	"            color: var(--text-secondary);\n"
-	"        }\n"
-	"\n"
-	"        .icon-box {\n"
-	"            width: 40px;\n"
-	"            height: 40px;\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            justify-content: center;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 10px;\n"
-	"            margin-right: 12px;\n"
-	"        }\n"
-	"\n"
-	"        .btn-container {\n"
-	"            display: flex;\n"
-	"            justify-content: center;\n"
-	"            gap: 5px;\n"
-	"            margin-top: 10px;\n"
-	"            flex-wrap: wrap;\n"
-	"        }\n"
-	"\n"
-	"        .btn {\n"
-	"            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));\n"
-	"            color: var(--btn-text);\n"
-	"            border: none;\n"
-	"            padding: 12px 25px;\n"
-	"            font-size: 1.1rem;\n"
-	"            border-radius: 50px;\n"
-	"            cursor: pointer;\n"
-	"            transition: all 0.3s ease;\n"
-	"            display: inline-block;\n"
-	"            margin: 10px 5px;\n"
-	"            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .btn:hover {\n"
-	"            transform: translateY(-3px);\n"
-	"            box-shadow: 0 6px 20px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .btn:active {\n"
-	"            transform: translateY(1px);\n"
-	"        }\n"
-	"\n"
-	"        .btn:disabled {\n"
-	"            background: #555;\n"
-	"            color: var(--btn-text-disabled);\n"
-	"            cursor: not-allowed;\n"
-	"            transform: none;\n"
-	"            box-shadow: none;\n"
-	"        }\n"
-	"\n"
-	"        input,\n"
-	"        select {\n"
-	"            width: 100%;\n"
-	"            padding: 12px;\n"
-	"            border-radius: 5px;\n"
-	"            border: none;\n"
-	"            background: rgba(0, 42, 97, 0.25);\n"
-	"            color: rgb(241, 242, 245);\n"
-	"            font-size: 1rem;\n"
-	"        }\n"
-	"\n"
-	"        input:focus,\n"
-	"        select:focus {\n"
-	"            outline: 2px solid var(--text-card-title);\n"
-	"            background: rgba(1, 62, 119, 0.9);\n"
-	"        }\n"
-	"\n"
-	"        .password-field {\n"
-	"            position: relative;\n"
-	"        }\n"
-	"\n"
-	"        .toggle-password {\n"
-	"            position: absolute;\n"
-	"            right: 10px;\n"
-	"            top: 50%;\n"
-	"            transform: translateY(-50%);\n"
-	"            cursor: pointer;\n"
-	"            color: var(--text-card-title);\n"
-	"        }\n"
-	"\n"
-	"        .status {\n"
-	"            text-align: center;\n"
-	"            padding: 15px;\n"
-	"            margin-top: 20px;\n"
-	"            border-radius: 5px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-container {\n"
-	"            margin-top: 20px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-bar {\n"
-	"            height: 10px;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 5px;\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        .progress {\n"
-	"            height: 100%;\n"
-	"            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));\n"
-	"            width: 0%;\n"
-	"            transition: width 0.4s ease;\n"
-	"        }\n"
-	"\n"
-	"        .success {\n"
-	"            background: rgba(6, 214, 160, 0.2);\n"
-	"            border: 1px solid #06d6a0;\n"
-	"            color: #06d6a0;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .error {\n"
-	"            background: rgba(239, 71, 111, 0.2);\n"
-	"            border: 1px solid #ef476f;\n"
-	"            color: #ef476f;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .loading {\n"
-	"            display: none;\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .spinner {\n"
-	"            border: 4px solid rgba(13, 3, 59, 0.3);\n"
-	"            border-radius: 50%;\n"
-	"            border-top: 4px solid var(--text-card-title);\n"
-	"            width: 30px;\n"
-	"            height: 30px;\n"
-	"            animation: spin 1s linear infinite;\n"
-	"            margin: 0 auto;\n"
-	"        }\n"
-	"\n"
-	"        footer {\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"            font-size: 0.9rem;\n"
-	"            opacity: 0.7;\n"
-	"            border-top: 1px solid rgba(182, 6, 6, 0.1);\n"
-	"        }\n"
-	"\n"
-	"        @keyframes spin {\n"
-	"            0% {\n"
-	"                transform: rotate(0deg);\n"
-	"            }\n"
-	"\n"
-	"            100% {\n"
-	"                transform: rotate(360deg);\n"
-	"            }\n"
-	"        }\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"        .stat-item span {\n"
-	"            display: block;\n"
-	"            color: var(--text-secondary);\n"
-	"        }\n"
-	"\n"
-	"        .stat-item strong {\n"
-	"            color: var(--text-primary);\n"
-	"        }\n"
-	"\n"
-	"        .chart-container {\n"
-	"            margin-top: 15px;\n"
-	"            width: 100%;\n"
-	"            height: 80px;\n"
-	"            position: relative;\n"
-	"        }\n"
-	"\n"
-	"        .status-badge {\n"
-	"            display: inline-block;\n"
-	"            font-size: 0.8rem;\n"
-	"            color: #161494;\n"
-	"            background: rgba(74, 222, 128, 0.1);\n"
-	"            padding: 4px 12px;\n"
-	"            border-radius: 20px;\n"
-	"            border: 1px solid rgba(74, 222, 128, 0.3);\n"
-	"        }\n"
-	"\n"
-	"        .status-badge.disconnected {\n"
-	"            color: #380c0c;\n"
-	"            background: rgba(248, 113, 113, 0.1);\n"
-	"            border-color: rgba(248, 113, 113, 0.3);\n"
-	"        }\n"
-	"\n"
-	"        .dashboard-grid {\n"
-	"            display: grid;\n"
-	"            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));\n"
-	"            gap: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .stat-value {\n"
-	"            font-family: var(--font-mono);\n"
-	"            font-size: 1.0rem;\n"
-	"            font-weight: 300;\n"
-	"            margin-bottom: 5px;\n"
-	"            color: var(--text-primary);\n"
-	"        }\n"
-	"\n"
-	"        canvas {\n"
-	"            width: 100%;\n"
-	"            height: 100%;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .hidden {\n"
-	"            display: none !important;\n"
-	"        }\n"
-	"\n"
-	"        #loader {\n"
-	"            text-align: center;\n"
-	"            margin-top: 50px;\n"
-	"            color: var(--text-secondary);\n"
-	"        }\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"        @media (max-width: 768px) {\n"
-	"            .container {\n"
-	"                margin: 10px;\n"
-	"            }\n"
-	"\n"
-	"            .config-container {\n"
-	"                padding: 15px;\n"
-	"            }\n"
-	"\n"
-	"            h1 {\n"
-	"                font-size: 2rem;\n"
-	"            }\n"
-	"\n"
-	"            .btn-container {\n"
-	"                flex-direction: column;\n"
-	"                align-items: center;\n"
-	"            }\n"
-	"\n"
-	"            .btn {\n"
-	"                width: 80%;\n"
-	"            }\n"
-	"        }\n"
-	"\n"
-	"    </style>\n"
-	"</head>\n"
-	"\n"
-	"<body>\n"
-	"\n"
-	"    <div class=\"container\">\n"
-	"        <header>\n"
-	"            <h1 id=\"device-title\">Sensor Node</h1>\n"
-	"            <div class=\"stat-value\">\n"
-	"                <span>Device serial number</span>\n"
-	"                <span id=\"device-serial-number\">00000000000000000000</span>\n"
-	"            </div>\n"
-	"            <div class=\"stat-value\">\n"
-	"                <span>Query time</span>\n"
-	"                <span id=\"time-stamp\">0000-00-00T00:00:00</span>\n"
-	"            </div>\n"
-	"            <div class=\"stat-value\">\n"
-	"                <span>RSSI</span>\n"
-	"                <span id=\"rssi\">-99 dBm</span>\n"
-	"                <span> - </span>\n"
-	"                <span>TX-Power</span>\n"
-	"                <span id=\"tx_power\">+10 dBm</span>\n"
-	"            </div>\n"
-	"\n"
-	"            <span id=\"connection-status\" class=\"status-badge\">Connected</span>\n"
-	"        </header>\n"
-	"\n"
-	"        <main id=\"dashboard-content\" class=\"dashboard-grid\">\n"
-	"            <div id=\"loader\">Initializing Dashboard...</div>\n"
-	"        </main>\n"
-	"\n"
-	"        <footer>\n"
-	"            <p>RASE Dashboard &copy; 2026</p>\n"
-	"        </footer>\n"
-	"    </div>\n"
-	"\n"
-	"    <script>\n"
-	"        const API_ENDPOINT = '/api/sensors';\n"
-	"        const UPDATE_INTERVAL = 10000;\n"
-	"\n"
-	"        const ICONS = {\n"
-	"            default:      '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"21\"/></svg>',\n"
-	"            generic:      '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" ><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" y1=\"16\" x2=\"12\" y2=\"12\"></line><line x1=\"12\" y1=\"8\" x2=\"12.01\" y2=\"8\"></line></svg>',\n"
-	"            percent:      '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"12\" y1=\"3\" x2=\"12\" y2=\"21\"/></svg>',\n"
-	"            rel_humidity: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > <path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z\"></path></svg>',\n"
-	"            abs_humidity: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"> <path d=\"M7 14c-1.1 0-2-.9-2-2 0-1.1.9-2 2-2h.06a4 4 0 0 1 7.88 0H17c1.1 0 2 .9 2 2s-.9 2-2 2H7z\" /> <path d=\"M12 16.5l-1.5 2.5h3l-1.5-2.5z\" transform=\"scale(0.6) translate(7,4)\"/></svg>',\n"
-	"            air_pressure: '<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"> <circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"/> <line x1=\"12\" y1=\"2\" x2=\"12\" y2=\"4\" stroke=\"currentColor\" stroke-width=\"1.5\"/> <line x1=\"12\" y1=\"16\" x2=\"12\" y2=\"18\" stroke=\"currentColor\" stroke-width=\"1.5\"/> <line x1=\"10\" y1=\"8\" x2=\"12\" y2=\"8\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <line x1=\"14\" y1=\"8\" x2=\"12\" y2=\"8\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <line x1=\"10\" y1=\"12\" x2=\"12\" y2=\"12\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <line x1=\"14\" y1=\"12\" x2=\"12\" y2=\"12\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <line x1=\"10\" y1=\"16\" x2=\"12\" y2=\"16\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <line x1=\"14\" y1=\"16\" x2=\"12\" y2=\"16\" stroke=\"currentColor\" stroke-width=\"1\" stroke-dasharray=\"1,1\"/> <path d=\"M12 12 L12 6 L10 8 Z\" stroke=\"currentColor\" stroke-width=\"2\" fill=\"none\"/> <circle cx=\"12\" cy=\"12\" r=\"1.5\" stroke=\"currentColor\" stroke-width=\"1.5\" fill=\"none\"/></svg>',\n"
-	"            temperature:  '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > <path d=\"M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z\"></path></svg>',\n"
-	"            dewpoint:     '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > <path d=\"M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2\"></path></svg>',\n"
-	"            wind:         '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > <path d=\"M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2\"></path></svg>',\n"
-	"            voltage:      '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 8v8M8 12h8\"/></svg>',\n"
-	"        };\n"
-	"\n"
-	"        function get_SvgIcon(key) {\n"
-	"            if (key.includes('temperature'))  return ICONS.temperature;\n"
-	"            if (key.includes('rel_humidity')) return ICONS.rel_humidity;\n"
-	"            if (key.includes('abs_humidity')) return ICONS.abs_humidity;\n"
-	"            if (key.includes('dewpoint'))     return ICONS.dewpoint;\n"
-	"            if (key.includes('air_pressure')) return ICONS.air_pressure;\n"
-	"            if (key.includes('percent'))      return ICONS.percent;\n"
-	"            return ICONS.generic;\n"
-	"        }\n"
-	"\n"
-	"        const dashboardContent   = document.getElementById('dashboard-content');\n"
-	"        const loader             = document.getElementById('loader');\n"
-	"        const deviceTitle        = document.getElementById('device-title');\n"
-	"        const timeStamp          = document.getElementById('time-stamp');\n"
-	"        const deviceSerialNumber = document.getElementById('device-serial-number');\n"
-	"        const rssi               = document.getElementById('rssi');\n"
-	"        const tx_power           = document.getElementById('tx_power');\n"
-	"        const connectionStatus   = document.getElementById('connection-status');\n"
-	"\n"
-	"        function drawChart(canvas, historyData, color, bottom, top) {\n"
-	"            if (!historyData || historyData.length < 2) return;\n"
-	"\n"
-	"            const ctx = canvas.getContext('2d');\n"
-	"            const width = canvas.width = canvas.offsetWidth;\n"
-	"            const height = canvas.height = canvas.offsetHeight;\n"
-	"\n"
-	"            ctx.clearRect(0, 0, width, height);\n"
-	"\n"
-	"            const pad = 5;\n"
-	"            const chartW = width - (pad * 2);\n"
-	"            const chartH = height - (pad * 2);\n"
-	"\n"
-	"            const mapX = (index) => (index / (historyData.length - 1)) * chartW + pad;\n"
-	"            const mapY = (val) => height - pad - ((val - bottom) / (top - bottom)) * chartH;\n"
-	"\n"
-	"            const gradient = ctx.createLinearGradient(0, 0, 0, height);\n"
-	"            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.5)');\n"
-	"            gradient.addColorStop(1, 'rgba(0, 210, 255, 0.0)');\n"
-	"\n"
-	"            ctx.beginPath();\n"
-	"            ctx.moveTo(mapX(0), mapY(historyData[0]));\n"
-	"\n"
-	"            for (let i = 1; i < historyData.length; i++) {\n"
-	"                ctx.lineTo(mapX(i), mapY(historyData[i]));\n"
-	"            }\n"
-	"\n"
-	"            ctx.lineCap = 'round';\n"
-	"            ctx.lineJoin = 'round';\n"
-	"            ctx.lineWidth = 2;\n"
-	"            ctx.strokeStyle = color;\n"
-	"            ctx.stroke();\n"
-	"\n"
-	"            ctx.lineTo(mapX(historyData.length - 1), height);\n"
-	"            ctx.lineTo(mapX(0), height);\n"
-	"            ctx.closePath();\n"
-	"            ctx.fillStyle = gradient;\n"
-	"            ctx.fill();\n"
-	"        }\n"
-	"\n"
-	"        function renderDashboard(data) {\n"
-	"            dashboardContent.innerHTML = '';\n"
-	"\n"
-	"            deviceTitle.textContent        = data.sensor;\n"
-	"            timeStamp.textContent          = data.timestamp;\n"
-	"            deviceSerialNumber.textContent = data.device_serial_number;\n"
-	"            rssi.textContent               = data.rssi;\n"
-	"            tx_power.textContent           = data.tx_power;\n"
-	"\n"
-	"            data.nodes.forEach(channel => {\n"
-	"                const key = Object.keys(channel)[0];\n"
-	"                const iconSvg  = get_SvgIcon(key);\n"
-	"\n"
-	"                const channelData = channel[key];\n"
-	"                const name     = channelData.name;\n"
-	"                const shortcut = channelData.shortcut;\n"
-	"                const unit     = channelData.unit;\n"
-	"                const color    = channelData.color;\n"
-	"                const bottom   = channelData.bottom;\n"
-	"                const top      = channelData.top;\n"
-	"                const value    = channelData.value;\n"
-	"                const min      = channelData.min;\n"
-	"                const max      = channelData.max;\n"
-	"                const average  = channelData.average;\n"
-	"                const flags    = channelData.flags;\n"
-	"                const count    = channelData.count;\n"
-	"                const history  = channelData.history !== undefined ? channelData.history : [];\n"
-	"\n"
-	"                const dot_num  = flags & 0x0f;\n"
-	"\n"
-	"                const card = document.createElement('div');\n"
-	"                card.className = 'card';\n"
-	"                card.innerHTML = `\n"
-	"                    <div class=\"card-header\">\n"
-	"                        <div class=\"icon-box\">${iconSvg}</div>\n"
-	"                        <div class=\"card-title\">${name}</div>\n"
-	"                    </div>\n"
-	"                    <div class=\"card-value\">\n"
-	"                        ${value.toFixed(dot_num)}\n"
-	"                        <span class=\"card-unit\">${unit}</span>\n"
-	"                    </div>\n"
-	"                    <div class=\"chart-container\">\n"
-	"                        <canvas></canvas>\n"
-	"                    </div>\n"
-	"                    <div class=\"card-stats\">\n"
-	"                        <div class=\"stat-item\">\n"
-	"                            <span>Min</span>\n"
-	"                            <strong>${min.toFixed(2)}</strong>\n"
-	"                        </div>\n"
-	"                        <div class=\"stat-item\">\n"
-	"                            <span>Average</span>\n"
-	"                            <strong>${average.toFixed(2)}</strong>\n"
-	"                        </div>\n"
-	"                        <div class=\"stat-item\">\n"
-	"                            <span>Max</span>\n"
-	"                            <strong>${max.toFixed(2)}</strong>\n"
-	"                        </div>\n"
-	"                        <div class=\"stat-item\">\n"
-	"                            <span>Count</span>\n"
-	"                            <strong>${count}</strong>\n"
-	"                        </div>\n"
-	"                    </div>\n"
-	"                `;\n"
-	"                dashboardContent.appendChild(card);\n"
-	"\n"
-	"                if (history.length > 1) {\n"
-	"                    const canvas = card.querySelector('canvas');\n"
-	"                    const bounds = {\n"
-	"                        bottom: bottom !== null ? bottom : Math.min(...history),\n"
-	"                        top: top !== null ? top : Math.max(...history)\n"
-	"                    };\n"
-	"                    const range = bounds.top - bounds.bottom;\n"
-	"                    if (range === 0) {\n"
-	"                        bounds.bottom = current - 1;\n"
-	"                        bounds.top = current + 1;\n"
-	"                    } else {\n"
-	"                        bounds.bottom -= range * 0.1;\n"
-	"                        bounds.top += range * 0.1;\n"
-	"                    }\n"
-	"                    drawChart(canvas, history, color, bounds.bottom, bounds.top);\n"
-	"                }\n"
-	"            });\n"
-	"        }\n"
-	"\n"
-	"        async function fetchData() {\n"
-	"            try {\n"
-	"                const response = await fetch(API_ENDPOINT);\n"
-	"                if (!response.ok) throw new Error('Network response was not ok');\n"
-	"\n"
-	"                const data = await response.json();\n"
-	"                if (!data) throw new Error('Invalid data received');\n"
-	"\n"
-	"                renderDashboard(data);\n"
-	"                connectionStatus.textContent = \"Connected\";\n"
-	"                connectionStatus.style.backgroundColor = \"#4caf50\";\n"
-	"                connectionStatus.style.color = \"white\";\n"
-	"\n"
-	"            } catch (error) {\n"
-	"                console.error('Fetch error:', error);\n"
-	"                connectionStatus.textContent = \"Offline\";\n"
-	"                connectionStatus.style.backgroundColor = \"#f44336\";\n"
-	"                connectionStatus.style.color = \"white\";\n"
-	"\n"
-	"                dashboardContent.innerHTML = `\n"
-	"                    <div class=\"card\" style=\"grid-column: 1 / -1; text-align: center; justify-content: center;\">\n"
-	"                        <p style=\"color: #f44336;\">Connection Error. Retrying...</p>\n"
-	"                    </div>\n"
-	"                `;\n"
-	"            } finally {\n"
-	"                loader.classList.add('hidden');\n"
-	"            }\n"
-	"        }\n"
-	"\n"
-	"        fetchData();\n"
-	"        setInterval(fetchData, UPDATE_INTERVAL);\n"
-	"\n"
-	"    </script>\n"
-	"</body>\n"
-	"</html>\n"
-	"";
+const char *WebServer::webserver_resp_str_1 = R"(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <style>
+        :root {
+            --bg-gradient-0: #01050a;
+            --bg-gradient-1: #0b1e42;
+            --bg-gradient-2: #0c1830;
+            --bg-gradient-3: #071f42;
+            --bar-gradient-0: #00b09b;
+            --bar-gradient-1: #96c93d;
+            --btn-gradient-0: #00805e;
+            --btn-gradient-1: #006080;
+            --btn-text: #ffffff;
+            --btn-text-disabled: #313131;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-card-title: #02cc5d;
+            --accent-color: #00d2ff;
+            --text-shadow: rgba(0, 0, 0, 0.3);
+            --box_shadow: rgba(0, 0, 0, 0.5);
+            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono-1: 'Courier New', Courier, monospace;
+            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-serif-1);
+        }
+
+        body {
+            font-family: var(--font-arial);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-size: 400% 400%;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 2400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--box-shadow);
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(5, 26, 66, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--text-card-title);
+            text-shadow: 0 2px 10px var(--box-shadow);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            color: var(--text-card-title);
+            align-items: center;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--box-shadow);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-value {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .card-unit {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));
+            color: var(--btn-text);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--box-shadow);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background: #555;
+            color: var(--btn-text-disabled);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(0, 42, 97, 0.25);
+            color: rgb(241, 242, 245);
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid var(--text-card-title);
+            background: rgba(1, 62, 119, 0.9);
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-card-title);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .success {
+            background: rgba(6, 214, 160, 0.2);
+            border: 1px solid #06d6a0;
+            color: #06d6a0;
+            display: block;
+        }
+
+        .error {
+            background: rgba(239, 71, 111, 0.2);
+            border: 1px solid #ef476f;
+            color: #ef476f;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(13, 3, 59, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--text-card-title);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            border-top: 1px solid rgba(182, 6, 6, 0.1);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .stat-item span {
+            display: block;
+            color: var(--text-secondary);
+        }
+
+        .stat-item strong {
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            margin-top: 15px;
+            width: 100%;
+            height: 80px;
+            position: relative;
+        }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 0.8rem;
+            color: #161494;
+            background: rgba(74, 222, 128, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .status-badge.disconnected {
+            color: #380c0c;
+            background: rgba(248, 113, 113, 0.1);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 1.0rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #loader {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-secondary);
+        }
+
+
+
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .config-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .btn-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 80%;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="device-title">Sensor Node</h1>
+            <div class="stat-value">
+                <span>Device serial number</span>
+                <span id="device-serial-number">00000000000000000000</span>
+            </div>
+            <div class="stat-value">
+                <span>Query time</span>
+                <span id="time-stamp">0000-00-00T00:00:00</span>
+            </div>
+            <div class="stat-value">
+                <span>RSSI</span>
+                <span id="rssi">-99 dBm</span>
+                <span> - </span>
+                <span>TX-Power</span>
+                <span id="tx_power">+10 dBm</span>
+            </div>
+
+            <span id="connection-status" class="status-badge">Connected</span>
+        </header>
+
+        <main id="dashboard-content" class="dashboard-grid">
+            <div id="loader">Initializing Dashboard...</div>
+        </main>
+
+        <footer>
+            <p>RASE Dashboard &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_ENDPOINT = '/api/sensors';
+        const UPDATE_INTERVAL = 10000;
+
+        const ICONS = {
+            default:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+            generic:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" ><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+            percent:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>',
+            rel_humidity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>',
+            abs_humidity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"> <path d="M7 14c-1.1 0-2-.9-2-2 0-1.1.9-2 2-2h.06a4 4 0 0 1 7.88 0H17c1.1 0 2 .9 2 2s-.9 2-2 2H7z" /> <path d="M12 16.5l-1.5 2.5h3l-1.5-2.5z" /> </svg>',
+            air_pressure: '<svg width="24" height="24" viewBox="0 0 24 24"> <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/> <line x1="12" y1="2" x2="12" y2="4" stroke="currentColor" stroke-width="1.5"/> <line x1="12" y1="16" x2="12" y2="18" stroke="currentColor" stroke-width="1.5"/> <line x1="10" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="10" y1="12" x2="12" y2="12" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="12" x2="12" y2="12" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="10" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <line x1="14" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1" stroke-dasharray="1,1"/> <path d="M12 12 L12 6 L10 8 Z" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="12" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/> </svg>',
+            temperature:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>',
+            dewpoint:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>',
+            wind:         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width = "20" height = "20" > <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>',
+            voltage:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>',
+        };
+
+        function get_SvgIcon(key) {
+            if (key.includes('temperature'))  return ICONS.temperature;
+            if (key.includes('rel_humidity')) return ICONS.rel_humidity;
+            if (key.includes('abs_humidity')) return ICONS.abs_humidity;
+            if (key.includes('dewpoint'))     return ICONS.dewpoint;
+            if (key.includes('air_pressure')) return ICONS.air_pressure;
+            if (key.includes('percent'))      return ICONS.percent;
+            return ICONS.generic;
+        }
+
+        const dashboardContent   = document.getElementById('dashboard-content');
+        const loader             = document.getElementById('loader');
+        const deviceTitle        = document.getElementById('device-title');
+        const timeStamp          = document.getElementById('time-stamp');
+        const deviceSerialNumber = document.getElementById('device-serial-number');
+        const rssi               = document.getElementById('rssi');
+        const tx_power           = document.getElementById('tx_power');
+        const connectionStatus   = document.getElementById('connection-status');
+
+        function drawChart(canvas, historyData, color, bottom, top) {
+            if (!historyData || historyData.length < 2) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.offsetWidth;
+            const height = canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const pad = 5;
+            const chartW = width - (pad * 2);
+            const chartH = height - (pad * 2);
+
+            const mapX = (index) => (index / (historyData.length - 1)) * chartW + pad;
+            const mapY = (val) => height - pad - ((val - bottom) / (top - bottom)) * chartH;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 210, 255, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(mapX(0), mapY(historyData[0]));
+
+            for (let i = 1; i < historyData.length; i++) {
+                ctx.lineTo(mapX(i), mapY(historyData[i]));
+            }
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = color;
+            ctx.stroke();
+
+            ctx.lineTo(mapX(historyData.length - 1), height);
+            ctx.lineTo(mapX(0), height);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function renderDashboard(data) {
+            dashboardContent.innerHTML = '';
+
+            deviceTitle.textContent        = data.sensor;
+            timeStamp.textContent          = data.timestamp;
+            deviceSerialNumber.textContent = data.device_serial_number;
+            rssi.textContent               = data.rssi;
+            tx_power.textContent           = data.tx_power;
+
+            data.nodes.forEach(channel => {
+                const key = Object.keys(channel)[0];
+                const iconSvg  = get_SvgIcon(key);
+
+                const channelData = channel[key];
+                const name     = channelData.name;
+                const shortcut = channelData.shortcut;
+                const unit     = channelData.unit;
+                const color    = channelData.color;
+                const bottom   = channelData.bottom;
+                const top      = channelData.top;
+                const value    = channelData.value;
+                const min      = channelData.min;
+                const max      = channelData.max;
+                const average  = channelData.average;
+                const flags    = channelData.flags;
+                const count    = channelData.count;
+                const history  = channelData.history !== undefined ? channelData.history : [];
+
+                const dot_num  = flags & 0x0f;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="icon-box">${iconSvg}</div>
+                        <div class="card-title">${name}</div>
+                    </div>
+                    <div class="card-value">
+                        ${value.toFixed(dot_num)}
+                        <span class="card-unit">${unit}</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas></canvas>
+                    </div>
+                    <div class="card-stats">
+                        <div class="stat-item">
+                            <span>Min</span>
+                            <strong>${min.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Average</span>
+                            <strong>${average.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Max</span>
+                            <strong>${max.toFixed(2)}</strong>
+                        </div>
+                        <div class="stat-item">
+                            <span>Count</span>
+                            <strong>${count}</strong>
+                        </div>
+                    </div>
+                `;
+                dashboardContent.appendChild(card);
+
+                if (history.length > 1) {
+                    const canvas = card.querySelector('canvas');
+                    const bounds = {
+                        bottom: bottom !== null ? bottom : Math.min(...history),
+                        top: top !== null ? top : Math.max(...history)
+                    };
+                    const range = bounds.top - bounds.bottom;
+                    if (range === 0) {
+                        bounds.bottom = current - 1;
+                        bounds.top = current + 1;
+                    } else {
+                        bounds.bottom -= range * 0.1;
+                        bounds.top += range * 0.1;
+                    }
+                    drawChart(canvas, history, color, bounds.bottom, bounds.top);
+                }
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_ENDPOINT);
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                if (!data) throw new Error('Invalid data received');
+
+                renderDashboard(data);
+                connectionStatus.textContent = "Connected";
+                connectionStatus.style.backgroundColor = "#4caf50";
+                connectionStatus.style.color = "white";
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                connectionStatus.textContent = "Offline";
+                connectionStatus.style.backgroundColor = "#f44336";
+                connectionStatus.style.color = "white";
+
+                // Add error message to grid
+                dashboardContent.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1; text-align: center; justify-content: center;">
+                        <p style="color: #f44336;">Connection Error. Retrying...</p>
+                    </div>
+                `;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, UPDATE_INTERVAL);
+
+    </script>
+</body>
+</html>
+)";

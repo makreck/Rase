@@ -22,634 +22,630 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-const char *WebServer::config_website_resp_str =
-	"<!DOCTYPE html>\n"
-	"<html lang=\"en\">\n"
-	"<head>\n"
-	"    <meta charset=\"UTF-8\">\n"
-	"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-	"    <title>Rase Configuration Manager</title>\n"
-	"    <style>\n"
-	"        :root {\n"
-	"            --bg-gradient-0: #01050a;\n"
-	"            --bg-gradient-1: #0b1e42;\n"
-	"            --bg-gradient-2: #0c1830;\n"
-	"            --bg-gradient-3: #071f42;\n"
-	"            --bar-gradient-0: #00b09b;\n"
-	"            --bar-gradient-1: #96c93d;\n"
-	"            --btn-gradient-0: #00805e;\n"
-	"            --btn-gradient-1: #006080;\n"
-	"            --btn-text: #ffffff;\n"
-	"            --btn-text-disabled: #313131;\n"
-	"            --card-bg: rgba(255, 255, 255, 0.05);\n"
-	"            --card-border: rgba(255, 255, 255, 0.1);\n"
-	"            --text-primary: #ffffff;\n"
-	"            --text-secondary: #a0a0a0;\n"
-	"            --text-card-title: #02cc5d;\n"
-	"            --accent-color: #00d2ff;\n"
-	"            --text-shadow: rgba(0, 0, 0, 0.3);\n"
-	"            --box_shadow: rgba(0, 0, 0, 0.5);\n"
-	"            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n"
-	"            --font-mono-1: 'Courier New', Courier, monospace;\n"
-	"            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n"
-	"        }\n"
-	"\n"
-	"        * {\n"
-	"            box-sizing: border-box;\n"
-	"            margin: 0;\n"
-	"            padding: 0;\n"
-	"            font-family: var(--font-serif-1);\n"
-	"        }\n"
-	"\n"
-	"        body {\n"
-	"            font-family: var(--font-arial);\n"
-	"            color: var(--text-primary);\n"
-	"            min-height: 100vh;\n"
-	"            overflow-x: hidden;\n"
-	"            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));\n"
-	"            background-size: 400% 400%;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .container {\n"
-	"            max-width: 2400px;\n"
-	"            margin: 0 auto;\n"
-	"            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        header {\n"
-	"            text-align: center;\n"
-	"            margin-bottom: 30px;\n"
-	"            padding: 15px;\n"
-	"            background: rgba(5, 26, 66, 0.8);\n"
-	"            border-radius: 15px;\n"
-	"            box-shadow: 0 8px 32px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        h1 {\n"
-	"            font-size: 2.5rem;\n"
-	"            margin-bottom: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            text-shadow: 0 2px 10px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .subtitle {\n"
-	"            font-size: 1.1rem;\n"
-	"            opacity: 0.9;\n"
-	"        }\n"
-	"\n"
-	"        label {\n"
-	"            display: block;\n"
-	"            margin-bottom: 5px;\n"
-	"            font-weight: 500;\n"
-	"        }\n"
-	"\n"
-	"        .card {\n"
-	"            background: var(--card-bg);\n"
-	"            backdrop-filter: blur(8px);\n"
-	"            -webkit-backdrop-filter: blur(8px);\n"
-	"            border: 1px solid var(--card-border);\n"
-	"            border-radius: 16px;\n"
-	"            padding: 20px;\n"
-	"            margin-bottom: 30px;\n"
-	"            transition: transform 0.3s ease, box-shadow 0.3s ease;\n"
-	"            position: relative;\n"
-	"            overflow: hidden;\n"
-	"            display: flex;\n"
-	"            flex-direction: column;\n"
-	"        }\n"
-	"\n"
-	"        .card-title {\n"
-	"            font-size: 1.4rem;\n"
-	"            font-weight: 500;\n"
-	"            margin-bottom: 15px;\n"
-	"            display: flex;\n"
-	"            gap: 10px;\n"
-	"            color: var(--text-card-title);\n"
-	"            align-items: center;\n"
-	"        }\n"
-	"\n"
-	"        .card-title i {\n"
-	"            font-size: 1.8rem;\n"
-	"        }\n"
-	"\n"
-	"        .card:hover {\n"
-	"            transform: translateY(-5px);\n"
-	"            box-shadow: 0 10px 30px var(--box-shadow);\n"
-	"            border-color: rgba(255, 255, 255, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .card-header {\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            margin-bottom: 15px;\n"
-	"        }\n"
-	"\n"
-	"        .card-value {\n"
-	"            font-family: var(--font-mono);\n"
-	"            font-size: 2.2rem;\n"
-	"            font-weight: 700;\n"
-	"            margin-bottom: 5px;\n"
-	"            color: var(--text-primary);\n"
-	"        }\n"
-	"\n"
-	"        .card-unit {\n"
-	"            font-size: 1rem;\n"
-	"            color: var(--text-secondary);\n"
-	"            font-weight: 500;\n"
-	"            margin-left: 5px;\n"
-	"        }\n"
-	"\n"
-	"        .card-stats {\n"
-	"            display: flex;\n"
-	"            justify-content: space-between;\n"
-	"            margin-top: auto;\n"
-	"            padding-top: 15px;\n"
-	"            border-top: 1px solid rgba(255, 255, 255, 0.05);\n"
-	"            font-size: 0.8rem;\n"
-	"            color: var(--text-secondary);\n"
-	"        }\n"
-	"\n"
-	"        .icon-box {\n"
-	"            width: 40px;\n"
-	"            height: 40px;\n"
-	"            display: flex;\n"
-	"            align-items: center;\n"
-	"            justify-content: center;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 10px;\n"
-	"            margin-right: 12px;\n"
-	"        }\n"
-	"\n"
-	"        .btn-container {\n"
-	"            display: flex;\n"
-	"            justify-content: center;\n"
-	"            gap: 5px;\n"
-	"            margin-top: 10px;\n"
-	"            flex-wrap: wrap;\n"
-	"        }\n"
-	"\n"
-	"        .btn {\n"
-	"            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));\n"
-	"            color: var(--btn-text);\n"
-	"            border: none;\n"
-	"            padding: 12px 25px;\n"
-	"            font-size: 1.1rem;\n"
-	"            border-radius: 50px;\n"
-	"            cursor: pointer;\n"
-	"            transition: all 0.3s ease;\n"
-	"            display: inline-block;\n"
-	"            margin: 10px 5px;\n"
-	"            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);\n"
-	"        }\n"
-	"\n"
-	"        .btn:hover {\n"
-	"            transform: translateY(-3px);\n"
-	"            box-shadow: 0 6px 20px var(--box-shadow);\n"
-	"        }\n"
-	"\n"
-	"        .btn:active {\n"
-	"            transform: translateY(1px);\n"
-	"        }\n"
-	"\n"
-	"        .btn:disabled {\n"
-	"            background: #555;\n"
-	"            color: var(--btn-text-disabled);\n"
-	"            cursor: not-allowed;\n"
-	"            transform: none;\n"
-	"            box-shadow: none;\n"
-	"        }\n"
-	"\n"
-	"        input,\n"
-	"        select {\n"
-	"            width: 100%;\n"
-	"            padding: 12px;\n"
-	"            border-radius: 5px;\n"
-	"            border: none;\n"
-	"            background: rgba(0, 42, 97, 0.25);\n"
-	"            color: rgb(241, 242, 245);\n"
-	"            font-size: 1rem;\n"
-	"        }\n"
-	"\n"
-	"        input:focus,\n"
-	"        select:focus {\n"
-	"            outline: 2px solid var(--text-card-title);\n"
-	"            background: rgba(1, 62, 119, 0.9);\n"
-	"        }\n"
-	"\n"
-	"        .password-field {\n"
-	"            position: relative;\n"
-	"        }\n"
-	"\n"
-	"        .toggle-password {\n"
-	"            position: absolute;\n"
-	"            right: 10px;\n"
-	"            top: 50%;\n"
-	"            transform: translateY(-50%);\n"
-	"            cursor: pointer;\n"
-	"            color: var(--text-card-title);\n"
-	"        }\n"
-	"\n"
-	"        .status {\n"
-	"            text-align: center;\n"
-	"            padding: 15px;\n"
-	"            margin-top: 20px;\n"
-	"            border-radius: 5px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-container {\n"
-	"            margin-top: 20px;\n"
-	"            display: none;\n"
-	"        }\n"
-	"\n"
-	"        .progress-bar {\n"
-	"            height: 10px;\n"
-	"            background: rgba(255, 255, 255, 0.1);\n"
-	"            border-radius: 5px;\n"
-	"            overflow: hidden;\n"
-	"        }\n"
-	"\n"
-	"        .progress {\n"
-	"            height: 100%;\n"
-	"            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));\n"
-	"            width: 0%;\n"
-	"            transition: width 0.4s ease;\n"
-	"        }\n"
-	"\n"
-	"        .success {\n"
-	"            background: rgba(6, 214, 160, 0.2);\n"
-	"            border: 1px solid #06d6a0;\n"
-	"            color: #06d6a0;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .error {\n"
-	"            background: rgba(239, 71, 111, 0.2);\n"
-	"            border: 1px solid #ef476f;\n"
-	"            color: #ef476f;\n"
-	"            display: block;\n"
-	"        }\n"
-	"\n"
-	"        .loading {\n"
-	"            display: none;\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"        }\n"
-	"\n"
-	"        .spinner {\n"
-	"            border: 4px solid rgba(13, 3, 59, 0.3);\n"
-	"            border-radius: 50%;\n"
-	"            border-top: 4px solid var(--text-card-title);\n"
-	"            width: 30px;\n"
-	"            height: 30px;\n"
-	"            animation: spin 1s linear infinite;\n"
-	"            margin: 0 auto;\n"
-	"        }\n"
-	"\n"
-	"        footer {\n"
-	"            text-align: center;\n"
-	"            padding: 20px;\n"
-	"            font-size: 0.9rem;\n"
-	"            opacity: 0.7;\n"
-	"            border-top: 1px solid rgba(182, 6, 6, 0.1);\n"
-	"        }\n"
-	"\n"
-	"        @keyframes spin {\n"
-	"            0% {\n"
-	"                transform: rotate(0deg);\n"
-	"            }\n"
-	"\n"
-	"            100% {\n"
-	"                transform: rotate(360deg);\n"
-	"            }\n"
-	"        }\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"\n"
-	"        .form-group {\n"
-	"            margin-bottom: 15px;\n"
-	"            padding: 8px;\n"
-	"            background: linear-gradient(0deg, #0e3063, #0b2041, #0e3063);\n"
-	"            color: #a0beff;\n"
-	"        }\n"
-	"\n"
-	"        .config-container {\n"
-	"            padding: 30px;\n"
-	"        }\n"
-	"\n"
-	"        @media (max-width: 768px) {\n"
-	"            .container {\n"
-	"                margin: 10px;\n"
-	"            }\n"
-	"\n"
-	"            .config-container {\n"
-	"                padding: 15px;\n"
-	"            }\n"
-	"\n"
-	"            h1 {\n"
-	"                font-size: 2rem;\n"
-	"            }\n"
-	"\n"
-	"            .btn-container {\n"
-	"                flex-direction: column;\n"
-	"                align-items: center;\n"
-	"            }\n"
-	"\n"
-	"            .btn {\n"
-	"                width: 80%;\n"
-	"            }\n"
-	"        }\n"
-	"    </style>\n"
-	"</head>\n"
-	"\n"
-	"<body>\n"
-	"    <div class=\"container\">\n"
-	"        <header>\n"
-	"            <h1>RASE Configuration Manager</h1>\n"
-	"            <p class=\"subtitle\">Manage device settings and save changes to the server</p>\n"
-	"        </header>\n"
-	"\n"
-	"        <div class=\"config-container\">\n"
-	"            <div class=\"card\">\n"
-	"                <h2 class=\"card-title\">WiFi Settings</h2>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"ssid\">SSID</label>\n"
-	"                    <input type=\"text\" id=\"ssid\" name=\"ssid\">\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"password\">Password</label>\n"
-	"                    <div class=\"password-field\">\n"
-	"                        <input type=\"password\" id=\"password\" name=\"password\">\n"
-	"                        <span class=\"toggle-password\" id=\"toggle-password\">👁️</span>\n"
-	"                    </div>\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"wifi_channel\">WiFi Channel</label>\n"
-	"                    <!-- <input type=\"text\" id=\"wifi_channel\" name=\"wifi_channel\"> -->\n"
-	"                    <select id=\"wifi_channel\" name=\"wifi_channel\">\n"
-	"                        <option value=\"1\">Channel 1</option>\n"
-	"                        <option value=\"2\">Channel 2</option>\n"
-	"                        <option value=\"3\">Channel 3</option>\n"
-	"                        <option value=\"4\">Channel 4</option>\n"
-	"                        <option value=\"5\">Channel 5</option>\n"
-	"                        <option value=\"6\">Channel 6</option>\n"
-	"                        <option value=\"7\">Channel 7</option>\n"
-	"                        <option value=\"8\">Channel 8</option>\n"
-	"                        <option value=\"9\">Channel 9</option>\n"
-	"                        <option value=\"10\">Channel 10</option>\n"
-	"                        <option value=\"11\">Channel 11</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"card\">\n"
-	"                <h2 class=\"card-title\">MQTT Settings</h2>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"mqtt_broker\">MQTT Broker IP</label>\n"
-	"                    <input type=\"text\" id=\"mqtt_broker\" name=\"mqtt_broker\">\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"mqtt_username\">MQTT Username</label>\n"
-	"                    <input type=\"text\" id=\"mqtt_username\" name=\"mqtt_username\">\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"mqtt_password\">MQTT Password</label>\n"
-	"                    <div class=\"password-field\">\n"
-	"                        <input type=\"password\" id=\"mqtt_password\" name=\"mqtt_password\">\n"
-	"                        <span class=\"toggle-password\" id=\"toggle-mqtt-password\">👁️</span>\n"
-	"                    </div>\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"mqtt_enable\">MQTT Enable</label>\n"
-	"                    <select id=\"mqtt_enable\" name=\"mqtt_enable\">\n"
-	"                        <option value=\"enabled\">Enabled</option>\n"
-	"                        <option value=\"disabled\">Disabled</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"card\">\n"
-	"                <h2 class=\"card-title\">Display Settings</h2>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"display_layout\">Display Layout</label>\n"
-	"                    <select id=\"display_layout\" name=\"display_layout\">\n"
-	"                        <option value=\"Value page\">Value page</option>\n"
-	"                        <option value=\"Details page\">Details page</option>\n"
-	"                        <option value=\"Info page\">Info page</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"display_param\">Display Parameter (0-255)</label>\n"
-	"                    <input type=\"number\" id=\"display_param\" name=\"display_param\" min=\"0\" max=\"255\" value=\"0\">\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"display_rotation\">Display Rotation</label>\n"
-	"                    <select id=\"display_rotation\" name=\"display_rotation\">\n"
-	"                        <option value=\"0°\">0°</option>\n"
-	"                        <option value=\"180°\">180°</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"display_timeout\">Display Timeout</label>\n"
-	"                    <select id=\"display_timeout\" name=\"display_timeout\">\n"
-	"                        <option value=\"Never\">Never</option>\n"
-	"                        <option value=\"10 s\">10 s</option>\n"
-	"                        <option value=\"1 min\">1 min</option>\n"
-	"                        <option value=\"5 min\">5 min</option>\n"
-	"                        <option value=\"15 min\">15 min</option>\n"
-	"                        <option value=\"30 min\">30 min</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"display_contrast\">Display Contrast</label>\n"
-	"                    <select id=\"display_contrast\" name=\"display_contrast\">\n"
-	"                        <option value=\"100%\">100%</option>\n"
-	"                        <option value=\"80%\">80%</option>\n"
-	"                        <option value=\"60%\">60%</option>\n"
-	"                        <option value=\"50%\">50%</option>\n"
-	"                        <option value=\"40%\">40%</option>\n"
-	"                        <option value=\"30%\">30%</option>\n"
-	"                        <option value=\"20%\">20%</option>\n"
-	"                        <option value=\"10%\">10%</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"card\">\n"
-	"                <h2 class=\"card-title\">Sensor Settings</h2>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"sensor_type\">Sensor Type</label>\n"
-	"                    <select id=\"sensor_type\" name=\"sensor_type\">\n"
-	"                        <option value=\"autoscan\">autoscan</option>\n"
-	"                        <option value=\"Null\">Null</option>\n"
-	"                        <option value=\"SHT2x\">SHT2x</option>\n"
-	"                        <option value=\"SHT3x\">SHT3x</option>\n"
-	"                        <option value=\"HTU21d\">HTU21d</option>\n"
-	"                        <option value=\"ATHxx\">ATHxx</option>\n"
-	"                        <option value=\"HDC1080\">HDC1080</option>\n"
-	"                        <option value=\"BMx280\">BMx280</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"card\">\n"
-	"                <h2 class=\"card-title\">LED Settings</h2>\n"
-	"                <div class=\"form-group\">\n"
-	"                    <label for=\"led_intensity\">LED Intensity</label>\n"
-	"                    <select id=\"led_intensity\" name=\"led_intensity\">\n"
-	"                        <option value=\"100%\">100%</option>\n"
-	"                        <option value=\"75%\">75%</option>\n"
-	"                        <option value=\"50%\">50%</option>\n"
-	"                        <option value=\"25%\">25%</option>\n"
-	"                        <option value=\"10%\">10%</option>\n"
-	"                        <option value=\"1%\">1%</option>\n"
-	"                    </select>\n"
-	"                </div>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"btn-container\">\n"
-	"                <button class=\"btn\" id=\"load-btn\">Load Configuration</button>\n"
-	"                <button class=\"btn\" id=\"save-btn\">Save Configuration</button>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"loading\" id=\"loading\">\n"
-	"                <div class=\"spinner\"></div>\n"
-	"                <p>Processing request...</p>\n"
-	"            </div>\n"
-	"\n"
-	"            <div class=\"status\" id=\"status\"></div>\n"
-	"        </div>\n"
-	"\n"
-	"        <footer>\n"
-	"            <p>RASE Configuration Manager &copy; 2026</p>\n"
-	"        </footer>\n"
-	"    </div>\n"
-	"\n"
-	"    <script>\n"
-	"        document.addEventListener('DOMContentLoaded', function () {\n"
-	"            const togglePassword = document.getElementById('toggle-password');\n"
-	"            const passwordInput = document.getElementById('password');\n"
-	"\n"
-	"            const toggleMqttPassword = document.getElementById('toggle-mqtt-password');\n"
-	"            const mqttPasswordInput = document.getElementById('mqtt_password');\n"
-	"\n"
-	"            togglePassword.addEventListener('click', function () {\n"
-	"                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';\n"
-	"                passwordInput.setAttribute('type', type);\n"
-	"                this.textContent = type === 'password' ? '👁️' : '🔒';\n"
-	"            });\n"
-	"\n"
-	"            toggleMqttPassword.addEventListener('click', function () {\n"
-	"                const type = mqttPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';\n"
-	"                mqttPasswordInput.setAttribute('type', type);\n"
-	"                this.textContent = type === 'password' ? '👁️' : '🔒';\n"
-	"            });\n"
-	"\n"
-	"            document.getElementById('load-btn').addEventListener('click', loadConfiguration);\n"
-	"            document.getElementById('save-btn').addEventListener('click', saveConfiguration);\n"
-	"\n"
-	"            loadConfiguration();\n"
-	"\n"
-	"            function loadConfiguration() {\n"
-	"                showLoading(true);\n"
-	"                const status = document.getElementById('status');\n"
-	"\n"
-	"                setTimeout(() => {\n"
-	"                    try {\n"
-	"                        fetch('/api/config')\n"
-	"                            .then(response => response.json())\n"
-	"                            .then(data => populateForm(data))\n"
-	"\n"
-	"                        status.textContent = 'Configuration loaded successfully!';\n"
-	"                        status.style.backgroundColor = '#4CAF50';\n"
-	"                        status.style.display = 'block';\n"
-	"                    } catch (error) {\n"
-	"                        status.textContent = 'Error loading configuration: ' + error.message;\n"
-	"                        status.style.backgroundColor = '#f44336';\n"
-	"                        status.style.display = 'block';\n"
-	"                    }\n"
-	"\n"
-	"                    showLoading(false);\n"
-	"                }, 1000);\n"
-	"            }\n"
-	"\n"
-	"            function saveConfiguration() {\n"
-	"                showLoading(true);\n"
-	"                const status = document.getElementById('status');\n"
-	"\n"
-	"                const formData = {};\n"
-	"                const inputs = document.querySelectorAll('input, select');\n"
-	"\n"
-	"                inputs.forEach(input => {\n"
-	"                    if (input.name) {\n"
-	"                        if (input.type === 'checkbox') {\n"
-	"                            formData[input.name] = input.checked;\n"
-	"                        } else {\n"
-	"                            formData[input.name] = input.value;\n"
-	"                        }\n"
-	"                    }\n"
-	"                });\n"
-	"\n"
-	"                setTimeout(() => {\n"
-	"                    try {\n"
-	"                        fetch('/api/config', {\n"
-	"                            method: 'PUT',\n"
-	"                            headers: {\n"
-	"                                'Content-Type': 'application/json'\n"
-	"                            },\n"
-	"                            body: JSON.stringify(formData)\n"
-	"                        })\n"
-	"                        .then(response => response.json())\n"
-	"                        .then(data => {\n"
-	"                            status.textContent = 'Configuration saved successfully!';\n"
-	"                            status.style.backgroundColor = '#4CAF50';\n"
-	"                            status.style.display = 'block';\n"
-	"                        });\n"
-	"\n"
-	"                        status.textContent = 'Configuration saved successfully!';\n"
-	"                        status.style.backgroundColor = '#4CAF50';\n"
-	"                        status.style.display = 'block';\n"
-	"                    } catch (error) {\n"
-	"                        status.textContent = 'Error saving configuration: ' + error.message;\n"
-	"                        status.style.backgroundColor = '#f44336';\n"
-	"                        status.style.display = 'block';\n"
-	"                    }\n"
-	"\n"
-	"                    showLoading(false);\n"
-	"                }, 1000);\n"
-	"            }\n"
-	"\n"
-	"            function populateForm(data) {\n"
-	"                for (const key in data) {\n"
-	"                    const element = document.getElementById(key);\n"
-	"                    if (element) {\n"
-	"                        if (element.tagName === 'SELECT') {\n"
-	"                            element.value = data[key];\n"
-	"                        } else if (element.type === 'checkbox') {\n"
-	"                            element.checked = data[key];\n"
-	"                        } else {\n"
-	"                            element.value = data[key];\n"
-	"                        }\n"
-	"                    }\n"
-	"                }\n"
-	"            }\n"
-	"\n"
-	"            function showLoading(show) {\n"
-	"                const loading = document.getElementById('loading');\n"
-	"                if (show) {\n"
-	"                    loading.style.display = 'block';\n"
-	"                } else {\n"
-	"                    loading.style.display = 'none';\n"
-	"                }\n"
-	"            }\n"
-	"        });\n"
-	"    </script>\n"
-	"</body>\n"
-	"</html>\n"
-	"";
+const char *WebServer::config_website_resp_str = R"(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rase Configuration Manager</title>
+    <style>
+        :root {
+            --bg-gradient-0: #01050a;
+            --bg-gradient-1: #0b1e42;
+            --bg-gradient-2: #0c1830;
+            --bg-gradient-3: #071f42;
+            --bar-gradient-0: #00b09b;
+            --bar-gradient-1: #96c93d;
+            --btn-gradient-0: #00805e;
+            --btn-gradient-1: #006080;
+            --btn-text: #ffffff;
+            --btn-text-disabled: #313131;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-card-title: #02cc5d;
+            --accent-color: #00d2ff;
+            --text-shadow: rgba(0, 0, 0, 0.3);
+            --box_shadow: rgba(0, 0, 0, 0.5);
+            --font-arial: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-mono-1: 'Courier New', Courier, monospace;
+            --font-serif-1: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-serif-1);
+        }
+
+        body {
+            font-family: var(--font-arial);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(-45deg, var(--bg-gradient-0), var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-size: 400% 400%;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 2400px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #0e3063, #0b2041, #0e3063);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--box-shadow);
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(5, 26, 66, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--text-card-title);
+            text-shadow: 0 2px 10px var(--box-shadow);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            color: var(--text-card-title);
+            align-items: center;
+        }
+
+        .card-title i {
+            font-size: 1.8rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--box-shadow);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-value {
+            font-family: var(--font-mono);
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .card-unit {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-left: 5px;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-right: 12px;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--btn-gradient-0), var(--btn-gradient-1));
+            color: var(--btn-text);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--box-shadow);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background: #555;
+            color: var(--btn-text-disabled);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background: rgba(0, 42, 97, 0.25);
+            color: rgb(241, 242, 245);
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid var(--text-card-title);
+            background: rgba(1, 62, 119, 0.9);
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-card-title);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--bar-gradient-0), var(--bar-gradient-1));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .success {
+            background: rgba(6, 214, 160, 0.2);
+            border: 1px solid #06d6a0;
+            color: #06d6a0;
+            display: block;
+        }
+
+        .error {
+            background: rgba(239, 71, 111, 0.2);
+            border: 1px solid #ef476f;
+            color: #ef476f;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(13, 3, 59, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--text-card-title);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            border-top: 1px solid rgba(182, 6, 6, 0.1);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            padding: 8px;
+            background: linear-gradient(0deg, #0e3063, #0b2041, #0e3063);
+            color: #a0beff;
+        }
+
+        .config-container {
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .config-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .btn-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>RASE Configuration Manager</h1>
+            <p class="subtitle">Manage device settings and save changes to the server</p>
+        </header>
+
+        <div class="config-container">
+            <div class="card">
+                <h2 class="card-title">WiFi Settings</h2>
+                <div class="form-group">
+                    <label for="ssid">SSID</label>
+                    <input type="text" id="ssid" name="ssid">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-field">
+                        <input type="password" id="password" name="password">
+                        <span class="toggle-password" id="toggle-password">👁️</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="wifi_channel">WiFi Channel</label>
+                    <!-- <input type="text" id="wifi_channel" name="wifi_channel"> -->
+                    <select id="wifi_channel" name="wifi_channel">
+                        <option value="1">Channel 1</option>
+                        <option value="2">Channel 2</option>
+                        <option value="3">Channel 3</option>
+                        <option value="4">Channel 4</option>
+                        <option value="5">Channel 5</option>
+                        <option value="6">Channel 6</option>
+                        <option value="7">Channel 7</option>
+                        <option value="8">Channel 8</option>
+                        <option value="9">Channel 9</option>
+                        <option value="10">Channel 10</option>
+                        <option value="11">Channel 11</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">MQTT Settings</h2>
+                <div class="form-group">
+                    <label for="mqtt_broker">MQTT Broker IP</label>
+                    <input type="text" id="mqtt_broker" name="mqtt_broker">
+                </div>
+                <div class="form-group">
+                    <label for="mqtt_username">MQTT Username</label>
+                    <input type="text" id="mqtt_username" name="mqtt_username">
+                </div>
+                <div class="form-group">
+                    <label for="mqtt_password">MQTT Password</label>
+                    <div class="password-field">
+                        <input type="password" id="mqtt_password" name="mqtt_password">
+                        <span class="toggle-password" id="toggle-mqtt-password">👁️</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="mqtt_enable">MQTT Enable</label>
+                    <select id="mqtt_enable" name="mqtt_enable">
+                        <option value="enabled">Enabled</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Display Settings</h2>
+                <div class="form-group">
+                    <label for="display_layout">Display Layout</label>
+                    <select id="display_layout" name="display_layout">
+                        <option value="Value page">Value page</option>
+                        <option value="Details page">Details page</option>
+                        <option value="Info page">Info page</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="display_param">Display Parameter (0-255)</label>
+                    <input type="number" id="display_param" name="display_param" min="0" max="255" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="display_rotation">Display Rotation</label>
+                    <select id="display_rotation" name="display_rotation">
+                        <option value="0°">0°</option>
+                        <option value="180°">180°</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="display_timeout">Display Timeout</label>
+                    <select id="display_timeout" name="display_timeout">
+                        <option value="Never">Never</option>
+                        <option value="10 s">10 s</option>
+                        <option value="1 min">1 min</option>
+                        <option value="5 min">5 min</option>
+                        <option value="15 min">15 min</option>
+                        <option value="30 min">30 min</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="display_contrast">Display Contrast</label>
+                    <select id="display_contrast" name="display_contrast">
+                        <option value="100%">100%</option>
+                        <option value="80%">80%</option>
+                        <option value="60%">60%</option>
+                        <option value="50%">50%</option>
+                        <option value="40%">40%</option>
+                        <option value="30%">30%</option>
+                        <option value="20%">20%</option>
+                        <option value="10%">10%</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Sensor Settings</h2>
+                <div class="form-group">
+                    <label for="sensor_type">Sensor Type</label>
+                    <select id="sensor_type" name="sensor_type">
+                        <option value="autoscan">autoscan</option>
+                        <option value="Null">Null</option>
+                        <option value="SHT2x">SHT2x</option>
+                        <option value="SHT3x">SHT3x</option>
+                        <option value="HTU21d">HTU21d</option>
+                        <option value="ATHxx">ATHxx</option>
+                        <option value="HDC1080">HDC1080</option>
+                        <option value="BMx280">BMx280</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">LED Settings</h2>
+                <div class="form-group">
+                    <label for="led_intensity">LED Intensity</label>
+                    <select id="led_intensity" name="led_intensity">
+                        <option value="100%">100%</option>
+                        <option value="75%">75%</option>
+                        <option value="50%">50%</option>
+                        <option value="25%">25%</option>
+                        <option value="10%">10%</option>
+                        <option value="1%">1%</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="btn-container">
+                <button class="btn" id="load-btn">Load Configuration</button>
+                <button class="btn" id="save-btn">Save Configuration</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing request...</p>
+            </div>
+
+            <div class="status" id="status"></div>
+        </div>
+
+        <footer>
+            <p>RASE Configuration Manager &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('password');
+
+            const toggleMqttPassword = document.getElementById('toggle-mqtt-password');
+            const mqttPasswordInput = document.getElementById('mqtt_password');
+
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🔒';
+            });
+
+            toggleMqttPassword.addEventListener('click', function () {
+                const type = mqttPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                mqttPasswordInput.setAttribute('type', type);
+                this.textContent = type === 'password' ? '👁️' : '🔒';
+            });
+
+            document.getElementById('load-btn').addEventListener('click', loadConfiguration);
+            document.getElementById('save-btn').addEventListener('click', saveConfiguration);
+
+            loadConfiguration();
+
+            function loadConfiguration() {
+                showLoading(true);
+                const status = document.getElementById('status');
+
+                setTimeout(() => {
+                    try {
+                        fetch('/api/config')
+                            .then(response => response.json())
+                            .then(data => populateForm(data))
+
+                        status.textContent = 'Configuration loaded successfully!';
+                        status.style.backgroundColor = '#4CAF50';
+                        status.style.display = 'block';
+                    } catch (error) {
+                        status.textContent = 'Error loading configuration: ' + error.message;
+                        status.style.backgroundColor = '#f44336';
+                        status.style.display = 'block';
+                    }
+
+                    showLoading(false);
+                }, 1000);
+            }
+
+            function saveConfiguration() {
+                showLoading(true);
+                const status = document.getElementById('status');
+
+                const formData = {};
+                const inputs = document.querySelectorAll('input, select');
+
+                inputs.forEach(input => {
+                    if (input.name) {
+                        if (input.type === 'checkbox') {
+                            formData[input.name] = input.checked;
+                        } else {
+                            formData[input.name] = input.value;
+                        }
+                    }
+                });
+
+                setTimeout(() => {
+                    try {
+                        fetch('/api/config', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            status.textContent = 'Configuration saved successfully!';
+                            status.style.backgroundColor = '#4CAF50';
+                            status.style.display = 'block';
+                        });
+
+                        status.textContent = 'Configuration saved successfully!';
+                        status.style.backgroundColor = '#4CAF50';
+                        status.style.display = 'block';
+                    } catch (error) {
+                        status.textContent = 'Error saving configuration: ' + error.message;
+                        status.style.backgroundColor = '#f44336';
+                        status.style.display = 'block';
+                    }
+
+                    showLoading(false);
+                }, 1000);
+            }
+
+            function populateForm(data) {
+                for (const key in data) {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        if (element.tagName === 'SELECT') {
+                            element.value = data[key];
+                        } else if (element.type === 'checkbox') {
+                            element.checked = data[key];
+                        } else {
+                            element.value = data[key];
+                        }
+                    }
+                }
+            }
+
+            function showLoading(show) {
+                const loading = document.getElementById('loading');
+                if (show) {
+                    loading.style.display = 'block';
+                } else {
+                    loading.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+)";
