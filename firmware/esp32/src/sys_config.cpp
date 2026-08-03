@@ -85,7 +85,7 @@ const JsonScan SysConfig::config_scan_table[] = {
     { JSON_KEY_LED_INTENSITY,    SysConfig::set_LED_intensity_str     },
 };
 
-char* SysConfig::get_json(bool _hide_passwords) {
+char* SysConfig::get_json(bool _hide_passwords, bool _sensor_list) {
     const char* wifi_password = JSON_KEY_PWD_HIDDEN;
     const char* mqtt_password = JSON_KEY_PWD_HIDDEN;
     if (_hide_passwords == false) {
@@ -95,9 +95,11 @@ char* SysConfig::get_json(bool _hide_passwords) {
 
     char sensor_support[256]{ 0 };
     strncpy(sensor_support, SensorDriver::get_driver_name(get_sensor_type()), sizeof (sensor_support));
-    for (size_t i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
-        strcat(sensor_support, ",");
-        strcat(sensor_support, SensorDriver::str_sensor_types[i]);
+    if (_sensor_list) {
+        for (size_t i = 0; i < SIZEOFARRAY(SensorDriver::str_sensor_types); i++) {
+            strcat(sensor_support, ",");
+            strcat(sensor_support, SensorDriver::str_sensor_types[i]);
+        }
     }
 
     size_t length = snprintf(nullptr, 0,

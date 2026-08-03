@@ -187,7 +187,7 @@ class SysConfig {
         float get_LED_intensity(void);
         float get_display_contrast(void);
         AppState import_json(const char* _json_string, size_t _length);
-        char* get_json(bool _hide_passwords);
+        char* get_json(bool _hide_passwords, bool _sensor_list);
         DisplayLayout get_display_layout(void);
         uint8_t get_display_parameter(void);
         int get_wifi_channel(void);
