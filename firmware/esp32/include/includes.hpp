@@ -58,7 +58,6 @@
 #include <soc/io_mux_reg.h>
 #include <soc/rtc.h>
 #include <soc/rtc_cntl_reg.h>
-#include <soc/system_reg.h>
 
 #include <driver/gpio.h>
 #include <driver/sdmmc_host.h>
