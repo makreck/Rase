@@ -145,6 +145,8 @@ class App {
         void run_command(char* cmd);
         char* load_config_json(char* cmd);
         void handle_transaction_result(char* result);
+        
+        const char* find_matching_firmware_image(void);
 
     public:
         App(int argc, char* argv[]) {

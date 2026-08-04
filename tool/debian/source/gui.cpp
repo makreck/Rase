@@ -416,11 +416,10 @@ void App::idle_task(CallbackParameter* p) {
                 pthread_join(m.loader_thread, nullptr);
                 m.loader_thread = 0;
             }
-
-            // const char* firmware_file = "../../firmware/esp32/.pio/build/seeed_xiao_esp32s3/firmware.bin";
-            const char* firmware_file = "../../firmware/esp32/.pio/build/esp32-s3-devkitc-1/firmware.bin";
-            // const char* firmware_file = "../../firmware/esp32/.pio/build/waveshare_esp32s3_mini/firmware.bin";
-            m.loader_thread = EspTool::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
+            const char* firmware_file = find_matching_firmware_image();
+            if (firmware_file != nullptr) {
+                m.loader_thread = EspTool::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
+            }
         }
         break;
 
@@ -444,4 +443,18 @@ bool App::_gui_status(void* _user_param, const char* _topic, const char* _messag
 bool App::gui_status(const char* _topic, const char* _message) {
     set_status(nullptr, nullptr, _topic, _message);
     return (true);
+}
+
+const char* App::find_matching_firmware_image(void) {
+    if (!strcmp(m.device.id.chip_type, "ESP32-S3 Wroom")) {
+        return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
+    
+    } else if (!strcmp(m.device.id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
+        return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
+    
+    } else if (!strcmp(m.device.id.chip_type, "Waveshare ESP32-S3 mini")) {
+        return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
+    }
+
+    return (nullptr);
 }
