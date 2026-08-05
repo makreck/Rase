@@ -27,7 +27,7 @@
 #define I2C_ACK (0)
 #define I2C_NAK (1)
 
-#define I2C_MAX_RETRY (5)
+#define I2C_MAX_RETRY (10)
 
 class SwI2CBus {
     private:
