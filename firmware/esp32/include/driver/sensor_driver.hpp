@@ -142,6 +142,9 @@ class SensorDriver {
 
     public:
         static const char* str_sensor_types[8];
+        static const char* i2c_driver_name_list[];
+        static const uint8_t i2c_driver_adr_list[];
+        static const SensorType i2c_driver_type_list[];
 
         SensorDriver() {
         }
@@ -176,4 +179,5 @@ class SensorDriver {
         static SensorDriver* create_driver_by_address(uint8_t bus_addr);
         static uint8_t get_bus_addr_by_type(SensorType type);
         static SensorDriver* auto_scan(SensorType selected = SensorType::autoscan);
+
 };

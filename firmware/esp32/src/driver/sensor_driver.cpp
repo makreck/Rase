@@ -22,23 +22,23 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-//#define DISPLAY_STATE
+#define DISPLAY_STATE
 
-static const uint8_t i2c_driver_adr_list[] = {
+const uint8_t SensorDriver::i2c_driver_adr_list[4] = {
     MULTI_ADDR_AHT10_AHT21,         // 0x38
     MULTI_ADDR_HDC1080_HTU21_SHT2X, // 0x40
     SHT3_DEVICE_ADDRESS,            // 0x44
     MULTI_ADDR_BMP280_BME280,       // 0x76
 };
 
-static const char* i2c_driver_name_list[] = {
+const char* SensorDriver::i2c_driver_name_list[4] = {
     ADR_38_DEV_NAMES,
     ADR_40_DEV_NAMES,
     ADR_44_DEV_NAMES,
     ADR_76_DEV_NAMES,
 };
 
-static const SensorType i2c_driver_type_list[] = {
+const SensorType SensorDriver::i2c_driver_type_list[4] = {
     SensorType::ATHxx,
     SensorType::autoscan,
     SensorType::SHT3x,
@@ -186,8 +186,18 @@ SensorDriver* SensorDriver::auto_scan(SensorType selected) {
         SwI2CBus i2c_bus;
         uint8_t bus_addr = busAddressList[i];
         if (bus_addr == INVALID_DEVICE_ADDRESS) continue;
+#ifdef DISPLAY_STATE        
+    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X...", (unsigned int)bus_addr);
+#endif
         if (i2c_bus.detect(busAddressList[i], I2C_MAX_RETRY) == ESP_OK) {
+#ifdef DISPLAY_STATE        
+    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, found", (unsigned int)bus_addr);        
+#endif
             return (create_driver_by_address(bus_addr));
+        } else {
+#ifdef DISPLAY_STATE        
+    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, not found", (unsigned int)bus_addr);        
+#endif
         }
     }
     return (new SensorNull());
@@ -219,18 +229,28 @@ size_t SensorDriver::search(size_t length, const char* result[], uint8_t* adr_li
     }
     size_t n = 0;
     for (size_t i = 0; i < sizeof (i2c_driver_adr_list); i++) {
-        if (swI2CPort.detect(i2c_driver_adr_list[i], I2C_MAX_RETRY) == ESP_OK) {
+        uint8_t bus_addr = i2c_driver_adr_list[i];
+#ifdef DISPLAY_STATE        
+        ESP_LOGI(TAG, "Search bus-address 0x%-2.2X...", (unsigned int)bus_addr);
+#endif
+
+        if (swI2CPort.detect(bus_addr, I2C_MAX_RETRY) == ESP_OK) {
+#ifdef DISPLAY_STATE        
+        ESP_LOGI(TAG, "Search bus-address 0x%-2.2X, found", (unsigned int)bus_addr);
+#endif
             if (n < length) {
 
                 // Possibly HDC1080 or SHT2x or HTU21d or both connected all to I2C address 0x40:
-                if (i2c_driver_adr_list[i] == MULTI_ADDR_HDC1080_HTU21_SHT2X) {
+                if (bus_addr == MULTI_ADDR_HDC1080_HTU21_SHT2X) {
 
                     if (SensorSHT2::is_connected(swI2CPort) && (n < length)) {
                         if (adr_list != nullptr) adr_list[n] = SHT2_DEVICE_ADDRESS;
                         if (typeList != nullptr) typeList[n] = SensorType::SHT2x;
                         if (result   != nullptr) result[n] = SHT2_DEVICE_NAME;
                         n++;
+#ifdef DISPLAY_STATE
                         ESP_LOGI(TAG, "Detected (%d) at 0x%-2.2X = \"%s\" ", (int)(n + 1), SHT2_DEVICE_ADDRESS, SHT2_DEVICE_NAME);
+#endif
                     }
 
                     if (SensorHTU21d::is_connected(swI2CPort) && (n < length)) {
@@ -238,7 +258,9 @@ size_t SensorDriver::search(size_t length, const char* result[], uint8_t* adr_li
                         if (typeList != nullptr) typeList[n] = SensorType::HTU21d;
                         if (result   != nullptr) result[n] = HTU21_DEVICE_NAME;
                         n++;
+#ifdef DISPLAY_STATE
                         ESP_LOGI(TAG, "Detected (%d) at 0x%-2.2X = \"%s\" ", (int)(n + 1), HTU21_DEVICE_ADDRESS, HTU21_DEVICE_NAME);
+#endif
                     }
 
                     if (SensorHDC1080::is_connected(swI2CPort) && (n < length)) {
@@ -246,19 +268,28 @@ size_t SensorDriver::search(size_t length, const char* result[], uint8_t* adr_li
                         if (typeList != nullptr) typeList[n] = SensorType::HDC1080;
                         if (result   != nullptr) result[n] = HDC1080_DEVICE_NAME;
                         n++;
+#ifdef DISPLAY_STATE
                         ESP_LOGI(TAG, "Detected (%d) at 0x%-2.2X = \"%s\" ", (int)(n + 1), HDC1080_DEVICE_ADDRESS, HDC1080_DEVICE_NAME);
+#endif
                     }
 
                 } else {
+#ifdef DISPLAY_STATE
                     ESP_LOGI(TAG, "Detected (%d) at 0x%-2.2X = \"%s\" ", (int)(n + 1), i2c_driver_adr_list[i], i2c_driver_name_list[i]);
+#endif
                     if (adr_list != nullptr) adr_list[n] = i2c_driver_adr_list[i];
                     if (typeList != nullptr) typeList[n] = i2c_driver_type_list[i];
                     if (result != nullptr) result[n] = i2c_driver_name_list[i];
                     n++;
                 }
             }
+        } else {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "Search bus-address 0x%-2.2X, not found", (unsigned int)bus_addr);
+#endif
         }
     }
+
     suspended = false;
     return (n);
 }
