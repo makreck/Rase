@@ -94,6 +94,7 @@ class IPDevice {
     private:
         struct {
             pthread_t scan_thread_handle = 0;
+            pthread_mutex_t* device_list_mutex = nullptr;
             std::vector<DevConfig*>* device_list = nullptr;
         } m;
 
@@ -137,7 +138,7 @@ class IPDevice {
 
         static pthread_t firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
 
-        bool start_scan(std::vector<DevConfig*>* device_list = nullptr);
+        bool start_scan(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex);
         bool wait_for_scan(void);
 
 };
