@@ -78,7 +78,8 @@ class DevConfig {
     public:
         static const char* config_json_cmd_format;
 
-        char ifac[PATH_MAX]{ 0 };
+        char tty_ifac[16]{ 0 };
+        char ip_ifac[16]{ 0 };
         
         struct {
             char version[NUM_FIELD_LEN]{ 0 };
@@ -132,9 +133,10 @@ class DevConfig {
 
         static size_t json_get(char* json_data, const char* _key, char* _buffer, size_t _length);
         static void import_data(char* _json_string, KeyList* _key_list, size_t _size);
-        
-        void clear(void);
-        bool parse_id_json(char* _id_json);
-        bool parse_config_json(char* _config_json);
+
+        void  clear(void);
+        bool  parse_id_json(char* _id_json);
+        bool  parse_config_json(char* _config_json);
         char* get_config_json(const char* _command = nullptr, size_t* _length = nullptr);
+        bool  register_device(std::vector<DevConfig*>* _device_list);
 };

@@ -22,13 +22,8 @@
 
 #pragma once
 
-#define OTA_CHUNK_SIZE              (4096)
-
-#define DEFAULT_BAUDRATE            (B115200)
-// #define ESP_MAX_BUFFER_SIZE         (4096)
-
-// #define ENTER_BOOTLOADER_CMD "\x07\x07\x12\x20\x00\x00\x00\x00"
-// #define EXIT_BOOTLOADER_CMD  "\x08\x07\x12\x20\x00\x00\x00\x00"
+#define MAX_TTY          (100)
+#define DEFAULT_BAUDRATE (B115200)
 
 class DevConfig;
 
@@ -38,10 +33,10 @@ class EspTool {
 
     public:
         static bool find_interface(char* _ifac, size_t _length);
+        static bool find_tty_devices(std::vector<DevConfig*>* _device_list);
         static int  open_serial_port(const char* _ifac, speed_t _baudrate = B115200);
         static bool force_reset_over_tty(int _fd);
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);
-
         static bool open_interface(const char* _ifac, int& _fd);
         static bool close_interface(int& _fd);
         static char* allocate_command(char* _cmd);
@@ -49,6 +44,5 @@ class EspTool {
         static bool read_config(const char* _ifac, DevConfig* _dev);
         static bool read_id(const char* _ifac, DevConfig* _dev);
         static bool read_data(const char* _ifac, DevConfig* _dev);
-
 };
 

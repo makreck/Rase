@@ -50,40 +50,19 @@ void IPDevice::init(void) {
 
 void IPDevice::cleanup(void) {
     wait_for_scan();
-    clear_device_list();
 }
 
-bool IPDevice::clear_device_list(void) {
-    for (DevConfig*& entry : m.device_list) {
-        if (entry != nullptr) {
-            delete (entry);
-            entry = nullptr;
-        }
-    }
-    m.device_list.clear();
-    return (true);
-}
-
-bool IPDevice::start_scan(void) {
+bool IPDevice::start_scan(std::vector<DevConfig*>* _device_list) {
+    m.device_list = _device_list;
     wait_for_scan();
-    clear_device_list();
     pthread_create(&m.scan_thread_handle, nullptr, IPDevice::_scan_ctrl_thread, this);
     return (true);
 }
 
-bool IPDevice::wait_for_scan(std::vector<DevConfig*>* device_list) {
+bool IPDevice::wait_for_scan(void) {
     if (m.scan_thread_handle != 0) {
         pthread_join(m.scan_thread_handle, nullptr);
         m.scan_thread_handle = 0;
-    }
-    if (device_list != nullptr) {
-        for (DevConfig*& entry : m.device_list) {
-            if (entry != nullptr) {
-                device_list->push_back(entry);
-                entry = nullptr;
-            }
-        }
-        m.device_list.clear();
     }
     return (true);
 }
@@ -141,8 +120,14 @@ void IPDevice::scanner_thread(const char* _host_addr) {
     }
 
     if (strlen(device->id.device_serial_number) > 0) {
-        snprintf(device->ifac, sizeof (device->ifac), "http://%s", _host_addr);
-        m.device_list.push_back(device);
+        strncpy(device->ip_ifac, _host_addr, sizeof (device->ip_ifac) - 1);
+        if (!device->register_device(m.device_list)) {
+printf("IP  double device found: <%s> at <%s>\n", device->id.device_serial_number, device->ip_ifac); // ****
+            delete (device);
+        } else {
+            m.device_list->push_back(device);
+printf("IP  device found: <%s> at <%s>\n", device->id.device_serial_number, device->ip_ifac); // ****
+        }
     } else {
         delete (device);
     }

@@ -24,22 +24,12 @@
 void App::run_gui(void) {
     gtk_init(&m.argc, &m.argv);
 
-    const gchar* error_text = nullptr;
+    m.ip_device.start_scan(&m.device_list);
+    EspTool::find_tty_devices(&m.device_list);
+    m.ip_device.wait_for_scan();
 
-    m.ip_device.start_scan();
-
-    if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
-        if (!EspTool::read_data(m.ifac, &m.device)) {
-            error_text = APPSTRING(IDS_ERROR_CFG_READ_ERROR);
-        }
-    } else {
-        error_text = APPSTRING(IDS_ERROR_NO_DEV_CONNECTED);
-    }
-
-    m.ip_device.wait_for_scan(&m.device_list);
-
-    if (error_text != nullptr) {
-        GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", error_text);
+    if (m.device_list.size() < 1) {
+        GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", APPSTRING(IDS_ERROR_NO_DEV_CONNECTED));
         gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
     } else {

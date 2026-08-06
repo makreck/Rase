@@ -188,3 +188,22 @@ char* DevConfig::get_config_json(const char* _command, size_t* _length) {
 
     return (json_string);
 }
+
+bool DevConfig::register_device(std::vector<DevConfig*>* _device_list) {
+    if ((_device_list == nullptr) || (strlen(this->id.device_serial_number) < 1)) {
+        return (false);
+    }
+
+    for (DevConfig*& entry : *_device_list) {
+        if (entry != nullptr) {
+            if (strncmp(this->id.device_serial_number,
+                    entry->id.device_serial_number, sizeof (this->id.device_serial_number)) == 0) {
+                        
+                return (false);
+            }
+        }
+    }
+
+    _device_list->push_back(this);
+    return (true);
+}

@@ -24,7 +24,7 @@
 #define NETW_HTTP_PORT              (80)
 #define NETW_RESPONSE_TIMEOUT       (2000)
 #define SENSOR_REQ_TYPE_JSON        "application/json"
-
+#define OTA_CHUNK_SIZE              (4096)
 
 class PartitionEntry {
     public:
@@ -94,7 +94,7 @@ class IPDevice {
     private:
         struct {
             pthread_t scan_thread_handle = 0;
-            std::vector<DevConfig*> device_list;
+            std::vector<DevConfig*>* device_list = nullptr;
         } m;
 
         static const char* http_request_format;
@@ -104,8 +104,6 @@ class IPDevice {
         void init(void);
         void cleanup(void);
         
-        bool clear_device_list(void);
-
         static void* _scan_ctrl_thread(void* _object);
         void scan_ctrl_thread(void);
         
@@ -139,7 +137,7 @@ class IPDevice {
 
         static pthread_t firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
 
-        bool start_scan(void);
-        bool wait_for_scan(std::vector<DevConfig*>* device_list = nullptr);
+        bool start_scan(std::vector<DevConfig*>* device_list = nullptr);
+        bool wait_for_scan(void);
 
 };
