@@ -24,10 +24,10 @@
 #define NETW_HTTP_PORT              (80)
 #define NETW_RESPONSE_TIMEOUT       (2000)
 #define NETW_DEF_QUERY_INTERVAL_MS  (1000)
+#define SENSOR_REQ_TYPE_JSON        "application/json"
 
 #define SENSOR_API_REQ_SENSORS      "/api/sensors"
 #define SENSOR_API_REQ_ID           "/api/id"
-#define SENSOR_REQ_TYPE_JSON        "application/json"
 
 enum class SensorBusMessageCode {
     scan_begin         = 10,
