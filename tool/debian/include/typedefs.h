@@ -71,3 +71,50 @@ class CallbackParameter {
 #define ON_ITEM(instance, item) ((void*)new CallbackParameter((instance), (int)(item)))
 #define ON_ITEM_PAR(instance, item, par) ((void*)new CallbackParameter((instance), (int64_t)(item), (void*)(par)))
 #define CALLBACK_PARAMETER(ptr) (reinterpret_cast<CallbackParameter*>(ptr))
+
+class StaticParameter {
+    private:
+        void*   p_this = nullptr;
+        int64_t value  = 0;
+        void*   data   = nullptr;
+        size_t  size   = 0;
+
+        void store_data(void* _data, size_t _size) {
+            size = _size;
+            if (_data != nullptr) {
+                if (_size == 0) {
+                    data = _data;
+                } else {
+                    data = malloc(_size);
+                    if (data != nullptr) {
+                        memcpy(data, _data, _size);
+                    }
+                }
+            }
+        }
+
+    public:
+        StaticParameter(void* _this, void* _data, size_t _size = 0) {
+            p_this = _this;
+            value  = 0;
+            store_data(_data, _size);
+        }
+
+        StaticParameter(void* _this, int64_t _value, void* _data = nullptr, size_t _size = 0) {
+            p_this = _this;
+            value  = _value;
+            store_data(_data, _size);
+        }
+
+        ~StaticParameter() {
+            if ((size > 0) && (data != nullptr)) {
+                free(data);
+            }
+        }
+
+        void*   get_this(void)  { return (p_this); }
+        void*   get_data(void)  { return (data); }
+        size_t  get_size(void)  { return (size); }
+        int64_t get_value(void) { return (value); }
+};
+
