@@ -52,10 +52,13 @@ void IPDevice::cleanup(void) {
     wait_for_scan();
 }
 
-bool IPDevice::start_scan(std::vector<DevConfig*>* _device_list) {
-    m.device_list = _device_list;
+bool IPDevice::start_scan(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex) {
+    m.device_list       = _device_list;
+    m.device_list_mutex = _device_list_mutex;
+
     wait_for_scan();
     pthread_create(&m.scan_thread_handle, nullptr, IPDevice::_scan_ctrl_thread, this);
+
     return (true);
 }
 
@@ -92,44 +95,6 @@ void IPDevice::scan_ctrl_thread(void) {
         for (int i = 0; i < count; i++) {
             pthread_join(threads[i], nullptr);
         }
-    }
-}
-
-void* IPDevice::_scanner_thread(void* _object) {
-    StaticParameter* par = (reinterpret_cast<StaticParameter*>(_object));
-    IPDevice* p = (reinterpret_cast<IPDevice*>(par->get_this()));
-    p->scanner_thread((const char*)par->get_data());
-    delete (par);
-    return (nullptr);
-}
-void IPDevice::scanner_thread(const char* _host_addr) {
-    DevConfig* device = new DevConfig();
-
-    char* id_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_ID_RESPONSE, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
-    if (id_buffer != nullptr) {
-        char* json_start = get_http_json_payload_begin(id_buffer);
-        device->parse_id_json(json_start);
-        free(id_buffer);
-    }
-
-    char* cfg_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_CONFIG_API, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
-    if (cfg_buffer != nullptr) {
-        char* json_start = get_http_json_payload_begin(cfg_buffer);
-        device->parse_config_json(json_start);
-        free(cfg_buffer);
-    }
-
-    if (strlen(device->id.device_serial_number) > 0) {
-        strncpy(device->ip_ifac, _host_addr, sizeof (device->ip_ifac) - 1);
-        if (!device->register_device(m.device_list)) {
-printf("IP  double device found: <%s> at <%s>\n", device->id.device_serial_number, device->ip_ifac); // ****
-            delete (device);
-        } else {
-            m.device_list->push_back(device);
-printf("IP  device found: <%s> at <%s>\n", device->id.device_serial_number, device->ip_ifac); // ****
-        }
-    } else {
-        delete (device);
     }
 }
 
@@ -390,4 +355,43 @@ void* IPDevice::_loader_thread(void* _object) {
 
     delete (parms);
     return (nullptr);
+}
+
+void* IPDevice::_scanner_thread(void* _object) {
+    StaticParameter* par = (reinterpret_cast<StaticParameter*>(_object));
+    IPDevice* p = (reinterpret_cast<IPDevice*>(par->get_this()));
+    p->scanner_thread((const char*)par->get_data());
+    delete (par);
+    return (nullptr);
+}
+void IPDevice::scanner_thread(const char* _host_addr) {
+    DevConfig* device = new DevConfig();
+
+    char* id_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_ID_RESPONSE, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+    if (id_buffer != nullptr) {
+        char* json_start = get_http_json_payload_begin(id_buffer);
+        device->parse_id_json(json_start);
+        free(id_buffer);
+    }
+
+    char* cfg_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_CONFIG_API, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+    if (cfg_buffer != nullptr) {
+        char* json_start = get_http_json_payload_begin(cfg_buffer);
+        device->parse_config_json(json_start);
+        free(cfg_buffer);
+    }
+
+    if (strlen(device->id.device_serial_number) > 0) {
+        device->set_ip_interface(_host_addr);
+        pthread_mutex_lock(m.device_list_mutex); {
+            if (!device->register_device(m.device_list)) {
+                delete (device);
+            }
+        } pthread_mutex_unlock(m.device_list_mutex);
+
+
+
+    } else {
+        delete (device);
+    }
 }
