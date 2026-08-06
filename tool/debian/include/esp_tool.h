@@ -28,12 +28,26 @@
 class DevConfig;
 
 
+class ScanTTY {
+    public:
+        DevConfig*               device            = nullptr;
+        std::vector<DevConfig*>* device_list       = nullptr;
+        pthread_mutex_t*         device_list_mutex = nullptr;
+
+        ScanTTY(DevConfig* _device, std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex) {
+            this->device            = _device;
+            this->device_list       = _device_list;
+            this->device_list_mutex = _device_list_mutex;
+        }
+};
+
 class EspTool {
     private:
+        static void* _scanner_thread(void* _object);
 
     public:
         static bool find_interface(char* _ifac, size_t _length);
-        static bool find_tty_devices(std::vector<DevConfig*>* _device_list);
+        static bool find_tty_devices(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex);
         static int  open_serial_port(const char* _ifac, speed_t _baudrate = B115200);
         static bool force_reset_over_tty(int _fd);
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);

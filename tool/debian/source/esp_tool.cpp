@@ -49,38 +49,6 @@ bool EspTool::force_reset_over_tty(int _fd) {
     return (true);
 }
 
-bool EspTool::find_tty_devices(std::vector<DevConfig*>* _device_list) {
-    if (_device_list == nullptr) {
-        return (false);
-    }
-
-    for (int tty = 0; tty < MAX_TTY; tty++) {
-        char ifac[16]{ 0 };
-        snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyACM%d", tty);
-        int fd = EspTool::open_serial_port(ifac, B115200);
-        if (fd < 0) {
-            snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyUSB%d", tty);
-            fd = EspTool::open_serial_port(ifac, B115200);
-        }
-        if (fd >= 0) {
-            close(fd);
-            DevConfig* device = new DevConfig();
-            if (read_data(ifac, device)) {
-                strncpy(device->tty_ifac, ifac, sizeof (device->tty_ifac) - 1);
-                if (!device->register_device(_device_list)) {
-printf("TTY double device found: <%s> at <%s>\n", device->id.device_serial_number, device->tty_ifac); // ****
-                    delete (device);
-                }
-printf("TTY device found: <%s> at <%s>\n", device->id.device_serial_number, device->tty_ifac); // ****
-            } else {
-                delete (device);
-            }
-        }
-    }
-
-    return (true);
-}
-
 bool EspTool::find_interface(char* _ifac, size_t _length) {
     char ifac[PATH_MAX]{ 0 };
     int fd = -1;
@@ -339,4 +307,57 @@ bool EspTool::read_data(const char* _ifac, DevConfig* _dev) {
         }
     }
     return (false);
+}
+
+bool EspTool::find_tty_devices(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex) {
+    if (_device_list == nullptr) {
+        return (false);
+    }
+
+    pthread_t threads[MAX_TTY * 2]{ 0 };
+    int count = 0;
+
+    for (int tty = 0; tty < MAX_TTY; tty++) {
+        char ifac[2][16]{ 0 };
+        snprintf(ifac[0], sizeof (ifac[0]) - 1, "/dev/ttyACM%d", tty);
+        snprintf(ifac[1], sizeof (ifac[1]) - 1, "/dev/ttyUSB%d", tty);
+
+        for (int i = 0; i < 2; i++) {
+            int fd = EspTool::open_serial_port(ifac[i], B115200);
+            if (fd >= 0) {
+                close(fd);
+                DevConfig* device = new DevConfig();
+                device->set_tty_interface(ifac[i]);
+                pthread_t thread_handle = 0;
+                if (pthread_create(&thread_handle, nullptr, EspTool::_scanner_thread, new ScanTTY(device, _device_list, _device_list_mutex))) {
+                    threads[count++] = thread_handle;
+                }
+            }
+        }
+    }
+
+    if (count > 0) {
+        for (int i = 0; i < count; i++) {
+            pthread_join(threads[i], nullptr);
+        }
+    }
+
+    return (true);
+}
+
+void* EspTool::_scanner_thread(void* _object) {
+    ScanTTY* scan = (ScanTTY*)_object;
+
+    if (EspTool::read_data(scan->device->tty_ifac, scan->device)) {
+        pthread_mutex_lock(scan->device_list_mutex); {
+            if (!scan->device->register_device(scan->device_list)) {
+                delete (scan->device);
+            }
+        } pthread_mutex_unlock(scan->device_list_mutex);
+    } else {
+        delete (scan->device);
+    }
+
+    delete (scan);
+    return (nullptr);
 }
