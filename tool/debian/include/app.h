@@ -152,8 +152,9 @@ class App {
         char* load_config_json(char* cmd);
         void handle_transaction_result(char* result);
         
-        const char* find_matching_firmware_image(void);
+        const char* find_matching_firmware_image(const char* _ifac);
         void delete_device_list(void);
+        void update_all_devices(void);
 
     public:
         App(int argc, char* argv[]) {

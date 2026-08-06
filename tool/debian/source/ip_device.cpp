@@ -345,14 +345,11 @@ pthread_t IPDevice::firmware_loader(const char* _ifac, const char* _filename, OT
     pthread_create(&thread_handle, nullptr, IPDevice::_loader_thread, new OTAParms(_ifac, _filename, _callback, _user_param));
     return (thread_handle);
 }
-
 void* IPDevice::_loader_thread(void* _object) {
     OTAParms* parms = (OTAParms*)_object;
-
     if ((parms->image_data != nullptr) && (parms->image_length > 0)) {
         IPDevice::ota_loader(parms->ifac, parms->image_data, parms->image_length, parms->callback, parms->user_param);
     }
-
     delete (parms);
     return (nullptr);
 }
