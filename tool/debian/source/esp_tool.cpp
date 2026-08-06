@@ -257,3 +257,172 @@ bool EspTool::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t
 
     return (true);
 }
+
+
+
+
+bool EspTool::open_interface(const char* _ifac, int& _fd) {
+    if (_fd > -1) {
+        close(_fd);
+    }
+
+    _fd = EspTool::open_serial_port(_ifac, B115200);
+
+    if (_fd < 0) {
+        return (false);
+    }
+
+    // Read possible dirt from the ESP32 Debug Output to avoid interference with commanding data!
+    uint8_t dummy_in[4096];
+    read(_fd, dummy_in, sizeof (dummy_in));
+
+    return (true);
+}
+
+bool EspTool::close_interface(int& _fd) {
+    if (_fd == -1) {
+        return (false);
+    }
+    close(_fd);
+    _fd = -1;
+    return (true);
+}
+
+char* EspTool::allocate_command(char* _cmd) {
+    ssize_t size = strlen(_cmd) + 2;
+    char* command_string = (char *)malloc(size);
+    if (command_string == nullptr) {
+        printf("Error, unable to alloc %d bytes for command string!\n", (int)size);
+        return (nullptr);
+    }
+    memset(command_string, 0, size);
+    strncpy(command_string, _cmd, size - 1);
+    return (command_string);
+}
+
+char* EspTool::transact_command(const char* _ifac, const char* _cmd) {
+    if (_cmd == nullptr) {
+        printf("Error, tranaction not prepared!");
+        return (nullptr);
+    }
+
+    int fd = -1;
+    if (!EspTool::open_interface(_ifac, fd)) {
+        return (nullptr);
+    }
+
+    ssize_t size_out = strlen(_cmd);
+    ssize_t len_out = write(fd, _cmd, size_out);
+    if (size_out != len_out) {
+        printf("Error, unable to transmit %d bytes command string, %d bytes written!\n", (int)size_out, (int)len_out);
+        return (nullptr);
+    }
+
+    usleep(500000);
+    
+    ssize_t size = 65536;
+    char* in = (char*)malloc(size);
+    if (in == nullptr) {
+        printf("Error, unable to allocate response data buffer!\n");
+        return (nullptr);
+    }
+    memset(in, 0, size);
+
+    ssize_t len_read = 0;
+    ssize_t length = 0;
+    do {
+        len_read = read(fd, &in[length], size - length - 1);
+        if (len_read > 0) {
+            length += len_read;
+            usleep(25000);
+        }
+    } while (len_read > 0);
+    in[length] = '\0';
+
+    if (length == 0) {
+        free(in);
+        return (nullptr);
+    }
+
+    char* response = in;
+    char* p = strstr(in, "<!DOCTYPE html>");
+    if (p != nullptr) {
+        response = p;
+        char* p = strstr(in, "</html>");
+        if (p != nullptr) {
+            p[7] = '\0';
+        }
+        length = strlen(response);
+#ifndef DISABLE_FILTER
+    } else {
+        int level = -1;
+        int i;
+        for (i = 0; (i < length) && (level != 0); i++) {
+            if (in[i] == '{') {
+                if (level == -1) {
+                    level = 1;
+                    response = &in[i];
+                } else {
+                    level++;
+                }
+            }
+            if (in[i] == '}') {
+                level--;                
+            }
+        }
+        in[i++] = '\r';
+        in[i++] = '\n';
+        in[i] = '\0';
+        length = i;
+#endif        
+    }
+
+    char* result = (char *)malloc(length + 1);
+    if (result == nullptr) {
+        free(in);
+        printf("Unable to allocate %d bytes for result data!\n", (int)(length + 1));
+        return (nullptr);
+    }
+    memset(result, 0, length + 1);
+    strncpy(result, response, length);
+    free(in);
+
+    EspTool::close_interface(fd);
+
+    return (result);
+}
+
+bool EspTool::read_config(const char* _ifac, DevConfig* _dev) {
+    if (_dev != nullptr) {
+        char* config_json = EspTool::transact_command(_ifac, "/config");
+        if (config_json != nullptr) {
+            _dev->parse_config_json(config_json);
+            free(config_json);
+            return (true);
+        }
+    }
+    return (false);
+}
+
+bool EspTool::read_id(const char* _ifac, DevConfig* _dev) {
+    if (_dev != nullptr) {
+        char* id_json = EspTool::transact_command(_ifac, "/api/id");
+        if (id_json != nullptr) {
+            _dev->parse_id_json(id_json);
+            free(id_json);
+            return (true);
+        }
+    }
+    return (false);
+}
+
+bool EspTool::read_data(const char* _ifac, DevConfig* _dev) {
+    if (_dev != nullptr) {
+        if (EspTool::read_id(_ifac, _dev)) {
+            if (EspTool::read_config(_ifac, _dev)) {
+                return (true);
+            }
+        }
+    }
+    return (false);
+}

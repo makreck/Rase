@@ -30,6 +30,8 @@
 // #define ENTER_BOOTLOADER_CMD "\x07\x07\x12\x20\x00\x00\x00\x00"
 // #define EXIT_BOOTLOADER_CMD  "\x08\x07\x12\x20\x00\x00\x00\x00"
 
+class DevConfig;
+
 class PartitionEntry {
     public:
         const char* name;
@@ -56,6 +58,14 @@ class EspTool {
         static bool force_reset_over_tty(int _fd);
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);
         static pthread_t firmware_loader(const char* _ifac, const char* _filename, EspLoaderCB _callback = nullptr, void* _user_param = nullptr);
+
+        static bool open_interface(const char* _ifac, int& _fd);
+        static bool close_interface(int& _fd);
+        static char* allocate_command(char* _cmd);
+        static char* transact_command(const char* _ifac, const char* _cmd);
+        static bool read_config(const char* _ifac, DevConfig* _dev);
+        static bool read_id(const char* _ifac, DevConfig* _dev);
+        static bool read_data(const char* _ifac, DevConfig* _dev);
 
 };
 

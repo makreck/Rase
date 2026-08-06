@@ -47,33 +47,6 @@ void DevConfig::clear(void) {
     memset(&id,  0, sizeof (id));
 }
 
-bool DevConfig::open_interface(const char* _ifac, int& _fd) {
-    if (_fd > -1) {
-        close(_fd);
-    }
-
-    _fd = EspTool::open_serial_port(_ifac, B115200);
-
-    if (_fd < 0) {
-        return (false);
-    }
-
-    // Read possible dirt from the ESP32 Debug Output to avoid interference with commanding data!
-    uint8_t dummy_in[4096];
-    read(_fd, dummy_in, sizeof (dummy_in));
-
-    return (true);
-}
-
-bool DevConfig::close_interface(int& _fd) {
-    if (_fd == -1) {
-        return (false);
-    }
-    close(_fd);
-    _fd = -1;
-    return (true);
-}
-
 size_t DevConfig::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {
     if (_key == nullptr) {
         return (0);
@@ -114,192 +87,73 @@ void DevConfig::import_data(char* _json_string, KeyList* _key_list, size_t _size
     }
 }
 
-char* DevConfig::allocate_command(char* _cmd) {
-    ssize_t size = strlen(_cmd) + 2;
-    char* command_string = (char *)malloc(size);
-    if (command_string == nullptr) {
-        printf("Error, unable to alloc %d bytes for command string!\n", (int)size);
-        return (nullptr);
-    }
-    memset(command_string, 0, size);
-    strncpy(command_string, _cmd, size - 1);
-    return (command_string);
-}
+bool DevConfig::parse_config_json(char* _config_json) {
+    memset(&cfg, 0, sizeof (cfg));
 
-char* DevConfig::transact_command(const char* _ifac, const char* _cmd) {
-    if (_cmd == nullptr) {
-        printf("Error, tranaction not prepared!");
-        return (nullptr);
-    }
+    KeyList key_list[] = {
+        { JSON_KEY_VERSION,          cfg.version,             sizeof (cfg.version)           },
+        { JSON_KEY_WIFI_SSID,        cfg.wifi_ssid,           sizeof (cfg.wifi_ssid)         },
+        { JSON_KEY_WIFI_PASSWORD,    cfg.wifi_password,       sizeof (cfg.wifi_password)     },
+        { JSON_KEY_WIFI_CHANNEL,     cfg.wifi_channel,        sizeof (cfg.wifi_channel)      },
+        { JSON_KEY_MQTT_BROKER,      cfg.mqtt_broker,         sizeof (cfg.mqtt_broker)       },
+        { JSON_KEY_MQTT_USERNAME,    cfg.mqtt_username,       sizeof (cfg.mqtt_username)     },
+        { JSON_KEY_MQTT_PASSWORD,    cfg.mqtt_password,       sizeof (cfg.mqtt_password)     },
+        { JSON_KEY_MQTT_ENABLE,      cfg.mqtt_enable,         sizeof (cfg.mqtt_enable)       },
+        { JSON_KEY_DISPLAY_LAYOUT,   cfg.display_layout,      sizeof (cfg.display_layout)    },
+        { JSON_KEY_DISPLAY_PARAM,    cfg.display_param,       sizeof (cfg.display_param)     },
+        { JSON_KEY_DISPLAY_ROTATION, cfg.display_rotoation,   sizeof (cfg.display_rotoation) },
+        { JSON_KEY_DISPLAY_TIMEOUT,  cfg.display_timeout_s,   sizeof (cfg.display_timeout_s) },
+        { JSON_KEY_DISPLAY_CONTRAST, cfg.display_contrast,    sizeof (cfg.display_contrast)  },
+        { JSON_KEY_SENSOR_TYPE,      cfg._sensor_type_list,   sizeof (cfg._sensor_type_list) },
+        { JSON_KEY_LED_INTENSITY,    cfg.led_intensity,       sizeof (cfg.led_intensity)     },
+    };
+    DevConfig::import_data(_config_json, key_list, SIZEOFARRAY(key_list));
 
-    int fd = -1;
-    if (!DevConfig::open_interface(_ifac, fd)) {
-        return (nullptr);
-    }
-
-    ssize_t size_out = strlen(_cmd);
-    ssize_t len_out = write(fd, _cmd, size_out);
-    if (size_out != len_out) {
-        printf("Error, unable to transmit %d bytes command string, %d bytes written!\n", (int)size_out, (int)len_out);
-        return (nullptr);
-    }
-
-    usleep(500000);
-    
-    ssize_t size = 65536;
-    char* in = (char*)malloc(size);
-    if (in == nullptr) {
-        printf("Error, unable to allocate response data buffer!\n");
-        return (nullptr);
-    }
-    memset(in, 0, size);
-
-    ssize_t len_read = 0;
-    ssize_t length = 0;
-    do {
-        len_read = read(fd, &in[length], size - length - 1);
-        if (len_read > 0) {
-            length += len_read;
-            usleep(25000);
-        }
-    } while (len_read > 0);
-    in[length] = '\0';
-
-    if (length == 0) {
-        free(in);
-        return (nullptr);
-    }
-
-    char* response = in;
-    char* p = strstr(in, "<!DOCTYPE html>");
+    char* p = strstr(cfg._sensor_type_list, ",");
     if (p != nullptr) {
-        response = p;
-        char* p = strstr(in, "</html>");
-        if (p != nullptr) {
-            p[7] = '\0';
+        *p++ = '\0';
+        strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
+        for (int i = 0; i < sizeof (cfg._sensor_type_list); i++) {
+            cfg._sensor_type_list[i] = p[i];
+            if (p[i] == '\0') break;
+            if (p[i] == ',') cfg._sensor_type_list[i] = '\n';
         }
-        length = strlen(response);
-#ifndef DISABLE_FILTER
     } else {
-        int level = -1;
-        int i;
-        for (i = 0; (i < length) && (level != 0); i++) {
-            if (in[i] == '{') {
-                if (level == -1) {
-                    level = 1;
-                    response = &in[i];
-                } else {
-                    level++;
-                }
-            }
-            if (in[i] == '}') {
-                level--;                
-            }
-        }
-        in[i++] = '\r';
-        in[i++] = '\n';
-        in[i] = '\0';
-        length = i;
-#endif        
+        strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
+        strncpy(cfg._sensor_type_list, APPSTRING(IDS_LIST_SENSOR_TYPES), sizeof (cfg._sensor_type_list));
     }
 
-    char* result = (char *)malloc(length + 1);
-    if (result == nullptr) {
-        free(in);
-        printf("Unable to allocate %d bytes for result data!\n", (int)(length + 1));
-        return (nullptr);
-    }
-    memset(result, 0, length + 1);
-    strncpy(result, response, length);
-    free(in);
-
-    DevConfig::close_interface(fd);
-
-    return (result);
+    return (true);
 }
 
-bool DevConfig::read_data(const char* _ifac) {
-    if (DevConfig::read_id(_ifac)) {
-        if (DevConfig::read_config(_ifac)) {
-            return (true);
-        }
+bool DevConfig::parse_id_json(char* _id_json) {
+    if (_id_json == nullptr) {
+        return (false);
     }
-    return (false);
-}
 
-bool DevConfig::read_config(const char* _ifac) {
-    char* config_json = DevConfig::transact_command(_ifac, "/config");
-    if (config_json != nullptr) {
-        memset(&cfg, 0, sizeof (cfg));
+    memset(&id, 0, sizeof (id));
 
-        KeyList key_list[] = {
-            { JSON_KEY_VERSION,          cfg.version,             sizeof (cfg.version)           },
-            { JSON_KEY_WIFI_SSID,        cfg.wifi_ssid,           sizeof (cfg.wifi_ssid)         },
-            { JSON_KEY_WIFI_PASSWORD,    cfg.wifi_password,       sizeof (cfg.wifi_password)     },
-            { JSON_KEY_WIFI_CHANNEL,     cfg.wifi_channel,        sizeof (cfg.wifi_channel)      },
-            { JSON_KEY_MQTT_BROKER,      cfg.mqtt_broker,         sizeof (cfg.mqtt_broker)       },
-            { JSON_KEY_MQTT_USERNAME,    cfg.mqtt_username,       sizeof (cfg.mqtt_username)     },
-            { JSON_KEY_MQTT_PASSWORD,    cfg.mqtt_password,       sizeof (cfg.mqtt_password)     },
-            { JSON_KEY_MQTT_ENABLE,      cfg.mqtt_enable,         sizeof (cfg.mqtt_enable)       },
-            { JSON_KEY_DISPLAY_LAYOUT,   cfg.display_layout,      sizeof (cfg.display_layout)    },
-            { JSON_KEY_DISPLAY_PARAM,    cfg.display_param,       sizeof (cfg.display_param)     },
-            { JSON_KEY_DISPLAY_ROTATION, cfg.display_rotoation,   sizeof (cfg.display_rotoation) },
-            { JSON_KEY_DISPLAY_TIMEOUT,  cfg.display_timeout_s,   sizeof (cfg.display_timeout_s) },
-            { JSON_KEY_DISPLAY_CONTRAST, cfg.display_contrast,    sizeof (cfg.display_contrast)  },
-            { JSON_KEY_SENSOR_TYPE,      cfg._sensor_type_list,   sizeof (cfg._sensor_type_list) },
-            { JSON_KEY_LED_INTENSITY,    cfg.led_intensity,       sizeof (cfg.led_intensity)     },
-        };
-        DevConfig::import_data(config_json, key_list, SIZEOFARRAY(key_list));
-        free(config_json);
+    KeyList key_list[] = {
+        { "identification",       id.identification,       sizeof (id.identification)       },
+        { "manufacturer",         id.manufacturer,         sizeof (id.manufacturer)         },
+        { "product",              id.product,              sizeof (id.product)              },
+        { "device_serial_number", id.device_serial_number, sizeof (id.device_serial_number) },
+        { "firmware_version",     id.firmware_version,     sizeof (id.firmware_version)     },
+        { "firmware_date",        id.firmware_date,        sizeof (id.firmware_date)        },
+        { "sensor_head",          id.head,                 sizeof (id.head)                 },
+        { "head_serial_number",   id.head_serial,          sizeof (id.head_serial)          },
+        { "chip_type",            id.chip_type,            sizeof (id.chip_type)            },
+        { "wifi_station_mac",     id.wifi_station_mac,     sizeof (id.wifi_station_mac)     },
+        { "wifi_ap_mac",          id.wifi_ap_mac,          sizeof (id.wifi_ap_mac)          },
+        { "bluetooth_mac",        id.bluetooth_mac,        sizeof (id.bluetooth_mac)        },
+        { "ip_addr",              id.ip_addr,              sizeof (id.ip_addr)              },
+        { "rssi",                 id.rssi,                 sizeof (id.rssi)                 },
+        { "tx_power",             id.tx_power,             sizeof (id.tx_power)             },
+        { "system_time",          id.system_time,          sizeof (id.system_time)          },
+    };
+    DevConfig::import_data(_id_json, key_list, SIZEOFARRAY(key_list));
 
-        char* p = strstr(cfg._sensor_type_list, ",");
-        if (p != nullptr) {
-            *p++ = '\0';
-            strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
-            for (int i = 0; i < sizeof (cfg._sensor_type_list); i++) {
-                cfg._sensor_type_list[i] = p[i];
-                if (p[i] == '\0') break;
-                if (p[i] == ',') cfg._sensor_type_list[i] = '\n';
-            }
-        } else {
-            strncpy(cfg.sensor_type, cfg._sensor_type_list, sizeof (cfg.sensor_type));
-            strncpy(cfg._sensor_type_list, APPSTRING(IDS_LIST_SENSOR_TYPES), sizeof (cfg._sensor_type_list));
-        }
-
-        return (true);
-    }
-    return (false);
-}
-
-bool DevConfig::read_id(const char* _ifac) {
-    char* id_json = DevConfig::transact_command(_ifac, "/api/id");
-    if (id_json != nullptr) {
-        memset(&id, 0, sizeof (id));
-
-        KeyList key_list[] = {
-            { "identification",       id.identification,       sizeof (id.identification)       },
-            { "manufacturer",         id.manufacturer,         sizeof (id.manufacturer)         },
-            { "product",              id.product,              sizeof (id.product)              },
-            { "device_serial_number", id.device_serial_number, sizeof (id.device_serial_number) },
-            { "firmware_version",     id.firmware_version,     sizeof (id.firmware_version)     },
-            { "firmware_date",        id.firmware_date,        sizeof (id.firmware_date)        },
-            { "sensor_head",          id.head,                 sizeof (id.head)                 },
-            { "head_serial_number",   id.head_serial,          sizeof (id.head_serial)          },
-            { "chip_type",            id.chip_type,            sizeof (id.chip_type)            },
-            { "wifi_station_mac",     id.wifi_station_mac,     sizeof (id.wifi_station_mac)     },
-            { "wifi_ap_mac",          id.wifi_ap_mac,          sizeof (id.wifi_ap_mac)          },
-            { "bluetooth_mac",        id.bluetooth_mac,        sizeof (id.bluetooth_mac)        },
-            { "ip_addr",              id.ip_addr,              sizeof (id.ip_addr)              },
-            { "rssi",                 id.rssi,                 sizeof (id.rssi)                 },
-            { "tx_power",             id.tx_power,             sizeof (id.tx_power)             },
-            { "system_time",          id.system_time,          sizeof (id.system_time)          },
-        };
-        DevConfig::import_data(id_json, key_list, SIZEOFARRAY(key_list));
-
-        free(id_json);
-        return (true);
-    }
-    return (false);
+    return (true);
 }
 
 char* DevConfig::get_config_json(const char* _command, size_t* _length) {

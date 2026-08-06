@@ -78,6 +78,8 @@ class DevConfig {
     public:
         static const char* config_json_cmd_format;
 
+        char ifac[PATH_MAX]{ 0 };
+        
         struct {
             char version[NUM_FIELD_LEN]{ 0 };
             
@@ -130,14 +132,9 @@ class DevConfig {
 
         static size_t json_get(char* json_data, const char* _key, char* _buffer, size_t _length);
         static void import_data(char* _json_string, KeyList* _key_list, size_t _size);
-        static char* allocate_command(char* _cmd);
-        static char* transact_command(const char* _ifac, const char* _cmd);
-        static bool open_interface(const char* _ifac, int& _fd);
-        static bool close_interface(int& _fd);
         
         void clear(void);
-        bool read_data(const char* _ifac);
-        bool read_config(const char* _ifac);
-        bool read_id(const char* _ifac);
+        bool parse_id_json(char* _id_json);
+        bool parse_config_json(char* _config_json);
         char* get_config_json(const char* _command = nullptr, size_t* _length = nullptr);
 };
