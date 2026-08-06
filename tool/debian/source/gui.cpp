@@ -349,20 +349,6 @@ bool App::gui_status(const char* _topic, const char* _message) {
     return (true);
 }
 
-const char* App::find_matching_firmware_image(void) {
-    if (!strcmp(m.device.id.chip_type, "ESP32-S3 Wroom")) {
-        return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
-    
-    } else if (!strcmp(m.device.id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
-        return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
-    
-    } else if (!strcmp(m.device.id.chip_type, "Waveshare ESP32-S3 mini")) {
-        return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
-    }
-
-    return (nullptr);
-}
-
 void App::search_and_select(void) {
     if (m.scan_thread != 0) {
         pthread_join(m.scan_thread, nullptr);
@@ -478,14 +464,15 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
-            if (m.loader_thread != 0) {
-                pthread_join(m.loader_thread, nullptr);
-                m.loader_thread = 0;
-            }
-            const char* firmware_file = find_matching_firmware_image();
-            if (firmware_file != nullptr) {
-                m.loader_thread = IPDevice::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
-            }
+            update_all_devices();
+            // if (m.loader_thread != 0) {
+            //     pthread_join(m.loader_thread, nullptr);
+            //     m.loader_thread = 0;
+            // }
+            // const char* firmware_file = find_matching_firmware_image(m.device.ip_ifac);
+            // if (firmware_file != nullptr) {
+            //     m.loader_thread = IPDevice::firmware_loader(m.device.ip_ifac, firmware_file, App::_gui_status, this);
+            // }
         }
         break;
 
@@ -501,4 +488,54 @@ void App::idle_task(CallbackParameter* p) {
         default: {
         } break;
     }
+}
+
+const char* App::find_matching_firmware_image(const char* _ifac) {
+    for (DevConfig *&entry : m.device_list) {
+        if (entry != nullptr) {
+            if (strcmp(entry->ip_ifac, _ifac) == 0) {
+                if (!strcmp(entry->id.chip_type, "ESP32-S3 Wroom")) {
+                    return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
+                
+                } else if (!strcmp(entry->id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
+                    return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
+                
+                } else if (!strcmp(entry->id.chip_type, "Waveshare ESP32-S3 mini")) {
+                    return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
+                } else {
+                    return (nullptr);
+                }
+            }
+        }
+    }
+    return (nullptr);
+}
+
+void App::update_all_devices(void) {
+    std::vector<pthread_t> threads;
+
+    for (DevConfig *&entry : m.device_list) {
+        if (entry != nullptr) {
+            if (entry->ip_ifac[0] != '\0') {
+                const char* firmware_file = find_matching_firmware_image(entry->ip_ifac);
+                if (firmware_file != nullptr) {
+                    threads.push_back(IPDevice::firmware_loader(entry->ip_ifac, firmware_file, App::_gui_status, this));
+                }
+            }
+        }
+    }
+
+    int count = (int)threads.size();
+    for (pthread_t& handle : threads) {
+        char message[32]{ 0 };
+        snprintf(message, sizeof (message), "%d devices", count);
+        set_status(nullptr, nullptr, "waiting", message);
+        
+        if (handle != 0) {
+            pthread_join(handle, nullptr);
+            handle = 0;
+            count--;
+        }
+    }
+    threads.clear();
 }
