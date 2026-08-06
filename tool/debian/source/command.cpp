@@ -79,11 +79,11 @@ void App::run_command(char* cmd) {
     if (p != nullptr) {
         cmd_string = load_config_json(p);
     } else if (strstr(cmd, "/") != nullptr) {
-        cmd_string = DevConfig::allocate_command(cmd);
+        cmd_string = EspTool::allocate_command(cmd);
     }
 
     if (cmd_string != nullptr) {
-        char* response = DevConfig::transact_command(m.ifac, cmd_string);
+        char* response = EspTool::transact_command(m.ifac, cmd_string);
         free(cmd_string);
 
         if (response != nullptr) {

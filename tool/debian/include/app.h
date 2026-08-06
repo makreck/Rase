@@ -79,7 +79,8 @@ class App {
             DevConfig device;
             char cmd[64]{ 0 };
 
-
+            IPDevice ip_device;
+            std::vector<DevConfig*> device_list;
         } m;
 
         static void print_help(void);

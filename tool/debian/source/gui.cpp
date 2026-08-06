@@ -26,23 +26,26 @@ void App::run_gui(void) {
 
     const gchar* error_text = nullptr;
 
+    m.ip_device.start_scan();
+
     if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
-        if (m.device.read_data(m.ifac)) {
-            m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
-            g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
-            g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
-            return;
-        } else {
+        if (!EspTool::read_data(m.ifac, &m.device)) {
             error_text = APPSTRING(IDS_ERROR_CFG_READ_ERROR);
         }
     } else {
         error_text = APPSTRING(IDS_ERROR_NO_DEV_CONNECTED);
     }
 
+    m.ip_device.wait_for_scan(&m.device_list);
+
     if (error_text != nullptr) {
         GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", error_text);
         gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
+    } else {
+        m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
+        g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
+        g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
     }
 }
 
@@ -366,7 +369,7 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_SEARCH: {
             if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
-                if (m.device.read_data(m.ifac)) {
+                if (EspTool::read_data(m.ifac, &m.device)) {
                     handle_dialog_items(true);
                 }
             } else {
@@ -376,7 +379,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_RELOAD_DATA: {
-            if (m.device.read_data(m.ifac)) {
+            if (EspTool::read_data(m.ifac, &m.device)) {
                 handle_dialog_items(true);
             }
             m.update_request = true;
@@ -386,7 +389,7 @@ void App::idle_task(CallbackParameter* p) {
             size_t length = 0;
             char* json_string = m.device.get_config_json("/config=", &length);
             if (json_string != nullptr) {
-                char* response = DevConfig::transact_command(m.ifac, json_string);
+                char* response = EspTool::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
                     free(response);
                 }
@@ -396,7 +399,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_RESET_DEVICE: {
-            char* response = DevConfig::transact_command(m.ifac, "/reboot");
+            char* response = EspTool::transact_command(m.ifac, "/reboot");
             if (response != nullptr) {
                 free(response);
             }
@@ -404,7 +407,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_INITIALIZE_DEVICE: {
-            char* response = DevConfig::transact_command(m.ifac, "/initialize");
+            char* response = EspTool::transact_command(m.ifac, "/initialize");
             if (response != nullptr) {
                 free(response);
             }
@@ -425,7 +428,7 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_EXEC_COMMAND: {
             const char* command = (const char*)p->get_parameter();
-            char* response = DevConfig::transact_command(m.ifac, command);
+            char* response = EspTool::transact_command(m.ifac, command);
             if (response != nullptr) {
                 free(response);
             }
