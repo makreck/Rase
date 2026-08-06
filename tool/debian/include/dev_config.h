@@ -133,10 +133,14 @@ class DevConfig {
 
         static size_t json_get(char* json_data, const char* _key, char* _buffer, size_t _length);
         static void import_data(char* _json_string, KeyList* _key_list, size_t _size);
+        static void check_str_entry(char* data1, char* data2);
 
         void  clear(void);
+        void  set_tty_interface(const char* _ifac);
+        void  set_ip_interface(const char* _ifac);
         bool  parse_id_json(char* _id_json);
         bool  parse_config_json(char* _config_json);
         char* get_config_json(const char* _command = nullptr, size_t* _length = nullptr);
         bool  register_device(std::vector<DevConfig*>* _device_list);
+        void  fill_best(DevConfig* _entry);
 };

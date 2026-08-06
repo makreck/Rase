@@ -43,8 +43,24 @@ const char* DevConfig::config_json_cmd_format =
     "}\n";
 
 void DevConfig::clear(void) {
-    memset(&cfg, 0, sizeof (cfg));
-    memset(&id,  0, sizeof (id));
+    memset(tty_ifac, 0, sizeof (tty_ifac));
+    memset(ip_ifac,  0, sizeof (ip_ifac));
+    memset(&cfg,     0, sizeof (cfg));
+    memset(&id,      0, sizeof (id));
+}
+
+void DevConfig::set_tty_interface(const char* _ifac) {
+    if (_ifac != nullptr) {
+        memset(this->tty_ifac, 0, sizeof (this->tty_ifac));
+        strncpy(this->tty_ifac, _ifac, sizeof (this->tty_ifac) - 1);
+    }
+}
+
+void DevConfig::set_ip_interface(const char* _ifac) {
+    if (_ifac != nullptr) {
+        memset(this->ip_ifac, 0, sizeof (this->ip_ifac));
+        strncpy(this->ip_ifac, _ifac, sizeof (this->ip_ifac) - 1);
+    }
 }
 
 size_t DevConfig::json_get(char* json_data, const char* _key, char* _buffer, size_t _length) {
@@ -189,6 +205,63 @@ char* DevConfig::get_config_json(const char* _command, size_t* _length) {
     return (json_string);
 }
 
+void DevConfig::check_str_entry(char* data1, char* data2) {
+    if ((data1 == nullptr) || (data2 == nullptr)) return;
+    if (strcmp(data1, data2) == 0) return;
+
+    size_t len1 = strlen(data1);
+    size_t len2 = strlen(data2);
+
+    if ((len1 == 0) && (len2 == 0)) {
+        return;
+    }
+
+    if (len1 > len2) {
+        strcpy(data2, data1);
+    } else {
+        strcpy(data1, data2);
+    }
+}
+
+void DevConfig::fill_best(DevConfig* _entry) {
+    check_str_entry(_entry->tty_ifac, this->tty_ifac);
+    check_str_entry(_entry->ip_ifac,  this->ip_ifac);
+    
+    check_str_entry(_entry->id.identification, this->id.identification);
+    check_str_entry(_entry->id.manufacturer, this->id.manufacturer);
+    check_str_entry(_entry->id.product, this->id.product);
+    check_str_entry(_entry->id.device_serial_number, this->id.device_serial_number);
+    check_str_entry(_entry->id.firmware_version, this->id.firmware_version);
+    check_str_entry(_entry->id.firmware_date, this->id.firmware_date);
+    check_str_entry(_entry->id.head, this->id.head);
+    check_str_entry(_entry->id.head_serial, this->id.head_serial);
+    check_str_entry(_entry->id.chip_type, this->id.chip_type);
+    check_str_entry(_entry->id.wifi_station_mac, this->id.wifi_station_mac);
+    check_str_entry(_entry->id.wifi_ap_mac, this->id.wifi_ap_mac);
+    check_str_entry(_entry->id.bluetooth_mac, this->id.bluetooth_mac);
+    check_str_entry(_entry->id.ip_addr, this->id.ip_addr);
+    check_str_entry(_entry->id.rssi, this->id.rssi);
+    check_str_entry(_entry->id.tx_power, this->id.tx_power);
+    check_str_entry(_entry->id.system_time, this->id.system_time);
+
+    check_str_entry(_entry->cfg.version, this->cfg.version);
+    check_str_entry(_entry->cfg.wifi_ssid, this->cfg.wifi_ssid);
+    check_str_entry(_entry->cfg.wifi_password, this->cfg.wifi_password);
+    check_str_entry(_entry->cfg.wifi_channel, this->cfg.wifi_channel);
+    check_str_entry(_entry->cfg.mqtt_broker, this->cfg.mqtt_broker);
+    check_str_entry(_entry->cfg.mqtt_username, this->cfg.mqtt_username);
+    check_str_entry(_entry->cfg.mqtt_password, this->cfg.mqtt_password);
+    check_str_entry(_entry->cfg.mqtt_enable, this->cfg.mqtt_enable);
+    check_str_entry(_entry->cfg.display_timeout_s, this->cfg.display_timeout_s);
+    check_str_entry(_entry->cfg.display_contrast, this->cfg.display_contrast);
+    check_str_entry(_entry->cfg.display_rotoation, this->cfg.display_rotoation);
+    check_str_entry(_entry->cfg.display_layout, this->cfg.display_layout);
+    check_str_entry(_entry->cfg.display_param, this->cfg.display_param);
+    check_str_entry(_entry->cfg.led_intensity, this->cfg.led_intensity);
+    check_str_entry(_entry->cfg.sensor_type, this->cfg.sensor_type);
+    check_str_entry(_entry->cfg._sensor_type_list, this->cfg._sensor_type_list);
+}
+
 bool DevConfig::register_device(std::vector<DevConfig*>* _device_list) {
     if ((_device_list == nullptr) || (strlen(this->id.device_serial_number) < 1)) {
         return (false);
@@ -198,7 +271,7 @@ bool DevConfig::register_device(std::vector<DevConfig*>* _device_list) {
         if (entry != nullptr) {
             if (strncmp(this->id.device_serial_number,
                     entry->id.device_serial_number, sizeof (this->id.device_serial_number)) == 0) {
-                        
+                fill_best(entry);
                 return (false);
             }
         }
