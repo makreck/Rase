@@ -34,6 +34,11 @@
 #include <sys/stat.h>
 #include <termios.h>
 #include <netdb.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <poll.h>
 
 #include "gtk_headers.h"
 
@@ -44,4 +49,5 @@
 #include "web_interface.h"
 #include "esp_tool.h"
 #include "dev_config.h"
+#include "ip_device.h"
 #include "app.h"
