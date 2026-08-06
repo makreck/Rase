@@ -78,8 +78,9 @@ class App {
 
             DevConfig device;
             char cmd[64]{ 0 };
-
             IPDevice ip_device;
+
+            pthread_mutex_t device_list_mutex = PTHREAD_MUTEX_INITIALIZER;
             std::vector<DevConfig*> device_list;
         } m;
 

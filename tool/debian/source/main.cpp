@@ -24,6 +24,7 @@
 void App::init(int argc, char* argv[]) {
     m.argc = argc;
     m.argv = argv;
+    pthread_mutex_init(&m.device_list_mutex, nullptr);
 }
 
 void App::cleanup(void) {
@@ -42,6 +43,9 @@ void App::cleanup(void) {
         }
         m.gtk.items.clear();
     }
+
+    pthread_mutex_unlock(&m.device_list_mutex);
+    pthread_mutex_destroy(&m.device_list_mutex);
 }
 
 void App::print_help(void) {
@@ -64,6 +68,21 @@ void App::print_help(void) {
 
 void App::run(void) {
     if (m.argc < 2) {
+
+printf("Start scan...\n");
+        m.ip_device.start_scan(&m.device_list, &m.device_list_mutex);
+        EspTool::find_tty_devices(&m.device_list, &m.device_list_mutex);
+        m.ip_device.wait_for_scan();
+// ****
+        printf("%zu devices found:\n", m.device_list.size());
+        int i = 0;
+        for (DevConfig*& entry : m.device_list) {
+            if (entry != nullptr) {
+                printf("%d, <%s %s> %s %s %s\n", ++i, entry->ip_ifac, entry->tty_ifac, entry->id.device_serial_number, entry->id.firmware_version, entry->id.firmware_date);
+            }
+        }
+// ****
+
         run_gui();
     } else {
         for (int i = 1; i < m.argc; i++) {
