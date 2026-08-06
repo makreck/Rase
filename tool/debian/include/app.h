@@ -76,10 +76,10 @@ class App {
             pthread_t thread_handle = 0;
             pthread_t loader_thread = 0;
 
-            DevConfig device;
             char cmd[64]{ 0 };
             IPDevice ip_device;
 
+            DevConfig device;
             pthread_mutex_t device_list_mutex = PTHREAD_MUTEX_INITIALIZER;
             std::vector<DevConfig*> device_list;
         } m;
@@ -128,6 +128,7 @@ class App {
         void handle_item_change(DialogItem* _item, bool _setup);
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
         void update_status_items(void);
+        void search_and_select(void);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);
         GtkWidget* create_main_menu(void);
@@ -149,6 +150,7 @@ class App {
         void handle_transaction_result(char* result);
         
         const char* find_matching_firmware_image(void);
+        void delete_device_list(void);
 
     public:
         App(int argc, char* argv[]) {
