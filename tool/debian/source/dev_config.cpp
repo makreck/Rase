@@ -49,6 +49,15 @@ void DevConfig::clear(void) {
     memset(&id,      0, sizeof (id));
 }
 
+void DevConfig::set(const DevConfig* _source) {
+    if (_source != nullptr) {
+        memcpy(tty_ifac, _source->tty_ifac, sizeof (tty_ifac));
+        memcpy(ip_ifac,  _source->ip_ifac,  sizeof (ip_ifac));
+        memcpy(&cfg,     &_source->cfg,     sizeof (cfg));
+        memcpy(&id,      &_source->id,      sizeof (id));
+    }
+}
+
 void DevConfig::set_tty_interface(const char* _ifac) {
     if (_ifac != nullptr) {
         memset(this->tty_ifac, 0, sizeof (this->tty_ifac));

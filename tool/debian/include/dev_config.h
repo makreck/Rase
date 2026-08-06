@@ -136,6 +136,7 @@ class DevConfig {
         static void check_str_entry(char* data1, char* data2);
 
         void  clear(void);
+        void  set(const DevConfig* _source);
         void  set_tty_interface(const char* _ifac);
         void  set_ip_interface(const char* _ifac);
         bool  parse_id_json(char* _id_json);
