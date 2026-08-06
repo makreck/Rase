@@ -21,6 +21,22 @@
 
 #include "includes.h"
 
+const PartitionEntry IPDevice::partitions[6] = {
+    { "nvs",      0x01, 0x00, 0x009000, 0x005000, 0 },
+    { "otadata",  0x01, 0x01, 0x00e000, 0x002000, 0 },
+    { "app0",     0x00, 0x00, 0x010000, 0x180000, 0 },
+    { "app1",     0x00, 0x01, 0x190000, 0x180000, 0 },
+    { "spiffs",   0x01, 0x02, 0x310000, 0x0E0000, 0 },
+    { "coredump", 0x01, 0x03, 0x3F0000, 0x010000, 0 }
+};
+
+const char* IPDevice::ota_put_req_string =
+    "PUT %s HTTP/1.1\r\n"
+    "Host: %s\r\n"
+    "Content-Length: %ld\r\n"
+    "Connection: close\r\n"
+    "\r\n";
+
 const char* IPDevice::http_request_format =
     "GET %s HTTP/1.1\r\n"
     "Host: %s\r\n"
@@ -290,4 +306,103 @@ char* IPDevice::transact_http_request(const char* _host_addr, const char* _json_
     pthread_cleanup_pop(0);
 
     return (buffer);
+}
+
+bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param) {
+    const char* topic = "OTA update";
+
+    struct addrinfo hints{ 0 };
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (_callback != nullptr) {
+        const char* p = "Connect...";
+        (*_callback)(_user_param, topic, p);
+    }
+
+    struct addrinfo* res = nullptr; 
+    int s = getaddrinfo(_ip_addr, "80", &hints, &res);
+    if (s != 0) {
+        return (true);
+    }
+
+    int fd = -1;
+    for (struct addrinfo* rp = res; rp != nullptr; rp = rp->ai_next) {
+        fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (fd == -1) {
+            continue;
+        }
+        if (connect(fd, rp->ai_addr, rp->ai_addrlen) == 0) {
+            break;
+        }
+        close(fd);
+        fd = -1;
+    }
+
+    freeaddrinfo(res);
+    if (fd == -1) {
+        return (false);
+    }
+
+    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, WEB_KEY_UPDATE_API, _ip_addr, _size);
+    char* request = (char*)malloc(req_len + 2);
+    if (request == nullptr) {
+        return (false);
+    }
+    snprintf(request, req_len + 1, ota_put_req_string, WEB_KEY_UPDATE_API, _ip_addr, _size);
+
+    ssize_t sent_len = send(fd, request, req_len, 0);
+    free(request);
+    if (sent_len != req_len) {
+        close(fd);
+        return (false);
+    }
+
+    ssize_t i = 0;
+    float percent = 0.0f;
+    while (i < _size) {
+        ssize_t chunk_len = ((_size - i) > OTA_CHUNK_SIZE) ? OTA_CHUNK_SIZE : (_size - i);
+        sent_len = send(fd, &_firmware_image[i], chunk_len, 0);
+        if (sent_len == -1) {
+            close(fd);
+            return (false);
+        }
+        i += sent_len;
+
+        float progress = (float)i * 100.0f / (float)_size;
+        if (fabsf(progress - percent) >= 5.0f) {
+            percent = progress;
+            if (_callback != nullptr) {
+                char string[64]{ 0 };
+                snprintf(string, sizeof (string), "%.0f%%, %zu / %zu", percent, i, _size);
+                (*_callback)(_user_param, topic, string);
+            }
+        }
+    }
+
+    close(fd);
+
+    if (_callback != nullptr) {
+        const char* p = "Complete.";
+        (*_callback)(_user_param, topic, p);
+    }
+
+    return (true);
+}
+
+pthread_t IPDevice::firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback, void* _user_param) {
+    pthread_t thread_handle = 0;
+    pthread_create(&thread_handle, nullptr, IPDevice::_loader_thread, new OTAParms(_ifac, _filename, _callback, _user_param));
+    return (thread_handle);
+}
+
+void* IPDevice::_loader_thread(void* _object) {
+    OTAParms* parms = (OTAParms*)_object;
+
+    if ((parms->image_data != nullptr) && (parms->image_length > 0)) {
+        IPDevice::ota_loader(parms->ifac, parms->image_data, parms->image_length, parms->callback, parms->user_param);
+    }
+
+    delete (parms);
+    return (nullptr);
 }

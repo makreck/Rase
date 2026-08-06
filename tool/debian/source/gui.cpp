@@ -421,7 +421,7 @@ void App::idle_task(CallbackParameter* p) {
             }
             const char* firmware_file = find_matching_firmware_image();
             if (firmware_file != nullptr) {
-                m.loader_thread = EspTool::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
+                m.loader_thread = IPDevice::firmware_loader(m.device.id.ip_addr, firmware_file, App::_gui_status, this);
             }
         }
         break;

@@ -25,6 +25,17 @@
 #define NETW_RESPONSE_TIMEOUT       (2000)
 #define SENSOR_REQ_TYPE_JSON        "application/json"
 
+
+class PartitionEntry {
+    public:
+        const char* name;
+        uint8_t     type;
+        uint8_t     subtype;
+        uint32_t    offset;
+        uint32_t    size;
+        uint32_t    flags;
+};
+
 class SockAddrIn : public sockaddr_in {
     public:
         SockAddrIn(void) {
@@ -43,6 +54,42 @@ class SockAddrIn : public sockaddr_in {
         }
 };
 
+
+typedef bool (*OTALoaderCB)(void* _user_param, const char* _topic, const char* _message);
+
+class OTAParms {
+    public:
+        char        ifac[PATH_MAX]{ 0 };
+        char        filename[PATH_MAX]{ 0 };
+
+        OTALoaderCB callback     = nullptr;
+        void*       user_param   = nullptr;
+
+        uint8_t*    image_data   = nullptr;
+        ssize_t     image_length = 0;
+
+        OTAParms(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr) {
+            if (_ifac != nullptr) {
+                strncpy(ifac, _ifac, sizeof (ifac) - 1);
+            }
+
+            if (_filename != nullptr) {
+                strncpy(filename, _filename, sizeof (filename) - 1);
+                EspTool::load_binary(filename, &image_data, &image_length);
+            }
+
+            callback   = _callback;
+            user_param = _user_param;
+        }
+
+        ~OTAParms() {
+            if (image_data != nullptr) {
+                free (image_data);
+            }
+        }
+
+};
+
 class IPDevice {
     private:
         struct {
@@ -51,6 +98,8 @@ class IPDevice {
         } m;
 
         static const char* http_request_format;
+        static const char* ota_put_req_string;
+        static const PartitionEntry partitions[6];
 
         void init(void);
         void cleanup(void);
@@ -67,6 +116,8 @@ class IPDevice {
         static bool  poll_socket(int _sock, uint32_t _timeout_ms);
         static int   get_available_data_length(int _sock);
         static void  cleanup_handler(void* arg);
+        static bool  ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
+        static void* _loader_thread(void* _object);
 
         void    set_socket_timeout(int _sock, uint32_t _timeout_ms);
         char*   format_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
@@ -85,6 +136,8 @@ class IPDevice {
         ~IPDevice() {
             cleanup();
         }
+
+        static pthread_t firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
 
         bool start_scan(void);
         bool wait_for_scan(std::vector<DevConfig*>* device_list = nullptr);
