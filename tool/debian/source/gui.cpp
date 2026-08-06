@@ -24,19 +24,15 @@
 void App::run_gui(void) {
     gtk_init(&m.argc, &m.argv);
 
-    m.ip_device.start_scan(&m.device_list);
-    EspTool::find_tty_devices(&m.device_list);
-    m.ip_device.wait_for_scan();
-
-    if (m.device_list.size() < 1) {
-        GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", APPSTRING(IDS_ERROR_NO_DEV_CONNECTED));
-        gtk_dialog_run(GTK_DIALOG(dialog));
-        gtk_widget_destroy(dialog);
-    } else {
+    // if (m.device_list.size() < 1) {
+    //     GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", APPSTRING(IDS_ERROR_NO_DEV_CONNECTED));
+    //     gtk_dialog_run(GTK_DIALOG(dialog));
+    //     gtk_widget_destroy(dialog);
+    // } else {
         m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
         g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
         g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
-    }
+    // }
 }
 
 gboolean App::_activate(GtkApplication* gtk, void* user_data) {
@@ -47,8 +43,12 @@ void App::activate(void) {
     create_gui();
     handle_dialog_items(true);
     pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
-    const char* status = (strlen(m.ifac) > 4) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
-    set_status(status, m.ifac, "---", "---");
+
+    char message[32]{ 0 };
+    snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
+    const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+    set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
+
     gtk_main();
 }
 
@@ -314,6 +314,7 @@ void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2,
             }
         }
     }
+    m.update_request = true;
 }
 
 void App::update_status_items(void) {
@@ -358,14 +359,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_SEARCH: {
-            if (EspTool::find_interface(m.ifac, sizeof (m.ifac))) {
-                if (EspTool::read_data(m.ifac, &m.device)) {
-                    handle_dialog_items(true);
-                }
-            } else {
-                memset(m.ifac, 0, sizeof (m.ifac));
-            }
-            m.update_request = true;
+            search_and_select();
         } break;
 
         case IDS_RELOAD_DATA: {
@@ -450,4 +444,44 @@ const char* App::find_matching_firmware_image(void) {
     }
 
     return (nullptr);
+}
+
+void App::search_and_select(void) {
+    delete_device_list();
+
+    set_status(APPSTRING(IDS_NOT_CONNECTED), "Scanning...", "---", "---");
+    sleep(1);
+
+printf("Start scan...\n");
+
+    m.ip_device.start_scan(&m.device_list, &m.device_list_mutex);
+    EspTool::find_tty_devices(&m.device_list, &m.device_list_mutex);
+    m.ip_device.wait_for_scan();
+
+printf("%zu devices found:\n", m.device_list.size()); // ****
+
+    memset(m.ifac, 0, sizeof(m.ifac));
+    m.device.clear();
+    int i = 0;
+    for (DevConfig*& entry : m.device_list) {
+        if (entry != nullptr) {
+            if (m.ifac[0] == '\0') {
+                if (entry->tty_ifac[0] != '\0') {
+                    strncpy(m.ifac, entry->tty_ifac, sizeof (m.ifac));
+                    m.device.set(entry);
+                } else if (entry->ip_ifac[0] != '\0') {
+                    strncpy(m.ifac, entry->ip_ifac, sizeof (m.ifac));
+                    m.device.set(entry);
+                }
+            }
+printf("%d, <%s %s> %s %s %s\n", ++i, entry->ip_ifac, entry->tty_ifac, entry->id.device_serial_number, entry->id.firmware_version, entry->id.firmware_date); // ****
+        }
+    }
+
+    char message[32]{ 0 };
+    snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
+    const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+    set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
+
+    handle_dialog_items(true);
 }
