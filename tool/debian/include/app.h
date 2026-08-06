@@ -75,6 +75,7 @@ class App {
             bool update_request = false;
             pthread_t thread_handle = 0;
             pthread_t loader_thread = 0;
+            pthread_t scan_thread = 0;
 
             char cmd[64]{ 0 };
             IPDevice ip_device;
@@ -107,6 +108,8 @@ class App {
         void idle_task(CallbackParameter* p);
         static void* _interval_thread(void* _object);
         void interval_thread(void);
+        static void* _scan_thread(void* _object);
+        void scan_thread(void);
 
         static bool _gui_status(void* _user_param, const char* _topic, const char* _message);
         bool gui_status(const char* _topic, const char* _message);

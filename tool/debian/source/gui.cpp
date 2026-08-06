@@ -23,16 +23,11 @@
 
 void App::run_gui(void) {
     gtk_init(&m.argc, &m.argv);
+    search_and_select();
 
-    // if (m.device_list.size() < 1) {
-    //     GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "\n%s\n", APPSTRING(IDS_ERROR_NO_DEV_CONNECTED));
-    //     gtk_dialog_run(GTK_DIALOG(dialog));
-    //     gtk_widget_destroy(dialog);
-    // } else {
-        m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
-        g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
-        g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
-    // }
+    m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
+    g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
+    g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
 }
 
 gboolean App::_activate(GtkApplication* gtk, void* user_data) {
@@ -346,6 +341,78 @@ void App::interval_thread(void) {
     }
 }
 
+bool App::_gui_status(void* _user_param, const char* _topic, const char* _message) {
+    return (APP_PTR(_user_param)->gui_status(_topic, _message));
+}
+bool App::gui_status(const char* _topic, const char* _message) {
+    set_status(nullptr, nullptr, _topic, _message);
+    return (true);
+}
+
+const char* App::find_matching_firmware_image(void) {
+    if (!strcmp(m.device.id.chip_type, "ESP32-S3 Wroom")) {
+        return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
+    
+    } else if (!strcmp(m.device.id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
+        return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
+    
+    } else if (!strcmp(m.device.id.chip_type, "Waveshare ESP32-S3 mini")) {
+        return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
+    }
+
+    return (nullptr);
+}
+
+void App::search_and_select(void) {
+    if (m.scan_thread != 0) {
+        pthread_join(m.scan_thread, nullptr);
+        m.scan_thread = 0;
+    }
+
+    m.device.clear();
+    memset(m.ifac, 0, sizeof (m.ifac));
+    delete_device_list();
+    handle_dialog_items(true);
+
+    set_status(APPSTRING(IDS_NOT_CONNECTED), "Scanning...", "---", "---");
+    pthread_create(&m.scan_thread, nullptr, App::_scan_thread, this);
+}
+
+void* App::_scan_thread(void* _object) {
+    APP_PTR(_object)->scan_thread();
+    return (nullptr);
+}
+void App::scan_thread(void) {
+    m.ip_device.start_scan(&m.device_list, &m.device_list_mutex);
+    EspTool::find_tty_devices(&m.device_list, &m.device_list_mutex);
+    m.ip_device.wait_for_scan();
+
+    memset(m.ifac, 0, sizeof(m.ifac));
+    m.device.clear();
+
+    for (DevConfig*& entry : m.device_list) {
+        if (entry != nullptr) {
+            if (entry->tty_ifac[0] != '\0') {
+                strncpy(m.ifac, entry->tty_ifac, sizeof(m.ifac));
+                m.device.set(entry);
+                break;
+            }
+        }
+    }
+
+    if (m.ifac[0] == '\0') {
+        for (DevConfig*& entry : m.device_list) {
+            if (entry != nullptr) {
+                strncpy(m.ifac, entry->ip_ifac, sizeof(m.ifac));
+                m.device.set(entry);
+                break;
+            }
+        }
+    }
+
+    gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, -2));
+}
+
 gboolean App::_idle_task(gpointer _callback_parameter) {
     CallbackParameter* cbp = CALLBACK_PARAMETER(_callback_parameter);
     OBJ_PTR(App, cbp->get_this())->idle_task(cbp);
@@ -356,6 +423,18 @@ void App::idle_task(CallbackParameter* p) {
     switch(item_id) {
         case -1: {
             update_status_items();
+        } break;
+
+        case -2: {
+            if (m.scan_thread != 0) {
+                pthread_join(m.scan_thread, nullptr);
+                m.scan_thread = 0;
+            }
+            char message[32]{ 0 };
+            snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
+            const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+            set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
+            handle_dialog_items(true);
         } break;
 
         case IDS_SEARCH: {
@@ -422,66 +501,4 @@ void App::idle_task(CallbackParameter* p) {
         default: {
         } break;
     }
-}
-
-bool App::_gui_status(void* _user_param, const char* _topic, const char* _message) {
-    return (APP_PTR(_user_param)->gui_status(_topic, _message));
-}
-bool App::gui_status(const char* _topic, const char* _message) {
-    set_status(nullptr, nullptr, _topic, _message);
-    return (true);
-}
-
-const char* App::find_matching_firmware_image(void) {
-    if (!strcmp(m.device.id.chip_type, "ESP32-S3 Wroom")) {
-        return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
-    
-    } else if (!strcmp(m.device.id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
-        return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
-    
-    } else if (!strcmp(m.device.id.chip_type, "Waveshare ESP32-S3 mini")) {
-        return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
-    }
-
-    return (nullptr);
-}
-
-void App::search_and_select(void) {
-    delete_device_list();
-
-    set_status(APPSTRING(IDS_NOT_CONNECTED), "Scanning...", "---", "---");
-    sleep(1);
-
-printf("Start scan...\n");
-
-    m.ip_device.start_scan(&m.device_list, &m.device_list_mutex);
-    EspTool::find_tty_devices(&m.device_list, &m.device_list_mutex);
-    m.ip_device.wait_for_scan();
-
-printf("%zu devices found:\n", m.device_list.size()); // ****
-
-    memset(m.ifac, 0, sizeof(m.ifac));
-    m.device.clear();
-    int i = 0;
-    for (DevConfig*& entry : m.device_list) {
-        if (entry != nullptr) {
-            if (m.ifac[0] == '\0') {
-                if (entry->tty_ifac[0] != '\0') {
-                    strncpy(m.ifac, entry->tty_ifac, sizeof (m.ifac));
-                    m.device.set(entry);
-                } else if (entry->ip_ifac[0] != '\0') {
-                    strncpy(m.ifac, entry->ip_ifac, sizeof (m.ifac));
-                    m.device.set(entry);
-                }
-            }
-printf("%d, <%s %s> %s %s %s\n", ++i, entry->ip_ifac, entry->tty_ifac, entry->id.device_serial_number, entry->id.firmware_version, entry->id.firmware_date); // ****
-        }
-    }
-
-    char message[32]{ 0 };
-    snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
-    const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
-    set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
-
-    handle_dialog_items(true);
 }
