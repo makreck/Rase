@@ -22,34 +22,111 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-#define DISPLAY_STATE
-
-
-esp_err_t WebServer::_update_root_handler(httpd_req_t* req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->update_root_handler(req));
+esp_err_t WebServer::_api_handler(httpd_req_t *req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_handler(req));
 }
-esp_err_t WebServer::update_root_handler(httpd_req_t* req) {
-
+esp_err_t WebServer::api_handler(httpd_req_t *req) {
 #ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::update_root_handler() event.");
+    ESP_LOGI(TAG, "WebServer::api_handler() event.");
 #endif
-    const char* website = WebServer::firmware_update_resp_str;
 
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
 
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
+    if (strcmp(req->uri, WEB_KEY_SENSOR_RESPONSE) == 0) {
+        api_sensors_sub_handler(req);
+    } else if (strcmp(req->uri, WEB_KEY_ID_RESPONSE) == 0) {
+        api_id_sub_handler(req);
+    } else if (strcmp(req->uri, WEB_KEY_CONFIG_API) == 0) {
+        api_config_sub_handler(req);
+    } else if (strcmp(req->uri, WEB_KEY_UPDATE_API) == 0) {
+        api_update_sub_handler(req);
+    } else {
+        httpd_resp_send_404(req);
+    }
+
     return (ESP_OK);
 }
 
 
-esp_err_t WebServer::_update_put_handler(httpd_req_t* req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->update_put_handler(req));
-}
-esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
+esp_err_t WebServer::api_sensors_sub_handler(httpd_req_t *req) {
 
 #ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::update_put_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
+    ESP_LOGI(TAG, "WebServer::api_sensors_handler() event.");
+#endif
+
+    if (m.sensor != nullptr) {
+        size_t length = 0;
+        char* json_response = m.sensor->get_json(length); 
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, json_response, length);
+        free(json_response);
+    } else {
+        httpd_resp_send_500(req);
+    }
+    
+    return (ESP_OK);
+}
+
+
+esp_err_t WebServer::api_id_sub_handler(httpd_req_t *req) {
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::api_id_handler() event.");
+#endif
+
+    char* device_id_json = Tools::get_device_id_json(m.ip_addr, m.sensor->get_driver()); 
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
+    free(device_id_json);
+    
+    return (ESP_OK);
+}
+
+
+esp_err_t WebServer::api_config_sub_handler(httpd_req_t *req) {
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::api_cfg_get_handler() event.");
+#endif
+
+    if (req->method & (int)HTTP_PUT) {
+        if (req->content_len == 0) {
+            httpd_resp_send_err(req, HTTPD_411_LENGTH_REQUIRED, nullptr);
+            return (ESP_FAIL);
+        }
+
+        char* buffer = (char *)malloc(req->content_len + 8);
+        if (buffer != nullptr) {
+            memset(buffer, 0, req->content_len + 8);
+            int read_bytes = httpd_req_recv(req, (char*)buffer, req->content_len);
+            if (read_bytes == req->content_len) {
+                m.cfg->import_json(buffer, req->content_len);
+                esp_event_post(APP_EVENT, (int32_t)AppEvent::nvm_update, nullptr, 0, pdMS_TO_TICKS(1));
+                free(buffer);
+            } else {
+                free(buffer);
+                httpd_resp_send_500(req);
+                return (ESP_FAIL);
+            }
+        } else {
+            httpd_resp_send_500(req);
+            return (ESP_FAIL);
+        }
+    } else {
+        char* config_json = m.cfg->get_json(true, false); 
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, config_json, HTTPD_RESP_USE_STRLEN);
+        free(config_json);
+    }
+    
+    return (ESP_OK);
+}
+
+
+esp_err_t WebServer::api_update_sub_handler(httpd_req_t* req) {
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::api_update_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
 #endif
 
     if (req->content_len == 0) {
@@ -151,7 +228,7 @@ esp_err_t WebServer::update_put_handler(httpd_req_t* req) {
         m.display->update();
         vTaskDelay(pdMS_TO_TICKS(2500));
     }
-
     esp_event_post(APP_EVENT, (int32_t)event_code, nullptr, 0, pdMS_TO_TICKS(1));
+
     return (ESP_OK);
 }

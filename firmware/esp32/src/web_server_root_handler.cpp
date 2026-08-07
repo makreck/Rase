@@ -19,25 +19,32 @@
  * ==============================================================================
  */
 
-#pragma once
+#include "includes.hpp"
+#include "app.hpp"
 
-#define WEB_KEY_ROOT             "/"
-#define WEB_KEY_CONFIG_ROOT      "/config"
-#define WEB_KEY_UPDATE_ROOT      "/update"
-#define WEB_KEY_FAVICON          "/favicon.ico"
+#define DISPLAY_STATE
 
-#define WEB_KEY_SENSOR_RESPONSE  "/api/sensors"
-#define WEB_KEY_ID_RESPONSE      "/api/id"
-#define WEB_KEY_CONFIG_API       "/api/config"
-#define WEB_KEY_UPDATE_API       "/api/update"
 
-#define CFG_KEY_WEBSITE_RESPONSE "/root"
-#define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
-#define CFG_KEY_ID_RESPONSE      "/api/id"
-#define CFG_KEY_WIFI_SETUP       "/connect"
-#define CFG_KEY_MQTT_BROKER      "/broker"
-#define CFG_KEY_CONFIG           "/config"
-#define CFG_KEY_INITIALIZE       "/initialize"
-#define CFG_KEY_REBOOT           "/reboot"
-#define CFG_KEY_PAR              "/par"
-#define CFG_KEY_TEST             "/test"
+esp_err_t WebServer::_root_handler(httpd_req_t* req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->root_handler(req));
+}
+esp_err_t WebServer::root_handler(httpd_req_t* req) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::root_handler() event.");
+#endif
+
+    const char* website = nullptr;
+    if (strcmp(req->uri, WEB_KEY_UPDATE_ROOT) == 0) {
+        website = WebServer::firmware_update_resp_str;
+    } else if (strcmp(req->uri, WEB_KEY_CONFIG_ROOT) == 0) {
+        website = WebServer::config_website_resp_str;
+    } else {
+        website = WebServer::webserver_resp_str_1;
+    }
+
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
+
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
+    return (ESP_OK);
+}

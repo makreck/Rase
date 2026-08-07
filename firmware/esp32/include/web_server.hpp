@@ -40,6 +40,8 @@ class WebServerURI {
 
 class WebServer {
     private:
+        static const char* favicon_svg;
+
         const char* sensor_header = 
             "{\n"
             "\t\"sensor\": \"%s\",\n"
@@ -78,26 +80,16 @@ class WebServer {
         static esp_err_t _root_handler(httpd_req_t *req);
         esp_err_t root_handler(httpd_req_t *req);
 
-        static esp_err_t _api_sensors_handler(httpd_req_t *req);
-        esp_err_t api_sensors_handler(httpd_req_t *req);
+        static esp_err_t _api_handler(httpd_req_t *req);
+        esp_err_t api_handler(httpd_req_t *req);
 
-        static esp_err_t _api_id_handler(httpd_req_t *req);
-        esp_err_t api_id_handler(httpd_req_t *req);
+        esp_err_t api_sensors_sub_handler(httpd_req_t *req);
+        esp_err_t api_id_sub_handler(httpd_req_t *req);
+        esp_err_t api_update_sub_handler(httpd_req_t *req);
+        esp_err_t api_config_sub_handler(httpd_req_t *req);
 
-        static esp_err_t _update_root_handler(httpd_req_t *req);
-        esp_err_t update_root_handler(httpd_req_t *req);
-
-        static esp_err_t _update_put_handler(httpd_req_t *req);
-        esp_err_t update_put_handler(httpd_req_t *req);
-
-        static esp_err_t _config_root_handler(httpd_req_t *req);
-        esp_err_t config_root_handler(httpd_req_t *req);
-
-        static esp_err_t _api_cfg_get_handler(httpd_req_t *req);
-        esp_err_t api_cfg_get_handler(httpd_req_t *req);
-
-        static esp_err_t _api_cfg_put_handler(httpd_req_t* req);
-        esp_err_t api_cfg_put_handler(httpd_req_t* req);
+        static esp_err_t _favicon_handler(httpd_req_t* req);
+        esp_err_t favicon_handler(httpd_req_t* req);
 
         static void _time_sync_notification(struct timeval* tv);
 

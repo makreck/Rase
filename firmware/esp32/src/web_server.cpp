@@ -22,29 +22,40 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
-const WebServerURI WebServer::web_uri_tab[8] = {
-    { WEB_KEY_ROOT,            HTTP_GET, WebServer::_root_handler         },
+#define HTTP_MAX_ENDPOINTS  (9)
+#define HTTP_DEFAULT_PORT   (80)
+#define HTTP_CONTROL_PORT   (32768)
+#define HTTP_MAX_HEADERS    (16)
+#define HTTP_MAX_SOCKETS    (7)
 
-    { WEB_KEY_SENSOR_RESPONSE, HTTP_GET, WebServer::_api_sensors_handler  },
-    { WEB_KEY_ID_RESPONSE,     HTTP_GET, WebServer::_api_id_handler       },
+const WebServerURI WebServer::web_uri_tab[HTTP_MAX_ENDPOINTS] = {
+    { WEB_KEY_ROOT,            HTTP_GET, WebServer::_root_handler    },
+    { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_root_handler    },
+    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_root_handler    },
 
-    { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_config_root_handler  },
-    { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_cfg_get_handler  },
-    { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_cfg_put_handler  },
+    { WEB_KEY_SENSOR_RESPONSE, HTTP_GET, WebServer::_api_handler     },
+    { WEB_KEY_ID_RESPONSE,     HTTP_GET, WebServer::_api_handler     },
+    { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_handler     },
+    { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_handler     },
+    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_api_handler     },
 
-    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_update_put_handler   },
-    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_update_root_handler  },
+    { WEB_KEY_FAVICON,         HTTP_GET, WebServer::_favicon_handler },
 };
+
+const char* WebServer::favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "
+                                        "stroke-linecap=\"round\" stroke-linejoin=\"round\" width = \"20\" height = \"20\" > "
+                                        "<path d=\"M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z\"></path></svg>";
+
 
 esp_err_t WebServer::init(void) {
     m.config.stack_size       = TASK_EXTENDED_STACKSIZE;
-    m.config.server_port      = 80;
-    m.config.ctrl_port        = 32768;
-    m.config.max_uri_handlers = 8;
-    m.config.max_resp_headers = 16;
-    m.config.max_open_sockets = 7;
+    m.config.server_port      = HTTP_DEFAULT_PORT;
+    m.config.ctrl_port        = HTTP_CONTROL_PORT;
+    m.config.max_uri_handlers = HTTP_MAX_ENDPOINTS;
+    m.config.max_resp_headers = HTTP_MAX_HEADERS;
+    m.config.max_open_sockets = HTTP_MAX_SOCKETS;
     m.config.lru_purge_enable = true;
 
     return (ESP_OK);
@@ -126,59 +137,20 @@ esp_err_t WebServer::init_time_server(void) {
     return (ESP_OK);
 }
 
-esp_err_t WebServer::_root_handler(httpd_req_t *req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->root_handler(req));
-}
-esp_err_t WebServer::root_handler(httpd_req_t *req) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::root_handler() event.");
-#endif
-    const char* website = WebServer::webserver_resp_str_1;
 
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, website, HTTPD_RESP_USE_STRLEN);
+esp_err_t WebServer::_favicon_handler(httpd_req_t* req) {
+    return ((reinterpret_cast<WebServer*>(req->user_ctx))->favicon_handler(req));
+}
+esp_err_t WebServer::favicon_handler(httpd_req_t* req) {
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::favicon_handler() event.");
+#endif
+
+    httpd_resp_set_type(req, "image/svg+xml");
+    httpd_resp_set_hdr(req, "Cache-Control", "max-age=60");
+    httpd_resp_send(req, favicon_svg, HTTPD_RESP_USE_STRLEN);
 
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_query_event, nullptr, 0, pdMS_TO_TICKS(100));
-    return (ESP_OK);
-}
-
-
-esp_err_t WebServer::_api_sensors_handler(httpd_req_t *req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_sensors_handler(req));
-}
-esp_err_t WebServer::api_sensors_handler(httpd_req_t *req) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_sensors_handler() event.");
-#endif
-    char time_string[TIME_STAMP_LENGTH]{0};
-    Tools::get_timestamp(time_string, sizeof (time_string));
-
-    if (m.sensor != nullptr) {
-        size_t length = 0;
-        char* json_response = m.sensor->get_json(length); 
-        httpd_resp_set_type(req, "application/json");
-        httpd_resp_send(req, json_response, length);
-        free(json_response);
-    }
-
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
-    return (ESP_OK);
-}
-
-
-esp_err_t WebServer::_api_id_handler(httpd_req_t *req) {
-    return ((reinterpret_cast<WebServer*>(req->user_ctx))->api_id_handler(req));
-}
-esp_err_t WebServer::api_id_handler(httpd_req_t *req) {
-#ifdef DISPLAY_STATE
-    ESP_LOGI(TAG, "WebServer::api_id_handler() event.");
-#endif
-
-    char* device_id_json = Tools::get_device_id_json(m.ip_addr, m.sensor->get_driver()); 
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
-    free(device_id_json);
-    
-    esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
 }
