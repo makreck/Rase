@@ -32,13 +32,15 @@ esp_err_t WebServer::api_handler(httpd_req_t *req) {
 
     esp_event_post(APP_EVENT, (int32_t)AppEvent::web_api_event, nullptr, 0, pdMS_TO_TICKS(100));
 
-    if (strcmp(req->uri, WEB_KEY_SENSOR_RESPONSE) == 0) {
+    if (strcmp(req->uri, WEB_KEY_API_SENSORS) == 0) {
         api_sensors_sub_handler(req);
-    } else if (strcmp(req->uri, WEB_KEY_ID_RESPONSE) == 0) {
+    } else if (strcmp(req->uri, WEB_KEY_API_IDENTIFY) == 0) {
         api_id_sub_handler(req);
-    } else if (strcmp(req->uri, WEB_KEY_CONFIG_API) == 0) {
+    } else if (strcmp(req->uri, WEB_KEY_API_CONFIG) == 0) {
         api_config_sub_handler(req);
-    } else if (strcmp(req->uri, WEB_KEY_UPDATE_API) == 0) {
+    } else if (strcmp(req->uri, WEB_KEY_API_REBOOT) == 0) {
+        api_reboot_sub_handler(req);
+    } else if (strcmp(req->uri, WEB_KEY_API_UPDATE) == 0) {
         api_update_sub_handler(req);
     } else {
         httpd_resp_send_404(req);
@@ -79,6 +81,22 @@ esp_err_t WebServer::api_id_sub_handler(httpd_req_t *req) {
     httpd_resp_send(req, device_id_json, HTTPD_RESP_USE_STRLEN);
     free(device_id_json);
     
+    return (ESP_OK);
+}
+
+
+esp_err_t WebServer::api_reboot_sub_handler(httpd_req_t* req) {
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "WebServer::api_reboot_sub_handler() event. OTA request, content length = %.1f KB.", (float)req->content_len / 1024.0f);
+#endif
+
+    char* reboot_json = Tools::get_reboot_json(); 
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, reboot_json, HTTPD_RESP_USE_STRLEN);
+    free(reboot_json);
+
+    esp_event_post(APP_EVENT, (int32_t)AppEvent::reboot, nullptr, 0, pdMS_TO_TICKS(100));
     return (ESP_OK);
 }
 

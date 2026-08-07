@@ -87,6 +87,7 @@ class WebServer {
         esp_err_t api_id_sub_handler(httpd_req_t *req);
         esp_err_t api_update_sub_handler(httpd_req_t *req);
         esp_err_t api_config_sub_handler(httpd_req_t *req);
+        esp_err_t api_reboot_sub_handler(httpd_req_t* req);
 
         static esp_err_t _favicon_handler(httpd_req_t* req);
         esp_err_t favicon_handler(httpd_req_t* req);

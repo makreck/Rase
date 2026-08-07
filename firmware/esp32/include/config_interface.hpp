@@ -69,17 +69,17 @@ class ConfigInterface {
         static void handle_test(ConfigInterface* instance, int mode = 0, const char* data = nullptr, size_t length = 0);
 
         const ConfigCB function_tab[10] = {
-            { CFG_KEY_WIFI_SETUP,       ConfigInterface::handle_wifi_setup,      0},
-            { CFG_KEY_MQTT_BROKER,      ConfigInterface::handle_mqtt_broker,     0},
-            { CFG_KEY_CONFIG,           ConfigInterface::handle_config_response, 0},
-            { CFG_KEY_ID_RESPONSE,      ConfigInterface::handle_id_response,     0},
-            { CFG_KEY_SENSOR_RESPONSE,  ConfigInterface::handle_sensor_response, 0},
-            { CFG_KEY_WEBSITE_RESPONSE, ConfigInterface::handle_website_output,  0},
-            { CFG_KEY_REBOOT,           ConfigInterface::handle_restart,         0},
-            { CFG_KEY_INITIALIZE,       ConfigInterface::handle_restart,         9},
-            { CFG_KEY_PAR,              ConfigInterface::handle_par,             0},
+            { TTY_KEY_WIFI_SETUP,     ConfigInterface::handle_wifi_setup,      0},
+            { TTY_KEY_MQTT_BROKER,    ConfigInterface::handle_mqtt_broker,     0},
+            { TTY_KEY_API_CONFIG,     ConfigInterface::handle_config_response, 0},
+            { TTY_KEY_API_IDENTIFY,   ConfigInterface::handle_id_response,     0},
+            { TTY_KEY_API_SENSORS,    ConfigInterface::handle_sensor_response, 0},
+            { TTY_KEY_WEBSITE,        ConfigInterface::handle_website_output,  0},
+            { TTY_KEY_API_REBOOT,     ConfigInterface::handle_restart,         0},
+            { TTY_KEY_API_INITIALIZE, ConfigInterface::handle_restart,         9},
+            { TTY_KEY_PAR,            ConfigInterface::handle_par,             0},
 
-            { CFG_KEY_TEST,             ConfigInterface::handle_test,            0},
+            { TTY_KEY_TEST,           ConfigInterface::handle_test,            0},
         };
 
     public:

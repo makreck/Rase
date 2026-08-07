@@ -276,7 +276,7 @@ char* EspTool::transact_command(const char* _ifac, const char* _cmd) {
 
 bool EspTool::read_config(const char* _ifac, DevConfig* _dev) {
     if (_dev != nullptr) {
-        char* config_json = EspTool::transact_command(_ifac, "/config");
+        char* config_json = EspTool::transact_command(_ifac, TTY_KEY_API_CONFIG);
         if (config_json != nullptr) {
             _dev->parse_config_json(config_json);
             free(config_json);
@@ -288,7 +288,7 @@ bool EspTool::read_config(const char* _ifac, DevConfig* _dev) {
 
 bool EspTool::read_id(const char* _ifac, DevConfig* _dev) {
     if (_dev != nullptr) {
-        char* id_json = EspTool::transact_command(_ifac, "/api/id");
+        char* id_json = EspTool::transact_command(_ifac, TTY_KEY_API_IDENTIFY);
         if (id_json != nullptr) {
             _dev->parse_id_json(id_json);
             free(id_json);

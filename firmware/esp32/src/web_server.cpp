@@ -24,24 +24,25 @@
 
 #define DISPLAY_STATE
 
-#define HTTP_MAX_ENDPOINTS  (9)
+#define HTTP_MAX_ENDPOINTS  (10)
 #define HTTP_DEFAULT_PORT   (80)
 #define HTTP_CONTROL_PORT   (32768)
 #define HTTP_MAX_HEADERS    (16)
 #define HTTP_MAX_SOCKETS    (7)
 
 const WebServerURI WebServer::web_uri_tab[HTTP_MAX_ENDPOINTS] = {
-    { WEB_KEY_ROOT,            HTTP_GET, WebServer::_root_handler    },
-    { WEB_KEY_CONFIG_ROOT,     HTTP_GET, WebServer::_root_handler    },
-    { WEB_KEY_UPDATE_ROOT,     HTTP_GET, WebServer::_root_handler    },
+    { WEB_KEY_ROOT,         HTTP_GET,  WebServer::_root_handler    },
+    { WEB_KEY_CONFIG_ROOT,  HTTP_GET,  WebServer::_root_handler    },
+    { WEB_KEY_UPDATE_ROOT,  HTTP_GET,  WebServer::_root_handler    },
 
-    { WEB_KEY_SENSOR_RESPONSE, HTTP_GET, WebServer::_api_handler     },
-    { WEB_KEY_ID_RESPONSE,     HTTP_GET, WebServer::_api_handler     },
-    { WEB_KEY_CONFIG_API,      HTTP_GET, WebServer::_api_handler     },
-    { WEB_KEY_CONFIG_API,      HTTP_PUT, WebServer::_api_handler     },
-    { WEB_KEY_UPDATE_API,      HTTP_PUT, WebServer::_api_handler     },
+    { WEB_KEY_API_SENSORS,  HTTP_GET,  WebServer::_api_handler     },
+    { WEB_KEY_API_IDENTIFY, HTTP_GET,  WebServer::_api_handler     },
+    { WEB_KEY_API_CONFIG,   HTTP_GET,  WebServer::_api_handler     },
+    { WEB_KEY_API_CONFIG,   HTTP_PUT,  WebServer::_api_handler     },
+    { WEB_KEY_API_UPDATE,   HTTP_PUT,  WebServer::_api_handler     },
+    { WEB_KEY_API_REBOOT,   HTTP_GET,  WebServer::_api_handler     },
 
-    { WEB_KEY_FAVICON,         HTTP_GET, WebServer::_favicon_handler },
+    { WEB_KEY_FAVICON,      HTTP_GET,  WebServer::_favicon_handler },
 };
 
 const char* WebServer::favicon_svg =    "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" "

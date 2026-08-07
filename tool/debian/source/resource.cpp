@@ -87,14 +87,14 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
 
         "Program device",
         "Reset device",
-        "Initialize device",
+        "Initialize device (TTY only)",
         "loading ...",
         "Connected",
         "Not connected",
         "Scanning ports ...",
         "Initializing ...",
         "Reload data",
-        "Firmware upload",
+        "Firmware upload (IP only)",
         "Execute command",
         
         "No connected device found!\n\nPlease connect a device first and ensure\nthat the config interface is enabled.",

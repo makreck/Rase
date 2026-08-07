@@ -109,7 +109,7 @@ void ConfigInterface::handle_wifi_setup(ConfigInterface* instance, int mode, con
 
     char ssid[32]{ 0 };
     char pwd[64]{ 0 };
-    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_WIFI_SETUP, ssid, sizeof (ssid), nullptr, 0, pwd, sizeof (pwd));
+    ConfigInterface::extract_link_pwd(data, length, TTY_KEY_WIFI_SETUP, ssid, sizeof (ssid), nullptr, 0, pwd, sizeof (pwd));
 
     cfg->set_ssid(ssid);
     cfg->set_password(pwd);
@@ -216,7 +216,7 @@ void ConfigInterface::handle_mqtt_broker(ConfigInterface* instance, int mode, co
     char broker[64]{ 0 };
     char username[32]{ 0 };
     char pwd[64]{ 0 };
-    ConfigInterface::extract_link_pwd(data, length, CFG_KEY_MQTT_BROKER,
+    ConfigInterface::extract_link_pwd(data, length, TTY_KEY_MQTT_BROKER,
         broker, sizeof (broker), username, sizeof (username), pwd, sizeof (pwd));
 
     cfg->set_mqtt_broker(broker);
@@ -282,12 +282,12 @@ void ConfigInterface::handle_par(ConfigInterface* _instance, int _mode, const ch
     char key[32]{ 0 };
     char value[32]{ 0 };
 
-    char* p = strstr(_data, CFG_KEY_PAR);
+    char* p = strstr(_data, TTY_KEY_PAR);
     if (p == nullptr) {
         return;
     }
 
-    p = &p[strlen(CFG_KEY_PAR)];
+    p = &p[strlen(TTY_KEY_PAR)];
     if (*p != '=') {
         return;
     }

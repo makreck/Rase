@@ -294,12 +294,12 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
         return (false);
     }
 
-    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, WEB_KEY_UPDATE_API, _ip_addr, _size);
+    ssize_t req_len = snprintf(nullptr, 0, ota_put_req_string, WEB_KEY_API_UPDATE, _ip_addr, _size);
     char* request = (char*)malloc(req_len + 2);
     if (request == nullptr) {
         return (false);
     }
-    snprintf(request, req_len + 1, ota_put_req_string, WEB_KEY_UPDATE_API, _ip_addr, _size);
+    snprintf(request, req_len + 1, ota_put_req_string, WEB_KEY_API_UPDATE, _ip_addr, _size);
 
     ssize_t sent_len = send(fd, request, req_len, 0);
     free(request);
@@ -364,14 +364,14 @@ void* IPDevice::_scanner_thread(void* _object) {
 void IPDevice::scanner_thread(const char* _host_addr) {
     DevConfig* device = new DevConfig();
 
-    char* id_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_ID_RESPONSE, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+    char* id_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_API_IDENTIFY, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
     if (id_buffer != nullptr) {
         char* json_start = get_http_json_payload_begin(id_buffer);
         device->parse_id_json(json_start);
         free(id_buffer);
     }
 
-    char* cfg_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_CONFIG_API, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+    char* cfg_buffer = IPDevice::transact_http_request(_host_addr, WEB_KEY_API_CONFIG, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
     if (cfg_buffer != nullptr) {
         char* json_start = get_http_json_payload_begin(cfg_buffer);
         device->parse_config_json(json_start);

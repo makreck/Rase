@@ -21,23 +21,30 @@
 
 #pragma once
 
+
+// Endpoints over HTTP
+
 #define WEB_KEY_ROOT             "/"
 #define WEB_KEY_CONFIG_ROOT      "/config"
 #define WEB_KEY_UPDATE_ROOT      "/update"
 #define WEB_KEY_FAVICON          "/favicon.ico"
 
-#define WEB_KEY_SENSOR_RESPONSE  "/api/sensors"
-#define WEB_KEY_ID_RESPONSE      "/api/id"
-#define WEB_KEY_CONFIG_API       "/api/config"
-#define WEB_KEY_UPDATE_API       "/api/update"
+#define WEB_KEY_API_SENSORS      "/api/sensors"
+#define WEB_KEY_API_IDENTIFY     "/api/id"
+#define WEB_KEY_API_CONFIG       "/api/config"
+#define WEB_KEY_API_REBOOT       "/api/reboot"
+#define WEB_KEY_API_UPDATE       "/api/update"
 
-#define CFG_KEY_WEBSITE_RESPONSE "/root"
-#define CFG_KEY_SENSOR_RESPONSE  "/api/sensors"
-#define CFG_KEY_ID_RESPONSE      "/api/id"
-#define CFG_KEY_WIFI_SETUP       "/connect"
-#define CFG_KEY_MQTT_BROKER      "/broker"
-#define CFG_KEY_CONFIG           "/config"
-#define CFG_KEY_INITIALIZE       "/initialize"
-#define CFG_KEY_REBOOT           "/reboot"
-#define CFG_KEY_PAR              "/par"
-#define CFG_KEY_TEST             "/test"
+// Endpoints over TTY
+
+#define TTY_KEY_WEBSITE          "/root"
+#define TTY_KEY_WIFI_SETUP       "/connect"
+#define TTY_KEY_MQTT_BROKER      "/broker"
+#define TTY_KEY_PAR              "/par"
+#define TTY_KEY_TEST             "/test"
+
+#define TTY_KEY_API_SENSORS      "/api/sensors"
+#define TTY_KEY_API_IDENTIFY     "/api/id"
+#define TTY_KEY_API_CONFIG       "/api/config"
+#define TTY_KEY_API_REBOOT       "/api/reboot"
+#define TTY_KEY_API_INITIALIZE   "/api/initialize"

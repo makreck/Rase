@@ -24,9 +24,9 @@
 
 // #define DISPLAY_STATE
 
-const char* intrinsic_date_month_names[] = { "not-a-month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
+const char* Tools::intrinsic_date_month_names[] = { "not-a-month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
 
-const char* device_id_json =
+const char* Tools::device_id_json =
     "{\n"
     "\t\"identification\": \"" SENSOR_ID "\",\n"
     "\t\"manufacturer\": \"" MANUFACTURER_ID "\",\n"
@@ -46,6 +46,11 @@ const char* device_id_json =
     "\t\"system_time\": \"%s\"\n"
     "}\n";
 
+const char* Tools::reboot_json =
+    "{\n"
+    "\t\"device_serial_number\": \"%s\",\n"
+    "\t\"reboot_time_stamp\": \"%s\"\n"
+    "}\n";
 
 size_t Tools::get_device_serial_number(char* buffer, size_t size) {
     uint8_t mac[6];
@@ -59,6 +64,23 @@ size_t Tools::get_device_serial_number(char* buffer, size_t size) {
         return (length);
     }
     return (0);
+}
+
+char* Tools::get_reboot_json(void) {
+    char device_serial_number[22]{0};
+    char system_time_string[32]{ 0 };
+
+    Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
+    Tools::get_timestamp(system_time_string, sizeof (system_time_string));
+
+    size_t length = snprintf(nullptr, 0, reboot_json, device_serial_number, system_time_string);
+
+    char* json_string = (char*)malloc(length + 1);
+
+    snprintf(json_string, length + 1, reboot_json, device_serial_number, system_time_string);
+
+    return (json_string);
+
 }
 
 char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
@@ -309,3 +331,4 @@ const esp_partition_t* Tools::get_next_ota_partition(void) {
 
     return (target_partition);
 }
+

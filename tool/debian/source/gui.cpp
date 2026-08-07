@@ -436,7 +436,7 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_PROGRAM_DEV: {
             size_t length = 0;
-            char* json_string = m.device.get_config_json("/config=", &length);
+            char* json_string = m.device.get_config_json(TTY_KEY_API_CONFIG "=", &length);
             if (json_string != nullptr) {
                 char* response = EspTool::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
@@ -448,7 +448,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_RESET_DEVICE: {
-            char* response = EspTool::transact_command(m.ifac, "/reboot");
+            char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_REBOOT);
             if (response != nullptr) {
                 free(response);
             }
@@ -456,7 +456,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_INITIALIZE_DEVICE: {
-            char* response = EspTool::transact_command(m.ifac, "/initialize");
+            char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_INITIALIZE);
             if (response != nullptr) {
                 free(response);
             }
@@ -465,14 +465,6 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_FIRMWARE_UPLOAD: {
             update_all_devices();
-            // if (m.loader_thread != 0) {
-            //     pthread_join(m.loader_thread, nullptr);
-            //     m.loader_thread = 0;
-            // }
-            // const char* firmware_file = find_matching_firmware_image(m.device.ip_ifac);
-            // if (firmware_file != nullptr) {
-            //     m.loader_thread = IPDevice::firmware_loader(m.device.ip_ifac, firmware_file, App::_gui_status, this);
-            // }
         }
         break;
 
