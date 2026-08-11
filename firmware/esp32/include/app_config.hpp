@@ -25,6 +25,28 @@
 //#define SEEED_XIAO_S3
 //#define ESP32_S3_ZERO
 //#define ESP32_S3_WROOM_1
+//#define ESP32_S3_ALKS_MINI
+
+
+#ifdef ESP32_S3_ALKS_MINI
+    #define CHIP_TYPE "diymore ESP32-S3 "
+    #define ESP32_S2S3
+
+    //#define _HAS_BOARD_LED
+    //#define _HAS_RGB_LED
+    #define _HAS_NEOPIXEL_LED
+    //#define _BOARD_LED_INVERTED
+
+    #define _ENABLE_LCD
+    #define _ENABLE_BUTTON
+    //#define _ENABLE_SD_CARD
+    #define _ENABLE_USB_CDC
+    //#define _ENABLE_COM1
+    #define _ENABLE_COM2
+    #define _ENABLE_WIFI
+    //#define _ENABLE_BLUETOOTH
+#endif
+
 
 #ifdef SEEED_XIAO_S3
     #define CHIP_TYPE "Seeed Studio XIAO ESP32-S3"
