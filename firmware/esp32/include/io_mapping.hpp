@@ -25,7 +25,7 @@
 
 #define ESP32_BOOT_BUTTON       (GPIO_NUM_18)
 #define ESP32_ALT_BUTTON1       (GPIO_NUM_8)
-#define ESP32_ALT_BUTTON2       (GPIO_NUM_9)
+#define ESP32_ALT_BUTTON2       (GPIO_NUM_NC)
 #define BOOTLOADER_TXD_UART0    (GPIO_NUM_NC) // direct pin, no GPIO
 #define BOOTLOADER_RXD_UART0    (GPIO_NUM_NC) // direct pin, no GPIO
 
@@ -43,7 +43,7 @@
 #define SENSOR_PORT_SCL         (GPIO_NUM_11)
 
 #define SENSOR_DAC_0            (GPIO_NUM_3)
-#define SENSOR_DAC_1            (GPIO_NUM_NC)
+#define SENSOR_DAC_1            (GPIO_NUM_9)
 
 #define LED_DEVBOARD_PIN        (GPIO_NUM_NC)
 #define RGBLED_PIN_R            (GPIO_NUM_NC)
