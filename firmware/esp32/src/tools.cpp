@@ -52,6 +52,17 @@ const char* Tools::reboot_json =
     "\t\"reboot_time_stamp\": \"%s\"\n"
     "}\n";
 
+const char* Tools::partition_info_json =
+    "{\n"
+    "\t\"label\": \"%s\",\n"
+    "\t\"size\": \"%zu\",\n"
+    "\t\"size_mb\": \"%.1f\",\n"
+    "\t\"chip-id\": \"0x%-8.8X\",\n"
+    "\t\"chip-size\": \"%zu\",\n"
+    "\t\"chip-size_mb\": \"%.1f\",\n"
+    "}\n";
+
+
 size_t Tools::get_device_serial_number(char* buffer, size_t size) {
     uint8_t mac[6];
     if (esp_efuse_mac_get_default(mac) == ESP_OK) {
@@ -80,7 +91,6 @@ char* Tools::get_reboot_json(void) {
     snprintf(json_string, length + 1, reboot_json, device_serial_number, system_time_string);
 
     return (json_string);
-
 }
 
 char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
@@ -332,3 +342,20 @@ const esp_partition_t* Tools::get_next_ota_partition(void) {
     return (target_partition);
 }
 
+char* Tools::get_partition_info(void) {
+    const esp_partition_t* partition = esp_ota_get_running_partition();
+    if (partition == nullptr) { return (nullptr); }
+
+    float part_size_mb = (float)partition->size / 1024.0f / 1024.0f;
+    float chip_size_mb = (float)partition->flash_chip->size / 1024.0f / 1024.0f;
+    
+    size_t length = snprintf(nullptr, 0, partition_info_json,
+        partition->label, partition->size, part_size_mb, (unsigned int)partition->flash_chip->chip_id, partition->flash_chip->size, chip_size_mb);
+    char* json_string = (char*)malloc(length + 1);
+    if (json_string != nullptr) {
+        snprintf(json_string, length + 1, partition_info_json, 
+            partition->label, partition->size, part_size_mb, (unsigned int)partition->flash_chip->chip_id, partition->flash_chip->size, chip_size_mb);
+    }
+
+    return (json_string);
+}

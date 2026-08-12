@@ -28,6 +28,7 @@ class Tools {
         static const char* intrinsic_date_month_names[13];
         static const char* device_id_json;
         static const char* reboot_json;
+        static const char* partition_info_json;
 
     public:
         static char* get_reboot_json(void);
@@ -45,4 +46,5 @@ class Tools {
         static size_t json_get(const char* json_data, const char* _key, char* _buffer, size_t _length);
         static float string2number(const char* _string);
         static const esp_partition_t* get_next_ota_partition(void);
+        static char* get_partition_info(void);
 };

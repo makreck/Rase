@@ -310,15 +310,7 @@ void ConfigInterface::handle_par(ConfigInterface* _instance, int _mode, const ch
 }
 
 void ConfigInterface::handle_test(ConfigInterface* _instance, int _mode, const char* _data, size_t _length) {
-    Tools::get_next_ota_partition();
-
-    // const char* s;
-    // s = " 35,2°";   ESP_LOGI(TAG, "1. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "35.2°";    ESP_LOGI(TAG, "2. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "3,500.25"; ESP_LOGI(TAG, "3. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "-11";      ESP_LOGI(TAG, "4. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "-11.1";    ESP_LOGI(TAG, "5. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "23 24 25"; ESP_LOGI(TAG, "6. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "0x1000";   ESP_LOGI(TAG, "7. \"%s\" = %.3f ", s, Tools::string2number(s));
-    // s = "100%";     ESP_LOGI(TAG, "8. \"%s\" = %.3f ", s, Tools::string2number(s));
+    char* json_string = Tools::get_partition_info();
+    printf("\n%s\n", json_string);
+    free(json_string);
 }
