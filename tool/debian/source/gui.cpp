@@ -486,14 +486,18 @@ const char* App::find_matching_firmware_image(const char* _ifac) {
     for (DevConfig *&entry : m.device_list) {
         if (entry != nullptr) {
             if (strcmp(entry->ip_ifac, _ifac) == 0) {
-                if (!strcmp(entry->id.chip_type, "ESP32-S3 Wroom")) {
+                if (strstr(entry->id.chip_type, "ESP32-S3 Wroom") != nullptr) {
                     return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
                 
-                } else if (!strcmp(entry->id.chip_type, "Seeed Studio XIAO ESP32-S3")) {
+                } else if (strstr(entry->id.chip_type, "Seeed Studio XIAO ESP32-S3") != nullptr) {
                     return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
                 
-                } else if (!strcmp(entry->id.chip_type, "Waveshare ESP32-S3 mini")) {
+                } else if (strstr(entry->id.chip_type, "Waveshare ESP32-S3 mini") != nullptr) {
                     return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
+
+                } else if (strstr(entry->id.chip_type, "diymore ESP32-S3 ") != nullptr) {
+                    return ("./firmware_images/image_alks_esp32s3_mini.bin");
+
                 } else {
                     return (nullptr);
                 }
