@@ -29,7 +29,7 @@
 
 
 #ifdef ESP32_S3_ALKS_MINI
-    #define CHIP_TYPE "diymore ESP32-S3 "
+    #define CHIP_TYPE "diymore ESP32-S3"
     #define ESP32_S2S3
 
     //#define _HAS_BOARD_LED
