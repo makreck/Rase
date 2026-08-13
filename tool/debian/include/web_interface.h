@@ -38,13 +38,14 @@
 // Endpoints over TTY
 
 #define TTY_KEY_WEBSITE          "/root"
-#define TTY_KEY_WIFI_SETUP       "/connect"
-#define TTY_KEY_MQTT_BROKER      "/broker"
-#define TTY_KEY_PAR              "/par"
+#define TTY_KEY_WIFI_SETUP       "/connect="
+#define TTY_KEY_MQTT_BROKER      "/broker="
+#define TTY_KEY_PAR              "/par="
 #define TTY_KEY_TEST             "/test"
 
 #define TTY_KEY_API_SENSORS      "/api/sensors"
 #define TTY_KEY_API_IDENTIFY     "/api/id"
-#define TTY_KEY_API_CONFIG       "/api/config"
+#define TTY_KEY_API_CONFIG_GET   "/api/config"
+#define TTY_KEY_API_CONFIG_PUT   "/api/config="
 #define TTY_KEY_API_REBOOT       "/api/reboot"
 #define TTY_KEY_API_INITIALIZE   "/api/initialize"
