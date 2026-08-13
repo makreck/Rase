@@ -329,7 +329,7 @@ bool EspTool::find_tty_devices(std::vector<DevConfig*>* _device_list, pthread_mu
                 DevConfig* device = new DevConfig();
                 device->set_tty_interface(ifac[i]);
                 pthread_t thread_handle = 0;
-                if (pthread_create(&thread_handle, nullptr, EspTool::_scanner_thread, new ScanTTY(device, _device_list, _device_list_mutex))) {
+                if (pthread_create(&thread_handle, nullptr, EspTool::_scanner_thread, new ScanTTY(device, _device_list, _device_list_mutex)) == 0) {
                     threads[count++] = thread_handle;
                 }
             }
