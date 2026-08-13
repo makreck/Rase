@@ -165,6 +165,10 @@ void ConfigInterface::handle_website_output(ConfigInterface* instance, int mode,
 }
 
 void ConfigInterface::handle_restart(ConfigInterface* instance, int mode, const char* data, size_t length) {
+    char* reboot_json = Tools::get_reboot_json(); 
+    send(reboot_json, strlen(reboot_json));
+    free(reboot_json);
+
     AppEvent message = (mode == 9) ? AppEvent::factory_reset : AppEvent::reboot;
     esp_event_post(APP_EVENT, (int32_t)message, nullptr, 0, pdMS_TO_TICKS(1));
 }
