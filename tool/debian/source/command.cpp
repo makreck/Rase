@@ -100,11 +100,11 @@ void App::get_options(void) {
 }
 
 void App::find_interfaces(void) {
-    if (m.flags.b.use_ip == 1) {
+    if ((m.flags.b.use_ip == 1) || (m.flags.b.all_devices == 1)) {
         m.ip_device.start_scan(&m.device_list, &m.device_list_mutex);
     }
 
-    if (m.flags.b.use_tty == 1) {
+    if ((m.flags.b.use_tty == 1) || (m.flags.b.all_devices == 1)) {
         EspTool::find_tty_devices(&m.device_list, &m.device_list_mutex);
     }
 
@@ -144,31 +144,44 @@ void App::run_single_command(const char* _cmd) {
 
         if (cmd_string != nullptr) {
             const char* ifac = nullptr;
+            int mode = 0;
 
             if (m.flags.b.all_devices == 1) {
                 if ((entry->tty_ifac[0] != 0) && (strstr(_cmd, WEB_KEY_API_UPDATE) == nullptr)) {
                     ifac = entry->tty_ifac;
+                    mode = 1;
                 } else if (entry->ip_ifac[0] != 0) {
                     ifac = entry->ip_ifac;
+                    mode = 2;
                 }
             } else if (m.flags.b.use_tty == 1) {
                 if ((entry->tty_ifac[0] != 0) && (strstr(_cmd, WEB_KEY_API_UPDATE) == nullptr)) {
                     ifac = entry->tty_ifac;
+                    mode = 1;
                 }
             } else if (m.flags.b.use_ip == 1) {
                 if (entry->ip_ifac[0] != 0) {
                     ifac = entry->ip_ifac;
+                    mode = 2;
                 }
             }
 
-            printf("--> Performing command \"%s\" on interface \"%s\"\n", _cmd, ifac); // ****
+            if (mode > 0) {
+                printf("--> Performing command \"%s\" on interface \"%s\"\n", _cmd, ifac); // ****
 
-            char* response = EspTool::transact_command(ifac, cmd_string);
-            free(cmd_string);
+                char* response = nullptr;
+                if (mode == 1) {
+                    response = EspTool::transact_command(ifac, cmd_string);
+                } else if (mode == 2) {
+                    response = IPDevice::transact_http_request(ifac, _cmd, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+                }
 
-            if (response != nullptr) {
-                handle_transaction_result(response);
-                free(response);
+                free(cmd_string);
+
+                if (response != nullptr) {
+                    handle_transaction_result(response);
+                    free(response);
+                }
             }
         }
     }

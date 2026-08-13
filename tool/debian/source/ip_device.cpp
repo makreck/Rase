@@ -385,9 +385,6 @@ void IPDevice::scanner_thread(const char* _host_addr) {
                 delete (device);
             }
         } pthread_mutex_unlock(m.device_list_mutex);
-
-
-
     } else {
         delete (device);
     }

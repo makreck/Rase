@@ -75,21 +75,19 @@ class IPDevice {
         static void* _scanner_thread(void* _object);
         void scanner_thread(const char* _host_addr);
 
-        static char* get_http_json_payload_begin(char *buffer);
-        static bool  poll_socket(int _sock, uint32_t _timeout_ms);
-        static int   get_available_data_length(int _sock);
-        static void  cleanup_handler(void* arg);
-        static bool  ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
-        static void* _loader_thread(void* _object);
-
-        void    set_socket_timeout(int _sock, uint32_t _timeout_ms);
-        char*   format_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
-        ssize_t send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from);
-        char*   read_http_headers(int _sock, uint32_t _timeout_ms);
-        int     parse_http_headers(char* _headers, const char* _accept_from);
-        char*   read_http_body(int _sock, int _content_len);
-        char*   read_http_response(int _sock, const char* _accept_from, uint32_t _timeout_ms);
-        char*   transact_http_request(const char* _host_addr, const char* _json_request, const char* _accept_from, uint32_t _timeout_ms);
+        static char*   get_http_json_payload_begin(char *buffer);
+        static bool    poll_socket(int _sock, uint32_t _timeout_ms);
+        static int     get_available_data_length(int _sock);
+        static void    cleanup_handler(void* arg);
+        static bool    ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
+        static void*   _loader_thread(void* _object);
+        static ssize_t send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from);
+        static char*   format_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
+        static void    set_socket_timeout(int _sock, uint32_t _timeout_ms);
+        static char*   read_http_headers(int _sock, uint32_t _timeout_ms);
+        static int     parse_http_headers(char* _headers, const char* _accept_from);
+        static char*   read_http_body(int _sock, int _content_len);
+        static char*   read_http_response(int _sock, const char* _accept_from, uint32_t _timeout_ms);
 
     public:
         IPDevice() {
@@ -100,6 +98,7 @@ class IPDevice {
             cleanup();
         }
 
+        static char* transact_http_request(const char* _host_addr, const char* _json_request, const char* _accept_from, uint32_t _timeout_ms);
         static pthread_t firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
 
         bool start_scan(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex);
