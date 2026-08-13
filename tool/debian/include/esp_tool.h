@@ -27,6 +27,8 @@
 
 class DevConfig;
 
+typedef bool (*OTALoaderCB)(void* _user_param, const char* _topic, const char* _message);
+
 
 class ScanTTY {
     public:
@@ -53,10 +55,44 @@ class EspTool {
         static bool load_binary(const char* _filename, uint8_t** _image, ssize_t* _length);
         static bool open_interface(const char* _ifac, int& _fd);
         static bool close_interface(int& _fd);
-        static char* allocate_command(char* _cmd);
+        static char* allocate_command(const char* _cmd);
         static char* transact_command(const char* _ifac, const char* _cmd);
         static bool read_config(const char* _ifac, DevConfig* _dev);
         static bool read_id(const char* _ifac, DevConfig* _dev);
         static bool read_data(const char* _ifac, DevConfig* _dev);
+        static const char* find_matching_firmware_image(const char* _chip_type);
+        static void update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
 };
 
+class OTAParms {
+    public:
+        char        ifac[PATH_MAX]{ 0 };
+        char        filename[PATH_MAX]{ 0 };
+
+        OTALoaderCB callback     = nullptr;
+        void*       user_param   = nullptr;
+
+        uint8_t*    image_data   = nullptr;
+        ssize_t     image_length = 0;
+
+        OTAParms(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr) {
+            if (_ifac != nullptr) {
+                strncpy(ifac, _ifac, sizeof (ifac) - 1);
+            }
+
+            if (_filename != nullptr) {
+                strncpy(filename, _filename, sizeof (filename) - 1);
+                EspTool::load_binary(filename, &image_data, &image_length);
+            }
+
+            callback   = _callback;
+            user_param = _user_param;
+        }
+
+        ~OTAParms() {
+            if (image_data != nullptr) {
+                free (image_data);
+            }
+        }
+
+};

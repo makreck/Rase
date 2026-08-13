@@ -170,7 +170,7 @@ bool EspTool::close_interface(int& _fd) {
     return (true);
 }
 
-char* EspTool::allocate_command(char* _cmd) {
+char* EspTool::allocate_command(const char* _cmd) {
     ssize_t size = strlen(_cmd) + 2;
     char* command_string = (char *)malloc(size);
     if (command_string == nullptr) {
@@ -276,7 +276,7 @@ char* EspTool::transact_command(const char* _ifac, const char* _cmd) {
 
 bool EspTool::read_config(const char* _ifac, DevConfig* _dev) {
     if (_dev != nullptr) {
-        char* config_json = EspTool::transact_command(_ifac, TTY_KEY_API_CONFIG);
+        char* config_json = EspTool::transact_command(_ifac, TTY_KEY_API_CONFIG_GET);
         if (config_json != nullptr) {
             _dev->parse_config_json(config_json);
             free(config_json);
@@ -360,4 +360,57 @@ void* EspTool::_scanner_thread(void* _object) {
 
     delete (scan);
     return (nullptr);
+}
+
+const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
+    if (_chip_type == nullptr) {
+        return (nullptr);
+    }
+
+    const char* firmware_file = nullptr;
+
+    if (strstr(_chip_type, "ESP32-S3 Wroom") != nullptr) {
+        firmware_file = "./firmware_images/image_esp32-s3-devkitc-1.bin";
+    } else if (strstr(_chip_type, "Seeed Studio XIAO ESP32-S3") != nullptr) {
+        return firmware_file = "./firmware_images/image_seeed_xiao_esp32s3.bin";
+    } else if (strstr(_chip_type, "Waveshare ESP32-S3 mini") != nullptr) {
+        firmware_file = "./firmware_images/image_waveshare_esp32s3_mini.bin";
+    } else if (strstr(_chip_type, "diymore ESP32-S3 ") != nullptr) {
+        firmware_file = "./firmware_images/image_alks_esp32s3_mini.bin";
+    }
+
+    // ****
+    printf("---> Firmware matching for chip type \"%s\" is \"%s\"\n",
+        _chip_type, (firmware_file != nullptr) ? firmware_file : "---");
+
+    return (firmware_file);
+}
+
+void EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
+    std::vector<pthread_t> threads;
+
+    for (DevConfig *&entry : _device_list) {
+        if (entry != nullptr) {
+            if (entry->ip_ifac[0] != '\0') {
+                const char* firmware_file = EspTool::find_matching_firmware_image(entry->id.chip_type);
+                if (firmware_file != nullptr) {
+                    threads.push_back(IPDevice::firmware_loader(entry->ip_ifac, firmware_file, _callback, _user_param));
+                }
+            }
+        }
+    }
+
+    int count = (int)threads.size();
+    for (pthread_t& handle : threads) {
+        // char message[32]{ 0 };
+        // snprintf(message, sizeof (message), "%d devices", count);
+        // set_status(nullptr, nullptr, "waiting", message);
+        
+        if (handle != 0) {
+            pthread_join(handle, nullptr);
+            handle = 0;
+            count--;
+        }
+    }
+    threads.clear();
 }

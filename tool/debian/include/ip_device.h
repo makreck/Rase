@@ -54,42 +54,6 @@ class SockAddrIn : public sockaddr_in {
         }
 };
 
-
-typedef bool (*OTALoaderCB)(void* _user_param, const char* _topic, const char* _message);
-
-class OTAParms {
-    public:
-        char        ifac[PATH_MAX]{ 0 };
-        char        filename[PATH_MAX]{ 0 };
-
-        OTALoaderCB callback     = nullptr;
-        void*       user_param   = nullptr;
-
-        uint8_t*    image_data   = nullptr;
-        ssize_t     image_length = 0;
-
-        OTAParms(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr) {
-            if (_ifac != nullptr) {
-                strncpy(ifac, _ifac, sizeof (ifac) - 1);
-            }
-
-            if (_filename != nullptr) {
-                strncpy(filename, _filename, sizeof (filename) - 1);
-                EspTool::load_binary(filename, &image_data, &image_length);
-            }
-
-            callback   = _callback;
-            user_param = _user_param;
-        }
-
-        ~OTAParms() {
-            if (image_data != nullptr) {
-                free (image_data);
-            }
-        }
-
-};
-
 class IPDevice {
     private:
         struct {

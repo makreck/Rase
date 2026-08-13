@@ -71,6 +71,22 @@ class App {
                 GdkRectangle client;
             } rc;
 
+            union {
+                uint32_t w = 0;
+                struct {
+                    uint32_t use_tty     : 1;
+                    uint32_t use_ip      : 1;
+                    uint32_t all_devices : 1;
+                    uint32_t reserved_0  : 5;
+
+                    uint32_t reserved_1  : 8;
+
+                    uint32_t reserved_2  : 8;
+
+                    uint32_t n_options   : 8;
+                } b;
+            } flags;
+
             int toolIconSize = 28;
             bool update_request = false;
             pthread_t thread_handle = 0;
@@ -148,13 +164,15 @@ class App {
         void app_menu_display_contrast(int _item_id);
         void app_menu_led_intensity(int _item_id);
 
-        void run_command(char* cmd);
-        char* load_config_json(char* cmd);
+        void get_options(void);
+        void find_interfaces(void);
+        void run_command(void);
+        void run_single_command(const char* cmd);
+        char* load_config_json(const char* cmd);
         void handle_transaction_result(char* result);
         
-        const char* find_matching_firmware_image(const char* _ifac);
         void delete_device_list(void);
-        void update_all_devices(void);
+
 
     public:
         App(int argc, char* argv[]) {
