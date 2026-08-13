@@ -56,25 +56,27 @@ void App::print_help(void) {
     printf("Usage:\n");
     printf("\tGUI: \"./fcmd\" without options or command line\n");
     printf("\tCmd: \"./fcmd [options] command\"\n");
+    printf("Supported options:\n");
+    printf("\t-t or --tty\t\tUse devices on tty interface, /dev/ttyACM[0...99] or /dev/ttyUSB[0...99]\n");
+    printf("\t-i or --ip\t\tUse devices on IP interface, 192.168.178.1 to 192.168.178.254\n");
+    printf("\t-a or --all\t\tUse all connected devices found on tty or IP interfaces.\n");
     printf("Supported commands:\n");
-    printf("\t\"/connect=<ssid>:<password>\"\tConnect to a WLAN access point.\n");
+    printf("\t\"/connect=<ssid>:<password>\"\t\t\tConnect to a WLAN access point.\n");
     printf("\t\"/broker=<MQTT broker>:<username>:<password>\"\tConfigure a MQTT broker/server link.\n");
-    printf("\t\"/config=<JSON.file>\"\t\tConfigure device by given JSON file.\n");
-    printf("\t\"/par=JSON.key:JSON.value\"\t\tSet a single parameter by given key. All keys of config JSON are supported.\n");
-    printf("\t\"/initialize\"\t\t\tPerform a factory reset.\n");
-    printf("\t\"/reboot\"\t\t\tReboot the device.\n");
-    printf("\t\"/root\"\t\t\t\tQuery the root website source.\n");
-    printf("\t\"/api/id\"\t\t\tQuery the senosr identification data (JSON).\n");
-    printf("\t\"/api/sensors\"\t\t\tQuery the latest measurement (JSON).\n");
+    printf("\t\"/config=<JSON.file>\"\t\t\t\tConfigure device by given JSON file.\n");
+    printf("\t\"/par=JSON.key:JSON.value\"\t\t\tSet a single parameter by given key. All keys of config JSON are supported.\n");
+    printf("\t\"/initialize\"\t\t\t\t\tPerform a factory reset.\n");
+    printf("\t\"/reboot\"\t\t\t\t\tReboot the device.\n");
+    printf("\t\"/root\"\t\t\t\t\t\tQuery the root website source.\n");
+    printf("\t\"/api/id\"\t\t\t\t\tQuery the senosr identification data (JSON).\n");
+    printf("\t\"/api/sensors\"\t\t\t\t\tQuery the latest measurement (JSON).\n");
 }
 
 void App::run(void) {
     if (m.argc < 2) {
         run_gui();
     } else {
-        for (int i = 1; i < m.argc; i++) {
-            run_command(m.argv[i]);
-        }
+        run_command();
     }
 }
 
