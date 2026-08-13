@@ -436,7 +436,7 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_PROGRAM_DEV: {
             size_t length = 0;
-            char* json_string = m.device.get_config_json(TTY_KEY_API_CONFIG "=", &length);
+            char* json_string = m.device.get_config_json(TTY_KEY_API_CONFIG_PUT, &length);
             if (json_string != nullptr) {
                 char* response = EspTool::transact_command(m.ifac, json_string);
                 if (response != nullptr) {
@@ -464,7 +464,7 @@ void App::idle_task(CallbackParameter* p) {
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
-            update_all_devices();
+            EspTool::update_all_devices(m.device_list, App::_gui_status, this);
         }
         break;
 
@@ -480,58 +480,4 @@ void App::idle_task(CallbackParameter* p) {
         default: {
         } break;
     }
-}
-
-const char* App::find_matching_firmware_image(const char* _ifac) {
-    for (DevConfig *&entry : m.device_list) {
-        if (entry != nullptr) {
-            if (strcmp(entry->ip_ifac, _ifac) == 0) {
-                if (strstr(entry->id.chip_type, "ESP32-S3 Wroom") != nullptr) {
-                    return ("./firmware_images/image_esp32-s3-devkitc-1.bin");
-                
-                } else if (strstr(entry->id.chip_type, "Seeed Studio XIAO ESP32-S3") != nullptr) {
-                    return ("./firmware_images/image_seeed_xiao_esp32s3.bin");
-                
-                } else if (strstr(entry->id.chip_type, "Waveshare ESP32-S3 mini") != nullptr) {
-                    return ("./firmware_images/image_waveshare_esp32s3_mini.bin");
-
-                } else if (strstr(entry->id.chip_type, "diymore ESP32-S3 ") != nullptr) {
-                    return ("./firmware_images/image_alks_esp32s3_mini.bin");
-
-                } else {
-                    return (nullptr);
-                }
-            }
-        }
-    }
-    return (nullptr);
-}
-
-void App::update_all_devices(void) {
-    std::vector<pthread_t> threads;
-
-    for (DevConfig *&entry : m.device_list) {
-        if (entry != nullptr) {
-            if (entry->ip_ifac[0] != '\0') {
-                const char* firmware_file = find_matching_firmware_image(entry->ip_ifac);
-                if (firmware_file != nullptr) {
-                    threads.push_back(IPDevice::firmware_loader(entry->ip_ifac, firmware_file, App::_gui_status, this));
-                }
-            }
-        }
-    }
-
-    int count = (int)threads.size();
-    for (pthread_t& handle : threads) {
-        char message[32]{ 0 };
-        snprintf(message, sizeof (message), "%d devices", count);
-        set_status(nullptr, nullptr, "waiting", message);
-        
-        if (handle != 0) {
-            pthread_join(handle, nullptr);
-            handle = 0;
-            count--;
-        }
-    }
-    threads.clear();
 }
