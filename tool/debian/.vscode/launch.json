@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/fcmd",
-            "args": [ "-a", "/api/reboot" ],
+            "args": [ ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
