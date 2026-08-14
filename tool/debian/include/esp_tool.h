@@ -25,6 +25,12 @@
 #define MAX_TTY          (100)
 #define DEFAULT_BAUDRATE (B115200)
 
+#define FIRMWARE_CHIP_KEY_ESP32S3_DEVKIT_1              "ESP32-S3 Wroom"
+#define FIRMWARE_CHIP_KEY_SEEED_STUDIO_XIAO_ESP32S3     "Seeed Studio XIAO ESP32-S3"
+#define FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI        "Waveshare ESP32-S3 mini"
+#define FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI    "diymore ESP32-S3"
+
+
 class DevConfig;
 
 typedef bool (*OTALoaderCB)(void* _user_param, const char* _topic, const char* _message);

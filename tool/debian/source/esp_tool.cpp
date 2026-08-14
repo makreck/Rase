@@ -368,14 +368,13 @@ const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
     }
 
     const char* firmware_file = nullptr;
-
-    if (strstr(_chip_type, "ESP32-S3 Wroom") != nullptr) {
+    if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32S3_DEVKIT_1) != nullptr) {
         firmware_file = "./firmware_images/image_esp32-s3-devkitc-1.bin";
-    } else if (strstr(_chip_type, "Seeed Studio XIAO ESP32-S3") != nullptr) {
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_SEEED_STUDIO_XIAO_ESP32S3) != nullptr) {
         return firmware_file = "./firmware_images/image_seeed_xiao_esp32s3.bin";
-    } else if (strstr(_chip_type, "Waveshare ESP32-S3 mini") != nullptr) {
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI) != nullptr) {
         firmware_file = "./firmware_images/image_waveshare_esp32s3_mini.bin";
-    } else if (strstr(_chip_type, "diymore ESP32-S3 ") != nullptr) {
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI) != nullptr) {
         firmware_file = "./firmware_images/image_alks_esp32s3_mini.bin";
     }
 
