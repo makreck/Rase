@@ -401,10 +401,6 @@ void EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoade
 
     int count = (int)threads.size();
     for (pthread_t& handle : threads) {
-        // char message[32]{ 0 };
-        // snprintf(message, sizeof (message), "%d devices", count);
-        // set_status(nullptr, nullptr, "waiting", message);
-        
         if (handle != 0) {
             pthread_join(handle, nullptr);
             handle = 0;

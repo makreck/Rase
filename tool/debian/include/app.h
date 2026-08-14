@@ -38,9 +38,9 @@ class MenuTree {
 
 class StatusItem {
     public:
-        GtkWidget* widget   = nullptr;
+        GtkWidget* widget = nullptr;
         char       message[64]{ 0 };
-        bool       modified = true;
+        bool       modified = false;
 };
 
 class App {
@@ -89,7 +89,6 @@ class App {
 
             int toolIconSize = 28;
             bool update_request = false;
-            pthread_t thread_handle = 0;
             pthread_t loader_thread = 0;
             pthread_t scan_thread = 0;
 
@@ -146,7 +145,6 @@ class App {
         void handle_dialog_items(bool _setup);
         void handle_item_change(DialogItem* _item, bool _setup);
         void import_data(char* _json_string, KeyList* _key_list, size_t _size);
-        void update_status_items(void);
         void search_and_select(void);
 
         GtkWidget* add_grid(const char* _label, GtkWidget* _parent);

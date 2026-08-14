@@ -37,7 +37,7 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
 void App::activate(void) {
     create_gui();
     handle_dialog_items(true);
-    pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
+    // pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
 
     char message[32]{ 0 };
     snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
@@ -298,56 +298,19 @@ GtkWidget* App::create_statusbar(void) {
     return (m.gtk.status_box);
 }
 
-void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2, const char* _box_3) {
-    const char* items[4] = { _box_0, _box_1, _box_2, _box_3 };
-    for (int i = 0; i < 4; i++) {
-        if (items[i] != nullptr) {
-            if (strncmp(m.gtk.status[i].message, items[i], sizeof (m.gtk.status[i].message)) != 0) {
-                strncpy(m.gtk.status[i].message, items[i], sizeof (m.gtk.status[i].message) - 1);
-                m.gtk.status[i].modified = true;
-                m.update_request = true;
-            }
-        }
-    }
-    m.update_request = true;
-}
+// void* App::_interval_thread(void* _object) {
+//     APP_PTR(_object)->interval_thread();
+//     return (nullptr);
+// }
+// void App::interval_thread(void) {
+//     while (true) {
+//         usleep(250000);
+//         if (m.update_request) {
+//             m.update_request = false;
 
-void App::update_status_items(void) {
-    bool modified = false;
-    for (int i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
-        if (m.gtk.status[i].modified) {
-            m.gtk.status[i].modified = false;
-            gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
-            gtk_widget_queue_draw(m.gtk.status[i].widget);
-            modified = true;
-        }
-    }
-    if (modified) {
-        gtk_widget_show_all(m.gtk.win);
-    }
-}
-
-void* App::_interval_thread(void* _object) {
-    APP_PTR(_object)->interval_thread();
-    return (nullptr);
-}
-void App::interval_thread(void) {
-    while (true) {
-        usleep(250000);
-        if (m.update_request) {
-            m.update_request = false;
-            gdk_threads_add_idle(App::_idle_task, ON_ITEM(this, -1));
-        }
-    }
-}
-
-bool App::_gui_status(void* _user_param, const char* _topic, const char* _message) {
-    return (APP_PTR(_user_param)->gui_status(_topic, _message));
-}
-bool App::gui_status(const char* _topic, const char* _message) {
-    set_status(nullptr, nullptr, _topic, _message);
-    return (true);
-}
+//         }
+//     }
+// }
 
 void App::search_and_select(void) {
     if (m.scan_thread != 0) {
@@ -408,7 +371,14 @@ void App::idle_task(CallbackParameter* p) {
     int item_id = p->get_item_id();
     switch(item_id) {
         case -1: {
-            update_status_items();
+            for (size_t i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
+                if ((m.gtk.status[i].modified) && (m.gtk.status[i].widget != nullptr)) {
+                    m.gtk.status[i].modified = false;
+                    gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
+                    gtk_widget_queue_draw(m.gtk.status[i].widget);
+printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
+                }
+            }
         } break;
 
         case -2: {
@@ -481,3 +451,4 @@ void App::idle_task(CallbackParameter* p) {
         } break;
     }
 }
+

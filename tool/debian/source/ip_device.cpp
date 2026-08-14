@@ -268,6 +268,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
     if (_callback != nullptr) {
         const char* p = "Connect...";
         (*_callback)(_user_param, topic, p);
+        usleep(25000);
     }
 
     struct addrinfo* res = nullptr; 
@@ -326,6 +327,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
                 char string[64]{ 0 };
                 snprintf(string, sizeof (string), "%.0f%%, %zu / %zu", percent, i, _size);
                 (*_callback)(_user_param, topic, string);
+                usleep(25000);
             }
         }
     }
@@ -335,6 +337,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
     if (_callback != nullptr) {
         const char* p = "Complete.";
         (*_callback)(_user_param, topic, p);
+        usleep(25000);
     }
 
     return (true);
