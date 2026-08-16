@@ -385,7 +385,17 @@ const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
     return (firmware_file);
 }
 
-void EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
+void EspTool::wait_for_all_updates(std::vector<pthread_t> _threads) {
+    for (pthread_t& handle : _threads) {
+        if (handle != 0) {
+            pthread_join(handle, nullptr);
+            handle = 0;
+        }
+    }
+    _threads.clear();
+}
+
+std::vector<pthread_t> EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
     std::vector<pthread_t> threads;
 
     for (DevConfig *&entry : _device_list) {
@@ -399,13 +409,5 @@ void EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoade
         }
     }
 
-    int count = (int)threads.size();
-    for (pthread_t& handle : threads) {
-        if (handle != 0) {
-            pthread_join(handle, nullptr);
-            handle = 0;
-            count--;
-        }
-    }
-    threads.clear();
+    return (threads);
 }

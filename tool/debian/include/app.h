@@ -65,6 +65,7 @@ class App {
                 std::vector<GtkWidget*>  menu_items;
                 std::vector<DialogItem*> items;
                 StatusItem               status[4];
+                guint                    timer_id = 0;
             } gtk;
 
             struct {
@@ -98,6 +99,7 @@ class App {
             DevConfig device;
             pthread_mutex_t device_list_mutex = PTHREAD_MUTEX_INITIALIZER;
             std::vector<DevConfig*> device_list;
+            std::vector<pthread_t> update_threads;
         } m;
 
         static void print_help(void);
@@ -121,13 +123,15 @@ class App {
 
         static gboolean _idle_task(gpointer _callback_parameter);
         void idle_task(CallbackParameter* p);
-        static void* _interval_thread(void* _object);
-        void interval_thread(void);
+
         static void* _scan_thread(void* _object);
         void scan_thread(void);
 
-        static bool _gui_status(void* _user_param, const char* _topic, const char* _message);
-        bool gui_status(const char* _topic, const char* _message);
+        static bool _ota_status_callback(void* _user_param, float _progress, const char* _topic, const char* _message);
+        bool ota_status_callback(float _progress, const char* _topic, const char* _message);
+        static gboolean _status_task(gpointer _user_param);
+        gboolean status_task(void);
+        void begin_status_updates(void);
         
         void init(int argc, char* argv[]);
         void cleanup(void);

@@ -27,6 +27,7 @@ void App::run_gui(void) {
 
     m.gtkApp = gtk_application_new(nullptr, APP_FLAGS);
     g_signal_connect(m.gtkApp, "activate", G_CALLBACK(App::_activate), this);
+
     g_application_run(G_APPLICATION(m.gtkApp), m.argc, m.argv);
 }
 
@@ -37,13 +38,7 @@ gboolean App::_activate(GtkApplication* gtk, void* user_data) {
 void App::activate(void) {
     create_gui();
     handle_dialog_items(true);
-    // pthread_create(&m.thread_handle, nullptr, App::_interval_thread, this);
-
-    char message[32]{ 0 };
-    snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
-    const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
-    set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
-
+    begin_status_updates();
     gtk_main();
 }
 
@@ -434,7 +429,7 @@ printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
-            EspTool::update_all_devices(m.device_list, App::_gui_status, this);
+            m.update_threads = EspTool::update_all_devices(m.device_list, App::_ota_status_callback, this);
         }
         break;
 
@@ -452,3 +447,17 @@ printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
     }
 }
 
+bool App::_ota_status_callback(void* _user_param, float _progress, const char* _topic, const char* _message) {
+    return (APP_PTR(_user_param)->ota_status_callback(_progress, _topic, _message));
+}
+bool App::ota_status_callback(float _progress, const char* _topic, const char* _message) {
+printf("gui_status() callback: %.3f <%s> <%s>\n", _progress, _topic, _message);
+
+    if (_progress >= 1.0f) {
+        EspTool::wait_for_all_updates(m.update_threads);
+printf("OTA update finished.\n");
+    }
+
+    set_status(nullptr, nullptr, _topic, _message);
+    return (true);
+}

@@ -22,10 +22,19 @@
 #include "includes.h"
 
 
-void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2, const char* _box_3) {
-printf("set_status()\n");
-    bool modified = false;
+void App::begin_status_updates(void) {
+    m.gtk.timer_id = g_timeout_add(200, App::_status_task, this);
 
+    char message[32]{ 0 };
+    snprintf(message, sizeof (message), "%zu devices found", m.device_list.size());
+    
+    const char* status = (strlen(m.device.id.device_serial_number) > 0) ? APPSTRING(IDS_CONNECTED) : APPSTRING(IDS_NOT_CONNECTED);
+
+    set_status(status, m.device.tty_ifac, m.device.ip_ifac, message);
+}
+
+void App::set_status(const char* _box_0, const char* _box_1, const char* _box_2, const char* _box_3) {
+    bool modified = false;
     const char* items[4] = { _box_0, _box_1, _box_2, _box_3 };
     for (int i = 0; i < 4; i++) {
         if (items[i] != nullptr) {
@@ -38,21 +47,20 @@ printf("set_status()\n");
     }
 
     if (modified) {
-printf("set_status() -> modified -> add idle task\n");
-        g_idle_add(App::_idle_task, ON_ITEM(this, -1));
-        usleep(25000);
-        while (gtk_events_pending()) {
-            gtk_main_iteration();
-        }
+        usleep(20000);
     }
 }
 
-
-bool App::_gui_status(void* _user_param, const char* _topic, const char* _message) {
-    return (APP_PTR(_user_param)->gui_status(_topic, _message));
+gboolean App::_status_task(gpointer _user_param) {
+    return (APP_PTR(_user_param)->status_task());
 }
-bool App::gui_status(const char* _topic, const char* _message) {
-printf("gui_status() callback: <%s> <%s>\n", _topic, _message);
-    set_status(nullptr, nullptr, _topic, _message);
-    return (true);
+gboolean App::status_task(void) {
+    for (size_t i = 0; i < SIZEOFARRAY(m.gtk.status); i++) {
+        if ((m.gtk.status[i].modified) && (m.gtk.status[i].widget != nullptr)) {
+            m.gtk.status[i].modified = false;
+            gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
+            gtk_widget_queue_draw(m.gtk.status[i].widget);
+        }
+    }
+    return (TRUE);
 }

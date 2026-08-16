@@ -33,7 +33,7 @@
 
 class DevConfig;
 
-typedef bool (*OTALoaderCB)(void* _user_param, const char* _topic, const char* _message);
+typedef bool (*OTALoaderCB)(void* _user_param, float _progress, const char* _topic, const char* _message);
 
 
 class ScanTTY {
@@ -67,7 +67,8 @@ class EspTool {
         static bool read_id(const char* _ifac, DevConfig* _dev);
         static bool read_data(const char* _ifac, DevConfig* _dev);
         static const char* find_matching_firmware_image(const char* _chip_type);
-        static void update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
+        static std::vector<pthread_t> update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
+        static void wait_for_all_updates(std::vector<pthread_t> _threads);
 };
 
 class OTAParms {

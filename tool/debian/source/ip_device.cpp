@@ -267,8 +267,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
 
     if (_callback != nullptr) {
         const char* p = "Connect...";
-        (*_callback)(_user_param, topic, p);
-        usleep(25000);
+        (*_callback)(_user_param, 0.0f, topic, p);
     }
 
     struct addrinfo* res = nullptr; 
@@ -310,7 +309,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
     }
 
     ssize_t i = 0;
-    float percent = 0.0f;
+    float stage = 0.0f;
     while (i < _size) {
         ssize_t chunk_len = ((_size - i) > OTA_CHUNK_SIZE) ? OTA_CHUNK_SIZE : (_size - i);
         sent_len = send(fd, &_firmware_image[i], chunk_len, 0);
@@ -320,14 +319,13 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
         }
         i += sent_len;
 
-        float progress = (float)i * 100.0f / (float)_size;
-        if (fabsf(progress - percent) >= 5.0f) {
-            percent = progress;
+        float progress = (float)i / (float)_size;
+        if (fabsf(progress - stage) >= 0.05f) {
+            stage = progress;
             if (_callback != nullptr) {
                 char string[64]{ 0 };
-                snprintf(string, sizeof (string), "%.0f%%, %zu / %zu", percent, i, _size);
-                (*_callback)(_user_param, topic, string);
-                usleep(25000);
+                snprintf(string, sizeof (string), "%zu / %zu", i, _size);
+                (*_callback)(_user_param, stage, topic, string);
             }
         }
     }
@@ -336,8 +334,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
 
     if (_callback != nullptr) {
         const char* p = "Complete.";
-        (*_callback)(_user_param, topic, p);
-        usleep(25000);
+        (*_callback)(_user_param, 1.0f, topic, p);
     }
 
     return (true);
