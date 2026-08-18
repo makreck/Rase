@@ -429,7 +429,7 @@ void App::idle_task(CallbackParameter* p) {
 
         case IDS_FIRMWARE_UPLOAD: {
             prepare_multi_progress();
-            m.update_threads = EspTool::update_all_devices(m.device_list, App::_ota_status_callback, this);
+            m.ota_update_thread = EspTool::update_all_devices(m.device_list, App::_ota_status_callback, this);
         }
         break;
 
@@ -448,6 +448,16 @@ void App::idle_task(CallbackParameter* p) {
 }
 
 void App::prepare_multi_progress(void) {
+    if (m.ota_update_thread != 0) {
+        pthread_join(m.ota_update_thread, nullptr);
+        m.ota_update_thread = 0;
+    }
+
+    if (m.multi_command_thread != 0) {
+        pthread_join(m.multi_command_thread, nullptr);
+        m.multi_command_thread = 0;
+    }
+
     m.multi_progress.clear();
     for (DevConfig*& entry : m.device_list) {
         m.multi_progress.push_back(0.0f);
@@ -477,12 +487,7 @@ bool App::ota_status_callback(int _id, float _progress, const char* _topic, cons
     char message[32]{ 0 };
     snprintf(message, sizeof (message), "%.0f %%", std::min(100.0f, sum * 100.0f));
 
-    set_status(nullptr, nullptr, topic, message);
-
-    if (finished) {
-        EspTool::wait_for_all_updates(m.update_threads);
-        set_status(nullptr, nullptr, topic, "Complete");
-    }
+    set_status(nullptr, nullptr, topic, (finished) ? "Complete" : message);
 
     return (true);
 }

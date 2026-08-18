@@ -31,8 +31,6 @@
 #define FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI    "diymore ESP32-S3"
 
 
-class DevConfig;
-
 typedef bool (*OTALoaderCB)(void* _user_param, int _id, float _progress, const char* _topic, const char* _message);
 
 
@@ -46,6 +44,36 @@ class ScanTTY {
             this->device            = _device;
             this->device_list       = _device_list;
             this->device_list_mutex = _device_list_mutex;
+        }
+};
+
+class MultiCmdParms {
+    public:
+        std::vector<DevConfig*>* device_list;
+        OTALoaderCB callback = nullptr;
+        void* user_param = nullptr;
+        char* command = nullptr;
+
+        MultiCmdParms(std::vector<DevConfig*>* _device_list, OTALoaderCB _callback, void* _user_param, const char* _command = nullptr) {
+            this->device_list = _device_list;
+            this->callback = _callback;
+            this->user_param = _user_param;
+            if (_command != nullptr) {
+                size_t length = strlen(_command) + 1;
+                this->command = (char*)malloc(length);
+                if (this->command != nullptr) {
+                    strncpy(this->command, _command, length);
+                }
+            } else {
+                this->command = nullptr;
+            }
+        }
+
+        ~MultiCmdParms() {
+            if (this->command != nullptr) {
+                free(this->command);
+                this->command = nullptr;
+            }
         }
 };
 
@@ -67,8 +95,9 @@ class EspTool {
         static bool read_id(const char* _ifac, DevConfig* _dev);
         static bool read_data(const char* _ifac, DevConfig* _dev);
         static const char* find_matching_firmware_image(const char* _chip_type);
-        static std::vector<pthread_t> update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
-        static void wait_for_all_updates(std::vector<pthread_t> _threads);
+        static pthread_t update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
+        static void* _ota_control_thread(void* _object);
+        static void transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param);
 };
 
 class OTAParms {

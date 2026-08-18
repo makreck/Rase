@@ -99,8 +99,9 @@ class App {
             DevConfig device;
             pthread_mutex_t device_list_mutex = PTHREAD_MUTEX_INITIALIZER;
             std::vector<DevConfig*> device_list;
-            std::vector<pthread_t> update_threads;
             std::vector<float> multi_progress;
+            pthread_t ota_update_thread = 0;
+            pthread_t multi_command_thread = 0;
         } m;
 
         static void print_help(void);

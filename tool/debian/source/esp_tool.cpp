@@ -385,28 +385,43 @@ const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
     return (firmware_file);
 }
 
-void EspTool::wait_for_all_updates(std::vector<pthread_t> _threads) {
-    for (pthread_t& handle : _threads) {
+
+pthread_t EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
+    pthread_t thread_handle = 0;
+    pthread_create(&thread_handle, nullptr, EspTool::_ota_control_thread, new MultiCmdParms(&_device_list, _callback, _user_param));
+    return (thread_handle);
+}
+
+void* EspTool::_ota_control_thread(void* _object) {
+    MultiCmdParms* parms = reinterpret_cast<MultiCmdParms*>(_object);
+    
+    std::vector<pthread_t> threads;
+    for (int id = 0; id < parms->device_list->size(); id++) {
+        DevConfig* entry = (*parms->device_list)[id];
+        if (entry != nullptr) {
+            if (entry->ip_ifac[0] != '\0') {
+                const char* firmware_file = EspTool::find_matching_firmware_image(entry->id.chip_type);
+                if (firmware_file != nullptr) {
+                    threads.push_back(IPDevice::firmware_loader(id, entry->ip_ifac, firmware_file, parms->callback, parms->user_param));
+                }
+            }
+        }
+    }
+
+    for (pthread_t &handle : threads) {
         if (handle != 0) {
             pthread_join(handle, nullptr);
             handle = 0;
         }
     }
-    _threads.clear();
+    threads.clear();
+
+    delete (parms);
+    return (nullptr);
 }
 
-std::vector<pthread_t> EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
-    std::vector<pthread_t> threads;
-    for (int id = 0; id < _device_list.size(); id++) {
-        DevConfig* entry = _device_list[id];
-        if (entry != nullptr) {
-            if (entry->ip_ifac[0] != '\0') {
-                const char* firmware_file = EspTool::find_matching_firmware_image(entry->id.chip_type);
-                if (firmware_file != nullptr) {
-                    threads.push_back(IPDevice::firmware_loader(id, entry->ip_ifac, firmware_file, _callback, _user_param));
-                }
-            }
-        }
-    }
-    return (threads);
+void EspTool::transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param) {
+
+            // char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_INITIALIZE);
+
 }
