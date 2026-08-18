@@ -245,7 +245,6 @@ AppState App::handle_reboot_request(void) {
     }
 
     if (m.flags.b.reboot_req == 1) {
-        m.flags.b.reboot_req = 0;
         
         if (m.display != nullptr) {
             esp_event_post(APP_EVENT, (int32_t)AppEvent::display_lock, nullptr, 0, pdMS_TO_TICKS(1));
