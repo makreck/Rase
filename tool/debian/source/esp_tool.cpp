@@ -397,17 +397,16 @@ void EspTool::wait_for_all_updates(std::vector<pthread_t> _threads) {
 
 std::vector<pthread_t> EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
     std::vector<pthread_t> threads;
-
-    for (DevConfig *&entry : _device_list) {
+    for (int id = 0; id < _device_list.size(); id++) {
+        DevConfig* entry = _device_list[id];
         if (entry != nullptr) {
             if (entry->ip_ifac[0] != '\0') {
                 const char* firmware_file = EspTool::find_matching_firmware_image(entry->id.chip_type);
                 if (firmware_file != nullptr) {
-                    threads.push_back(IPDevice::firmware_loader(entry->ip_ifac, firmware_file, _callback, _user_param));
+                    threads.push_back(IPDevice::firmware_loader(id, entry->ip_ifac, firmware_file, _callback, _user_param));
                 }
             }
         }
     }
-
     return (threads);
 }

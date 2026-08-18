@@ -33,7 +33,7 @@
 
 class DevConfig;
 
-typedef bool (*OTALoaderCB)(void* _user_param, float _progress, const char* _topic, const char* _message);
+typedef bool (*OTALoaderCB)(void* _user_param, int _id, float _progress, const char* _topic, const char* _message);
 
 
 class ScanTTY {
@@ -73,6 +73,8 @@ class EspTool {
 
 class OTAParms {
     public:
+        int         id = 0;
+
         char        ifac[PATH_MAX]{ 0 };
         char        filename[PATH_MAX]{ 0 };
 
@@ -82,7 +84,9 @@ class OTAParms {
         uint8_t*    image_data   = nullptr;
         ssize_t     image_length = 0;
 
-        OTAParms(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr) {
+        OTAParms(int _id, const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr) {
+            id = _id;
+            
             if (_ifac != nullptr) {
                 strncpy(ifac, _ifac, sizeof (ifac) - 1);
             }

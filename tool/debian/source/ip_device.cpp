@@ -258,7 +258,7 @@ char* IPDevice::transact_http_request(const char* _host_addr, const char* _json_
     return (buffer);
 }
 
-bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param) {
+bool IPDevice::ota_loader(int _id, const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param) {
     const char* topic = "OTA update";
 
     struct addrinfo hints{ 0 };
@@ -267,7 +267,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
 
     if (_callback != nullptr) {
         const char* p = "Connect...";
-        (*_callback)(_user_param, 0.0f, topic, p);
+        (*_callback)(_user_param, _id, 0.0f, topic, p);
     }
 
     struct addrinfo* res = nullptr; 
@@ -325,7 +325,7 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
             if (_callback != nullptr) {
                 char string[64]{ 0 };
                 snprintf(string, sizeof (string), "%zu / %zu", i, _size);
-                (*_callback)(_user_param, stage, topic, string);
+                (*_callback)(_user_param, _id, stage, topic, string);
             }
         }
     }
@@ -334,21 +334,21 @@ bool IPDevice::ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_
 
     if (_callback != nullptr) {
         const char* p = "Complete.";
-        (*_callback)(_user_param, 1.0f, topic, p);
+        (*_callback)(_user_param, _id, 1.0f, topic, p);
     }
 
     return (true);
 }
 
-pthread_t IPDevice::firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback, void* _user_param) {
+pthread_t IPDevice::firmware_loader(int _id, const char* _ifac, const char* _filename, OTALoaderCB _callback, void* _user_param) {
     pthread_t thread_handle = 0;
-    pthread_create(&thread_handle, nullptr, IPDevice::_loader_thread, new OTAParms(_ifac, _filename, _callback, _user_param));
+    pthread_create(&thread_handle, nullptr, IPDevice::_loader_thread, new OTAParms(_id, _ifac, _filename, _callback, _user_param));
     return (thread_handle);
 }
 void* IPDevice::_loader_thread(void* _object) {
     OTAParms* parms = (OTAParms*)_object;
     if ((parms->image_data != nullptr) && (parms->image_length > 0)) {
-        IPDevice::ota_loader(parms->ifac, parms->image_data, parms->image_length, parms->callback, parms->user_param);
+        IPDevice::ota_loader(parms->id, parms->ifac, parms->image_data, parms->image_length, parms->callback, parms->user_param);
     }
     delete (parms);
     return (nullptr);

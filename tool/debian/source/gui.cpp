@@ -371,7 +371,6 @@ void App::idle_task(CallbackParameter* p) {
                     m.gtk.status[i].modified = false;
                     gtk_label_set_text(GTK_LABEL(m.gtk.status[i].widget), m.gtk.status[i].message);
                     gtk_widget_queue_draw(m.gtk.status[i].widget);
-printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
                 }
             }
         } break;
@@ -429,6 +428,7 @@ printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
         } break;
 
         case IDS_FIRMWARE_UPLOAD: {
+            prepare_multi_progress();
             m.update_threads = EspTool::update_all_devices(m.device_list, App::_ota_status_callback, this);
         }
         break;
@@ -447,17 +447,42 @@ printf("Modified status %zu: \"%s\"\n", i + 1, m.gtk.status[i].message);
     }
 }
 
-bool App::_ota_status_callback(void* _user_param, float _progress, const char* _topic, const char* _message) {
-    return (APP_PTR(_user_param)->ota_status_callback(_progress, _topic, _message));
+void App::prepare_multi_progress(void) {
+    m.multi_progress.clear();
+    for (DevConfig*& entry : m.device_list) {
+        m.multi_progress.push_back(0.0f);
+    }
 }
-bool App::ota_status_callback(float _progress, const char* _topic, const char* _message) {
-printf("gui_status() callback: %.3f <%s> <%s>\n", _progress, _topic, _message);
 
-    if (_progress >= 1.0f) {
-        EspTool::wait_for_all_updates(m.update_threads);
-printf("OTA update finished.\n");
+bool App::_ota_status_callback(void* _user_param, int _id, float _progress, const char* _topic, const char* _message) {
+    return (APP_PTR(_user_param)->ota_status_callback(_id, _progress, _topic, _message));
+}
+bool App::ota_status_callback(int _id, float _progress, const char* _topic, const char* _message) {
+    if ((_id < 0) || (_id >= m.multi_progress.size()) || (m.multi_progress.size() < 1)) {
+        return (false);
     }
 
-    set_status(nullptr, nullptr, _topic, _message);
+    m.multi_progress[_id] = _progress;
+
+    float sum = 0.0f;
+    for (float& value : m.multi_progress) {
+        sum += value;
+    }
+    bool finished = (sum >= (float)m.multi_progress.size()) ? true : false;
+    sum = sum / (float)m.multi_progress.size();
+
+    char topic[32]{ 0 };
+    snprintf(topic, sizeof (topic), "%zu OTA updates", m.multi_progress.size());
+
+    char message[32]{ 0 };
+    snprintf(message, sizeof (message), "%.0f %%", std::min(100.0f, sum * 100.0f));
+
+    set_status(nullptr, nullptr, topic, message);
+
+    if (finished) {
+        EspTool::wait_for_all_updates(m.update_threads);
+        set_status(nullptr, nullptr, topic, "Complete");
+    }
+
     return (true);
 }

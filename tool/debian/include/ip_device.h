@@ -79,7 +79,7 @@ class IPDevice {
         static bool    poll_socket(int _sock, uint32_t _timeout_ms);
         static int     get_available_data_length(int _sock);
         static void    cleanup_handler(void* arg);
-        static bool    ota_loader(const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
+        static bool    ota_loader(int _id, const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
         static void*   _loader_thread(void* _object);
         static ssize_t send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from);
         static char*   format_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
@@ -99,7 +99,7 @@ class IPDevice {
         }
 
         static char* transact_http_request(const char* _host_addr, const char* _json_request, const char* _accept_from, uint32_t _timeout_ms);
-        static pthread_t firmware_loader(const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
+        static pthread_t firmware_loader(int _id, const char* _ifac, const char* _filename, OTALoaderCB _callback = nullptr, void* _user_param = nullptr);
 
         bool start_scan(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex);
         bool wait_for_scan(void);
