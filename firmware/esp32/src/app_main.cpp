@@ -24,6 +24,7 @@
 // #define DISPLAY_STATE
 
 AppState App::init(void) {
+    init_memory();
     init_watchdog();
     init_event_loop();
     init_config();
@@ -70,6 +71,10 @@ AppState App::init_watchdog(void) {
     esp_task_wdt_deinit();
     esp_task_wdt_init(&wdt);
     esp_task_wdt_add(nullptr);
+    return (AppState::OK);
+}
+
+AppState App::init_memory(void) {
     return (AppState::OK);
 }
 

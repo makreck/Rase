@@ -141,6 +141,7 @@ class App {
             SensorType       drv_scan_type[APP_DRV_LIST_MAX]{ SensorType::invalid };
         } m;
 
+        AppState init_memory(void);
         AppState init_watchdog(void);
         AppState init_config(void);
         AppState init_event_loop(void);

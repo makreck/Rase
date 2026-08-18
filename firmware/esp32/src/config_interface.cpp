@@ -317,35 +317,4 @@ void ConfigInterface::handle_test(ConfigInterface* _instance, int _mode, const c
     char* json_string = Tools::get_partition_info();
     printf("\n%s\n", json_string);
     free(json_string);
-
-
-
-    ESP_LOGI("HW_INFO", "=== ESP32-S3 Hardware Information ===");
-
-    esp_flash_t *flash = NULL;
-    uint32_t flash_size = 0;
-    if (esp_flash_get_size(flash, &flash_size) == ESP_OK) {
-        ESP_LOGI("HW_INFO", "SPI-Flash Size: %u MB (%u bytes)", (unsigned int)(flash_size / (1024 * 1024)), (unsigned int)flash_size);
-
-        uint32_t chip_id = 0;
-        if (esp_flash_read_id(flash, &chip_id) == ESP_OK) {
-            ESP_LOGI("HW_INFO", "Flash Chip ID: 0x%08X", (unsigned int)chip_id);
-        }
-    }
-
-#if CONFIG_SPIRAM
-    ESP_LOGI("HW_INFO", "SPI-RAM Enabled");
-    size_t spiram_size = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
-    ESP_LOGI("HW_INFO", "SPI-RAM Available: %d KB", spiram_size / 1024);
-#else
-    ESP_LOGI("HW_INFO", "SPI-RAM Disabled");
-#endif
-    
-    // Get total memory
-    size_t total_heap = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
-    ESP_LOGI("HW_INFO", "Total Heap Size: %u KB", (unsigned int)(total_heap / 1024));
-    
-
-
-
 }
