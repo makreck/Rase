@@ -420,8 +420,62 @@ void* EspTool::_ota_control_thread(void* _object) {
     return (nullptr);
 }
 
-void EspTool::transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param) {
-
-            // char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_INITIALIZE);
-
+pthread_t EspTool::transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param) {
+    pthread_t thread_handle = 0;
+    pthread_create(&thread_handle, nullptr, EspTool::_cmd_control_thread, new MultiCmdParms(&_device_list, _callback, _user_param, command));
+    return (thread_handle);
 }
+
+void* EspTool::_cmd_control_thread(void* _object) {
+    MultiCmdParms* parms = reinterpret_cast<MultiCmdParms*>(_object);
+
+    if (parms->command != nullptr) {
+        std::vector<pthread_t> threads;
+        for (int id = 0; id < parms->device_list->size(); id++) {
+            DevConfig* entry = (*parms->device_list)[id];
+            if (entry != nullptr) {
+                pthread_t thread_handle = 0;
+                pthread_create(&thread_handle, nullptr, EspTool::_cmd_exec_thread, new MultiCmdParms(entry, parms->callback, parms->user_param, parms->command));
+            }
+        }
+
+        for (pthread_t &handle : threads) {
+            if (handle != 0) {
+                pthread_join(handle, nullptr);
+                handle = 0;
+            }
+        }
+        threads.clear();
+    }
+
+    delete (parms);
+    return (nullptr);
+}
+
+void* EspTool::_cmd_exec_thread(void* _object) {
+    MultiCmdParms* parms = reinterpret_cast<MultiCmdParms*>(_object);
+
+    char* response = nullptr;
+
+    if (parms->device->tty_ifac[0] != '\0') {
+// printf("On \"%s\", send:\n\"\"\"\n%s\n\"\"\"\n", parms->device->tty_ifac, parms->command); // ****
+        response = EspTool::transact_command(parms->device->tty_ifac, parms->command);
+    } else if (parms->device->ip_ifac[0] != '\0') {
+// printf("On \"%s\", IP request:\n\"\"\"\n%s\n\"\"\"\n", parms->device->ip_ifac, parms->command); // ****
+
+
+        response = IPDevice::transact_http_request(parms->device->ip_ifac, parms->command, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
+    } else {
+        printf("Error: No interface!\n"); // ****
+    }
+
+    if (response != nullptr) {
+printf("Response:\n\"\"\"\n%s\n\"\"\"\n", response); // ****
+        free(response);
+    }
+
+    delete (parms);
+    return (nullptr);
+}
+
+// char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_INITIALIZE);

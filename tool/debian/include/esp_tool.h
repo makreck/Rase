@@ -49,15 +49,33 @@ class ScanTTY {
 
 class MultiCmdParms {
     public:
-        std::vector<DevConfig*>* device_list;
-        OTALoaderCB callback = nullptr;
-        void* user_param = nullptr;
-        char* command = nullptr;
+        std::vector<DevConfig*>* device_list = nullptr;
+        DevConfig*               device      = nullptr;
+        OTALoaderCB              callback    = nullptr;
+        void*                    user_param  = nullptr;
+        char*                    command     = nullptr;
 
         MultiCmdParms(std::vector<DevConfig*>* _device_list, OTALoaderCB _callback, void* _user_param, const char* _command = nullptr) {
+            set(_device_list, nullptr, _callback, _user_param, _command);
+        }
+
+        MultiCmdParms(DevConfig* _device, OTALoaderCB _callback, void* _user_param, const char* _command = nullptr) {
+            set(nullptr, _device, _callback, _user_param, _command);
+        }
+
+        ~MultiCmdParms() {
+            if (this->command != nullptr) {
+                free(this->command);
+                this->command = nullptr;
+            }
+        }
+
+        void set(std::vector<DevConfig*>* _device_list, DevConfig* _device, OTALoaderCB _callback, void* _user_param, const char* _command) {
             this->device_list = _device_list;
-            this->callback = _callback;
-            this->user_param = _user_param;
+            this->device      = _device;
+            this->callback    = _callback;
+            this->user_param  = _user_param;
+
             if (_command != nullptr) {
                 size_t length = strlen(_command) + 1;
                 this->command = (char*)malloc(length);
@@ -68,18 +86,14 @@ class MultiCmdParms {
                 this->command = nullptr;
             }
         }
-
-        ~MultiCmdParms() {
-            if (this->command != nullptr) {
-                free(this->command);
-                this->command = nullptr;
-            }
-        }
 };
 
 class EspTool {
     private:
         static void* _scanner_thread(void* _object);
+        static void* _cmd_control_thread(void* _object);
+        static void* _ota_control_thread(void* _object);
+        static void* _cmd_exec_thread(void* _object);
 
     public:
         static bool find_interface(char* _ifac, size_t _length);
@@ -96,8 +110,7 @@ class EspTool {
         static bool read_data(const char* _ifac, DevConfig* _dev);
         static const char* find_matching_firmware_image(const char* _chip_type);
         static pthread_t update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param);
-        static void* _ota_control_thread(void* _object);
-        static void transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param);
+        static pthread_t transact_multi_device_command(std::vector<DevConfig*>& _device_list, const char* command, OTALoaderCB _callback, void* _user_param);
 };
 
 class OTAParms {

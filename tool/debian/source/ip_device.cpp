@@ -37,11 +37,20 @@ const char* IPDevice::ota_put_req_string =
     "Connection: close\r\n"
     "\r\n";
 
-const char* IPDevice::http_request_format =
+const char* IPDevice::http_get_request_format =
     "GET %s HTTP/1.1\r\n"
     "Host: %s\r\n"
     "User-Agent: C-Client/1.0\r\n"
     "Accept: %s\r\n"
+    "Connection: close\r\n"
+    "\r\n";
+
+const char* IPDevice::http_put_request_format =
+    "PUT %s HTTP/1.1\r\n"
+    "Host: %s\r\n"
+    "User-Agent: C-Client/1.0\r\n"
+    "Accept: %s\r\n"
+    "Content-Length: %ld\r\n"
     "Connection: close\r\n"
     "\r\n";
 
@@ -140,17 +149,35 @@ int IPDevice::get_available_data_length(int _sock) {
     return (length);
 }
 
-char* IPDevice::format_request(const char* _host_addr, const char* _json_request, const char* _accept_from) {
-    size_t size = (size_t)(snprintf(nullptr, 0, http_request_format, _json_request, _host_addr, _accept_from) + 1);
+char* IPDevice::format_get_request(const char* _host_addr, const char* _json_request, const char* _accept_from) {
+    size_t size = (size_t)(snprintf(nullptr, 0, http_get_request_format, _json_request, _host_addr, _accept_from) + 1);
     char* request = (char*)malloc(size);
-    snprintf(request, size, IPDevice::http_request_format, _json_request, _host_addr, _accept_from);
+    snprintf(request, size, IPDevice::http_get_request_format, _json_request, _host_addr, _accept_from);
     return (request);
 }
 
-ssize_t IPDevice::send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from) {
-    char* request = IPDevice::format_request(_host_addr, _json_request, _accept_from);
-    size_t size = strlen(request) + 1;
-    ssize_t length = send(_sock, request, size, 0);
+char* IPDevice::format_put_request(const char* _host_addr, const char* _json_request, const char* _accept_from, size_t _payload_length) {
+    size_t size = (size_t)(snprintf(nullptr, 0, http_put_request_format, _json_request, _host_addr, _accept_from, _payload_length) + 1);
+    char* request = (char*)malloc(size);
+    snprintf(request, size, IPDevice::http_put_request_format, _json_request, _host_addr, _accept_from, _payload_length);
+    return (request);
+}
+
+ssize_t IPDevice::send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from, char* _payload, size_t _payload_length) {
+    ssize_t length = -1;
+    char* request = nullptr;
+
+    if ((_payload != nullptr) && (_payload_length > 0)) {
+        request = IPDevice::format_put_request(_host_addr, _json_request, _accept_from, _payload_length);
+        length  = send(_sock, request, strlen(request), 0);
+        if (length > 0) {
+            length += send(_sock, _payload, _payload_length, 0);
+        }
+    } else {
+        request = IPDevice::format_get_request(_host_addr, _json_request, _accept_from);
+        length  = send(_sock, request, strlen(request) + 1, 0);
+    }
+
     free(request);
     return (length);
 }
@@ -233,7 +260,23 @@ char* IPDevice::read_http_response(int _sock, const char* _accept_from, uint32_t
 }
 
 char* IPDevice::transact_http_request(const char* _host_addr, const char* _json_request, const char* _accept_from, uint32_t _timeout_ms) {
-    char* buffer = nullptr;    
+    char* request = nullptr;
+    char* buffer  = nullptr;    
+
+    size_t size = strlen(_json_request) + 1;
+    request = (char*)malloc(size);
+    if (request == nullptr) {
+        return (nullptr);
+    }
+    memset(request, 0, size);
+    strncpy(request, _json_request, size);
+
+    size_t payload_length = 0;
+    char* payload = strstr(request, "=");
+    if (payload != nullptr) {
+        *payload++ = '\0';
+        payload_length = strlen(payload);
+    }
 
     int sock = 0;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -247,12 +290,14 @@ char* IPDevice::transact_http_request(const char* _host_addr, const char* _json_
     SockAddrIn serv_addr(_host_addr);
     int result = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
     if (result >= 0) {
-        if (IPDevice::send_http_request(sock, _host_addr, _json_request, _accept_from) > 0) {
+        if (IPDevice::send_http_request(sock, _host_addr, request, _accept_from, payload, payload_length) > 0) {
             buffer = IPDevice::read_http_response(sock, _accept_from, _timeout_ms);
         }
     }
 
     close(sock);
+    free(request);
+
     pthread_cleanup_pop(0);
 
     return (buffer);

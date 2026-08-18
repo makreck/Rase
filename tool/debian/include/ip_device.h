@@ -62,7 +62,8 @@ class IPDevice {
             std::vector<DevConfig*>* device_list = nullptr;
         } m;
 
-        static const char* http_request_format;
+        static const char* http_get_request_format;
+        static const char* http_put_request_format;
         static const char* ota_put_req_string;
         static const PartitionEntry partitions[6];
 
@@ -81,8 +82,9 @@ class IPDevice {
         static void    cleanup_handler(void* arg);
         static bool    ota_loader(int _id, const char* _ip_addr, uint8_t* _firmware_image, ssize_t _size, OTALoaderCB _callback, void* _user_param);
         static void*   _loader_thread(void* _object);
-        static ssize_t send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from);
-        static char*   format_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
+        static ssize_t send_http_request(int _sock, const char* _host_addr, const char* _json_request, const char* _accept_from, char* _payload = nullptr, size_t _payload_length = 0);
+        static char*   format_get_request(const char* _host_addr, const char* _json_request, const char* _accept_from);
+        static char*   format_put_request(const char* _host_addr, const char* _json_request, const char* _accept_from, size_t _payload_length);
         static void    set_socket_timeout(int _sock, uint32_t _timeout_ms);
         static char*   read_http_headers(int _sock, uint32_t _timeout_ms);
         static int     parse_http_headers(char* _headers, const char* _accept_from);

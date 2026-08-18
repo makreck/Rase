@@ -402,20 +402,24 @@ void App::idle_task(CallbackParameter* p) {
             size_t length = 0;
             char* json_string = m.device.get_config_json(TTY_KEY_API_CONFIG_PUT, &length);
             if (json_string != nullptr) {
-                char* response = EspTool::transact_command(m.ifac, json_string);
-                if (response != nullptr) {
-                    free(response);
-                }
+                prepare_multi_progress();
+                m.multi_command_thread = EspTool::transact_multi_device_command(m.device_list, json_string, App::_ota_status_callback, this);
+                // char* response = EspTool::transact_command(m.ifac, json_string);
+                // if (response != nullptr) {
+                //     free(response);
+                // }
                 free(json_string);
             }
             m.update_request = true;
         } break;
 
         case IDS_RESET_DEVICE: {
-            char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_REBOOT);
-            if (response != nullptr) {
-                free(response);
-            }
+            prepare_multi_progress();
+            m.multi_command_thread = EspTool::transact_multi_device_command(m.device_list, TTY_KEY_API_REBOOT, App::_ota_status_callback, this);
+            // char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_REBOOT);
+            // if (response != nullptr) {
+            //     free(response);
+            // }
             m.update_request = true;
         } break;
 
