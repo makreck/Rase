@@ -232,13 +232,16 @@ AppState App::handle_reboot_request(void) {
             m.display->setLogo();
             m.display->print(0, y, "Factory reset...");
             m.display->update();
-            vTaskDelay(pdMS_TO_TICKS(1000));
+            vTaskDelay(pdMS_TO_TICKS(750));
         }
 
         m.cfg->perform_factory_reset();
-        m.flags.b.reboot_req = 1;
+        vTaskDelay(pdMS_TO_TICKS(250));
 
-        return (AppState::OK);
+        cleanup();
+        esp_restart();
+
+        return (AppState::failed);
     }
 
     if (m.flags.b.reboot_req == 1) {
