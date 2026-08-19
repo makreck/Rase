@@ -55,11 +55,9 @@ const char* Tools::reboot_json =
 const char* Tools::partition_info_json =
     "{\n"
     "\t\"partition-label\": \"%s\",\n"
-    "\t\"partition-size\": \"%zu\",\n"
-    "\t\"partition-size-mb\": \"%.1f\",\n"
+    "\t\"partition-size\": \"%.1f MB\",\n"
     "\t\"flash-chip-id\": \"0x%-8.8X\",\n"
-    "\t\"flash-chip-size\": \"%zu\",\n"
-    "\t\"flash-chip-size-mb\": \"%.1f\",\n"
+    "\t\"flash-chip-size\": \"%.1f MB\",\n"
     "\t\"spi-ram\": \"%s\",\n"
     "\t\"heap-size-kb\": \"%s\"\n"
     "}\n";
@@ -358,17 +356,17 @@ char* Tools::get_partition_info(void) {
 #else
     strncpy(spi_ram, "disabled", sizeof (spi_ram));
 #endif
-    
+
     char heap_size[32]{ 0 };
     size_t total_heap = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
     snprintf(heap_size, sizeof (heap_size), "%u KB", (unsigned int)(total_heap / 1024));
 
     size_t length = snprintf(nullptr, 0, partition_info_json,
-        partition->label, partition->size, part_size_mb, (unsigned int)partition->flash_chip->chip_id, partition->flash_chip->size, chip_size_mb, spi_ram, heap_size);
+        partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size);
     char* json_string = (char*)malloc(length + 1);
     if (json_string != nullptr) {
         snprintf(json_string, length + 1, partition_info_json, 
-            partition->label, partition->size, part_size_mb, (unsigned int)partition->flash_chip->chip_id, partition->flash_chip->size, chip_size_mb, spi_ram, heap_size);
+            partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size);
     }
 
     return (json_string);
