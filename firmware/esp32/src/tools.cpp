@@ -41,6 +41,14 @@ const char* Tools::device_id_json =
     "\t\"wifi_ap_mac\": \"%s\",\n"
     "\t\"bluetooth_mac\": \"%s\",\n"
     "\t\"ip_addr\": \"%s\",\n"
+
+    "\t\"partition-label\": \"%s\",\n"
+    "\t\"partition-size\": \"%.1f MB\",\n"
+    "\t\"flash-chip-id\": \"0x%-8.8X\",\n"
+    "\t\"flash-chip-size\": \"%.1f MB\",\n"
+    "\t\"spi-ram\": \"%s\",\n"
+    "\t\"heap-size-kb\": \"%s\",\n"
+
     "\t\"rssi\": \"%s\",\n"
     "\t\"tx_power\": \"%s\",\n"
     "\t\"system_time\": \"%s\"\n"
@@ -103,6 +111,8 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     char rssi_string[16]{ 0 };
     char tx_power_string[16]{ 0 };
     char ip_addr[32]{ 0 };
+    char spi_ram[32]{ 0 };
+    char heap_size[32]{ 0 };
     char head[16]{ 0 };
     char head_serial[16]{ 0 };
     char system_time_string[32]{ 0 };
@@ -137,16 +147,36 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     esp_read_mac(mac, ESP_MAC_BT);
     snprintf(bt_mac, sizeof (bt_mac), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
+    const esp_partition_t* partition = esp_ota_get_running_partition();
+    if (partition == nullptr) { return (nullptr); }
+
+    float part_size_mb = (float)partition->size / 1024.0f / 1024.0f;
+    float chip_size_mb = (float)partition->flash_chip->size / 1024.0f / 1024.0f;
+    
+#if CONFIG_SPIRAM
+    size_t spiram_size = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
+    snprintf(spi_ram, sizeof (spi_ram), "%u KB", (unsigned int)(spiram_size / 1024));
+#else
+    strncpy(spi_ram, "disabled", sizeof (spi_ram));
+#endif
+
+    size_t total_heap = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
+    snprintf(heap_size, sizeof (heap_size), "%u KB", (unsigned int)(total_heap / 1024));
+
     Wifi_Station::get_rssi_dbm(rssi_string, sizeof (rssi_string));
     Wifi_Station::get_tx_power_dbm(tx_power_string, sizeof (tx_power_string));
 
     size_t length = snprintf(nullptr, 0, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string, system_time_string);
+        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, 
+        partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size,
+        rssi_string, tx_power_string, system_time_string);
 
     char* json_string = (char*)malloc(length + 1);
 
     snprintf(json_string, length + 1, device_id_json, device_serial_number,
-        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, rssi_string, tx_power_string, system_time_string);
+        firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr,
+        partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size,
+        rssi_string, tx_power_string, system_time_string);
 
     return (json_string);
 }
