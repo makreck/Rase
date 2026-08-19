@@ -46,5 +46,4 @@ class Tools {
         static size_t json_get(const char* json_data, const char* _key, char* _buffer, size_t _length);
         static float string2number(const char* _string);
         static const esp_partition_t* get_next_ota_partition(void);
-        static char* get_partition_info(void);
 };

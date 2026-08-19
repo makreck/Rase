@@ -314,7 +314,5 @@ void ConfigInterface::handle_par(ConfigInterface* _instance, int _mode, const ch
 }
 
 void ConfigInterface::handle_test(ConfigInterface* _instance, int _mode, const char* _data, size_t _length) {
-    char* json_string = Tools::get_partition_info();
-    printf("\n%s\n", json_string);
-    free(json_string);
+    printf("Testing is currently disabled.\n");
 }
