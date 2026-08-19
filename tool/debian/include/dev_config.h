@@ -119,6 +119,12 @@ class DevConfig {
             char wifi_ap_mac[20]{ 0 };
             char bluetooth_mac[20]{ 0 };
             char ip_addr[16]{ 0 };
+            char partition_label[16]{ 0 };
+            char partition_size[16]{ 0 };
+            char flash_chip_id[16]{ 0 };
+            char flash_chip_size[16]{ 0 };
+            char spi_ram[16]{ 0 };
+            char heap_size[16]{ 0 };
             char rssi[16]{ 0 };
             char tx_power[16]{ 0 };
             char system_time[32]{ 0 };

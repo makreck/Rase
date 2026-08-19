@@ -458,12 +458,8 @@ void* EspTool::_cmd_exec_thread(void* _object) {
     char* response = nullptr;
 
     if (parms->device->tty_ifac[0] != '\0') {
-// printf("On \"%s\", send:\n\"\"\"\n%s\n\"\"\"\n", parms->device->tty_ifac, parms->command); // ****
         response = EspTool::transact_command(parms->device->tty_ifac, parms->command);
     } else if (parms->device->ip_ifac[0] != '\0') {
-// printf("On \"%s\", IP request:\n\"\"\"\n%s\n\"\"\"\n", parms->device->ip_ifac, parms->command); // ****
-
-
         response = IPDevice::transact_http_request(parms->device->ip_ifac, parms->command, SENSOR_REQ_TYPE_JSON, NETW_RESPONSE_TIMEOUT);
     } else {
         printf("Error: No interface!\n"); // ****

@@ -108,18 +108,20 @@ class App {
         static GdkPixbuf* svg2image(const char* _svg_string, int _width, int _height, ColorRef _color);
         static GtkWidget* create_toolbar(const ToolbarItems* _item_list, size_t _item_list_size, const char** _str_list, size_t _str_list_size, int _icon_size, GCallback cb, void* _user_par);
         static GtkWidget* create_menu_bar(void* _instance, GCallback _callback, MenuTree* _menu_tree, size_t _size, std::vector<GtkWidget*>& _menu_items);
-        
         static int string_combobox_setup(GtkWidget* widget, const char* selected, const char* _str_list);
 
         static gboolean _activate(GtkApplication* gtk, void* user_data);
         void activate(void);
+        
         static gboolean _configure(GtkWidget* widget, GdkEvent* event, void* user_data);
         void configure(GtkWidget* widget, GdkEvent* event);
         
         static void _on_command(GtkApplication* gtk, void* callback_parameter);
         void on_command(CallbackParameter* p);
+        
         static void _on_menu(GtkApplication* gtk, void* callback_parameter);
         void on_menu(CallbackParameter* p);
+        
         static void _on_toolbar(GtkApplication* gtk, void* callback_parameter);
         void on_toolbar(CallbackParameter* p);
 
@@ -131,14 +133,15 @@ class App {
 
         static bool _ota_status_callback(void* _user_param, int _id, float _progress, const char* _topic, const char* _message);
         bool ota_status_callback(int _id, float _progress, const char* _topic, const char* _message);
+        
         static gboolean _status_task(gpointer _user_param);
         gboolean status_task(void);
+        
         void begin_status_updates(void);
         void prepare_multi_progress(void);
         
         void init(int argc, char* argv[]);
         void cleanup(void);
-
 
         DialogItem* get_item(int _item_id);
         DialogItem* add_text_field(GtkWidget* _grid, int _item_id, int _width, int _x, int _y, char* _field, size_t _length, const char* _list = nullptr);
@@ -177,7 +180,6 @@ class App {
         void handle_transaction_result(char* result);
         
         void delete_device_list(void);
-
 
     public:
         App(int argc, char* argv[]) {

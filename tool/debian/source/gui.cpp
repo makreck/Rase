@@ -293,20 +293,6 @@ GtkWidget* App::create_statusbar(void) {
     return (m.gtk.status_box);
 }
 
-// void* App::_interval_thread(void* _object) {
-//     APP_PTR(_object)->interval_thread();
-//     return (nullptr);
-// }
-// void App::interval_thread(void) {
-//     while (true) {
-//         usleep(250000);
-//         if (m.update_request) {
-//             m.update_request = false;
-
-//         }
-//     }
-// }
-
 void App::search_and_select(void) {
     if (m.scan_thread != 0) {
         pthread_join(m.scan_thread, nullptr);
