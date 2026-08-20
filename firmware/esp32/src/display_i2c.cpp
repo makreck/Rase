@@ -55,7 +55,9 @@ void DisplayI2C::portSetup(void) {
     iic_setup.master.clk_speed = LCD_IIC_FREQ_HZ;
     iic_setup.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
     i2c_param_config(port, &iic_setup);
-    i2c_driver_install(port, I2C_MODE_MASTER, 0, 0, 0);
+    i2c_set_start_timing(port, 1, 1);
+    i2c_set_stop_timing(port, 2, 2);
+    i2c_driver_install(port, iic_setup.mode, 0, 0, 0);
 }
 
 esp_err_t DisplayI2C::detect_display_type(void) {
@@ -86,10 +88,16 @@ DisplayHandle DisplayI2C::create_display(DisplayType type, uint8_t I2Caddr, uint
     DisplayHandle instance = nullptr;
     switch (type) {
         case DisplayType::LCD16x2: {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "DisplayI2C::create_display() for LCD 16x2");
+#endif
             instance = new DisplayLCD16x2(port, type, I2Caddr, rotationMask);
         } break;
 
         case DisplayType::OLED128x64: {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "DisplayI2C::create_display() for OLED 128x64");
+#endif
             instance = new DisplayOLED128x64(port, type, I2Caddr, rotationMask);
         } break;
 
