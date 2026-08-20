@@ -27,10 +27,32 @@
 //#define ESP32_S3_WROOM_1
 //#define ESP32_S3_ALKS_MINI
 
+#ifdef ESP32_S2_MINI
+    #define CHIP_TYPE "Wemos Lolin ESP32 S2 Mini"
+    #define ESP32_S2S3
+    // #define ENABLE_JTAG_CONFIG_INTERFACE
+    // #define ENABLE_WATCHDOG
+
+    //#define _HAS_BOARD_LED
+    //#define _HAS_RGB_LED
+    //#define _HAS_NEOPIXEL_LED
+    //#define _BOARD_LED_INVERTED
+
+    #define _ENABLE_LCD
+    #define _ENABLE_BUTTON
+    //#define _ENABLE_SD_CARD
+    //#define _ENABLE_USB_CDC
+    //#define _ENABLE_COM1
+    //#define _ENABLE_COM2
+    //#define _ENABLE_WIFI
+    //#define _ENABLE_BLUETOOTH
+#endif
 
 #ifdef ESP32_S3_ALKS_MINI
     #define CHIP_TYPE "diymore ESP32-S3"
     #define ESP32_S2S3
+    #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
 
     //#define _HAS_BOARD_LED
     //#define _HAS_RGB_LED
@@ -51,6 +73,8 @@
 #ifdef SEEED_XIAO_S3
     #define CHIP_TYPE "Seeed Studio XIAO ESP32-S3"
     #define ESP32_S2S3
+    #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
 
     #define _HAS_BOARD_LED
     //#define _HAS_RGB_LED
@@ -70,6 +94,8 @@
 #ifdef ESP32_S3_ZERO
     #define CHIP_TYPE "Waveshare ESP32-S3 mini"
     #define ESP32_S2S3
+    #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
 
     //#define _HAS_BOARD_LED
     //#define _HAS_RGB_LED
@@ -89,6 +115,8 @@
 #ifdef ESP32_S3_WROOM_1
     #define CHIP_TYPE "ESP32-S3 Wroom"
     #define ESP32_S2S3
+    #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
 
     //#define _HAS_BOARD_LED
     //#define _HAS_RGB_LED
@@ -108,6 +136,10 @@
 #ifdef ESP32_WROOM_DEV
     #define CHIP_TYPE "ESP32 Wroom"
     #define _HAS_BOARD_LED
+    // #define ESP32_S2S3
+    // #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
+
     //#define _HAS_RGB_LED
     //#define _HAS_NEOPIXEL_LED
     //#define _BOARD_LED_INVERTED
@@ -124,6 +156,10 @@
 
 #ifdef ESP32_WROVER_DEV
     #define CHIP_TYPE "ESP32 Wroover"
+    // #define ESP32_S2S3
+    // #define ENABLE_JTAG_CONFIG_INTERFACE
+    #define ENABLE_WATCHDOG
+
     #define _HAS_BOARD_LED
     #define _HAS_RGB_LED
     #define _HAS_NEOPIXEL_LED
