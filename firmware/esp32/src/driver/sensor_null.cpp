@@ -22,7 +22,7 @@
 #include "includes.hpp"
 #include "app.hpp"
 
-//#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 const SensorProperty SensorNull::null_properties[] = {
     { "sim_1", "Simulation #1", "X1", "%", 0.0f, 100.0f, SP_FLAGS(1, 2, false, false), "#bb6a00", 1001 },
@@ -99,6 +99,9 @@ esp_err_t SensorNull::update(void) {
 }
 
 esp_err_t SensorNull::fetch(void) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "SensorNull::fetch() -> simulate sensor reading.");
+#endif
     if (!initialized) {
         return (ESP_FAIL);
     }
