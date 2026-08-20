@@ -21,6 +21,48 @@
 
 #pragma once
 
+
+#ifdef ESP32_S2_MINI
+
+#define ESP32_BOOT_BUTTON       (GPIO_NUM_NC)
+#define ESP32_ALT_BUTTON1       (GPIO_NUM_NC)
+#define ESP32_ALT_BUTTON2       (GPIO_NUM_NC)
+#define BOOTLOADER_TXD_UART0    (GPIO_NUM_NC)
+#define BOOTLOADER_RXD_UART0    (GPIO_NUM_NC)
+
+#define SD_CARD_D0_MISO         (GPIO_NUM_NC)
+#define SD_CARD_D1_IRQ          (GPIO_NUM_NC)
+#define SD_CARD_D2_NC           (GPIO_NUM_NC)
+#define SD_CARD_D3_CS           (GPIO_NUM_NC)
+#define SD_CARD_CLK_SCLK        (GPIO_NUM_NC)
+#define SD_CARD_CMD_MOSI        (GPIO_NUM_NC)
+
+#define UDB_D_MINUS             (GPIO_NUM_NC)
+#define USB_D_PLUS              (GPIO_NUM_NC)
+
+#define SENSOR_PORT_SDA         (GPIO_NUM_10)
+#define SENSOR_PORT_SCL         (GPIO_NUM_11)
+
+#define SENSOR_DAC_0            (GPIO_NUM_NC)
+#define SENSOR_DAC_1            (GPIO_NUM_NC)
+
+#define LED_DEVBOARD_PIN        (GPIO_NUM_NC)
+#define RGBLED_PIN_R            (GPIO_NUM_NC)
+#define RGBLED_PIN_G            (GPIO_NUM_NC)
+#define RGBLED_PIN_B            (GPIO_NUM_NC)
+#define LED_NEOPIXEL            (GPIO_NUM_NC)
+
+#define DISPLAY_I2C_SCL         (GPIO_NUM_16)
+#define DISPLAY_I2C_SDA         (GPIO_NUM_18)
+
+#define SENSOR_ADC1_0           (GPIO_NUM_NC)
+#define SENSOR_ADC1_1           (GPIO_NUM_NC)
+#define SENSOR_ADC1_2           (GPIO_NUM_NC)
+#define SENSOR_ADC1_3           (GPIO_NUM_NC)
+
+#endif
+
+
 #ifdef ESP32_S3_ALKS_MINI
 
 #define ESP32_BOOT_BUTTON       (GPIO_NUM_18)
