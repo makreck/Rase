@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-//#define DISPLAY_STATE
+// #define DISPLAY_STATE
 
 #define SSD1306_CMD_SET_COLUMN_LOW          (0x00)
 #define SSD1306_CMD_SET_COLUMN_HIGH         (0x10)
@@ -143,15 +143,25 @@ esp_err_t DisplayOLED128x64::cursor_pos(int row, int col) {
 }
 
 esp_err_t DisplayOLED128x64::update(void) {
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "DisplayOLED128x64::update()");
+#endif
+
     int i = 0;
+
     for (uint8_t y = 0; y < 8; y++) {
         send_command(0xB0 + y);
         send_command(0x00);
         send_command(0x10);
+
         for (uint8_t x = 0; x < 128; x++) {
             send_data(displayBuffer.s[i++]);
         }
     }
+
+#ifdef DISPLAY_STATE
+    ESP_LOGI(TAG, "DisplayOLED128x64::update() -> Done.");
+#endif
     return (ESP_OK);
 }
 
