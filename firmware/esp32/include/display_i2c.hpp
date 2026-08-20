@@ -34,10 +34,9 @@
 #define LCD16X2_A7 0x27
 #define LCD16X2_A8 0x3F
 
-#define OLED_128X64_A0 (0x3C)
-
-#define LCD_IO_TIMEOUT_MS (40)
-#define LCD_IIC_FREQ_HZ (400000)
+#define OLED_128X64_A0      (0x3C)
+#define LCD_IO_TIMEOUT_MS   (40)
+#define LCD_IIC_FREQ_HZ     (1000000) // (400000)
 
 enum class DisplayType : uint8_t {
     undefined = 0,
