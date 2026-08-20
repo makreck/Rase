@@ -21,7 +21,7 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 void ConfigInterface::init(void) {
     setup();
@@ -36,12 +36,17 @@ void ConfigInterface::cleanup(void) {
 }
 
 void ConfigInterface::setup(void) {
+
     // Avoid conflicts with JTAG interface during boot sequence!
+#ifdef ENABLE_JTAG_CONFIG_INTERFACE
     usb_serial_jtag_driver_uninstall();
+#else
+    uart_driver_delete(UART_NUM_0);
+#endif
     vTaskDelay(pdMS_TO_TICKS(250));
 
     uart_config_t uart_config;
-    uart_config.baud_rate  = 115200;
+    uart_config.baud_rate  = CONFIG_INTERFACE_BAUDRATE;
     uart_config.data_bits  = UART_DATA_8_BITS;
     uart_config.parity     = UART_PARITY_DISABLE;
     uart_config.stop_bits  = UART_STOP_BITS_1;
@@ -51,10 +56,14 @@ void ConfigInterface::setup(void) {
 
     uart_set_pin(UART_NUM_0, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 
+#ifdef ENABLE_JTAG_CONFIG_INTERFACE
     usb_serial_jtag_driver_config_t jtag_cfg;
     jtag_cfg.tx_buffer_size = TX_BUFFER_SIZE;
     jtag_cfg.rx_buffer_size = RX_BUFFER_SIZE;
     usb_serial_jtag_driver_install(&jtag_cfg);
+#else
+    uart_driver_install(UART_NUM_0, RX_BUFFER_SIZE, TX_BUFFER_SIZE, 0, NULL, 0);
+#endif
 }
 
 void ConfigInterface::_communication_handler(void *pvParameters) {
@@ -62,16 +71,26 @@ void ConfigInterface::_communication_handler(void *pvParameters) {
 }
 void ConfigInterface::communication_handler(void) {
     while (true) {
+#ifdef ENABLE_JTAG_CONFIG_INTERFACE
         int len = 0;
         int bytes_read = usb_serial_jtag_read_bytes(rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(100));
         while (bytes_read > 0) {
             len += bytes_read;
             bytes_read = usb_serial_jtag_read_bytes(&rx_buffer[len], RX_BUFFER_SIZE - len - 1, pdMS_TO_TICKS(100));
         }
+#else
+        int len = 0;
+        int bytes_read = uart_read_bytes(UART_NUM_0, rx_buffer, RX_BUFFER_SIZE, pdMS_TO_TICKS(100));
+        while (bytes_read > 0) {
+            len += bytes_read;
+            bytes_read = uart_read_bytes(UART_NUM_0, &rx_buffer[len], RX_BUFFER_SIZE - len - 1, pdMS_TO_TICKS(100));
+        }
+#endif
         if (len > 0) {
             process_command(rx_buffer, (size_t)len);
             memset(rx_buffer, 0, RX_BUFFER_SIZE);
         }
+
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -86,6 +105,7 @@ ssize_t ConfigInterface::send(const char* data, size_t length) {
     }
 
     size_t written = 0;
+#ifdef ENABLE_JTAG_CONFIG_INTERFACE
     while (written < length) {
         size_t to_write = (length - written > TX_BUFFER_SIZE) ? TX_BUFFER_SIZE : (length - written);
         ssize_t actual_written = (ssize_t)usb_serial_jtag_write_bytes(&data[written], to_write, pdMS_TO_TICKS(1000));
@@ -94,6 +114,16 @@ ssize_t ConfigInterface::send(const char* data, size_t length) {
         }
         written += actual_written;
     }
+#else
+    while (written < length) {
+        size_t to_write = (length - written > TX_BUFFER_SIZE) ? TX_BUFFER_SIZE : (length - written);
+        ssize_t actual_written = (ssize_t)uart_write_bytes(UART_NUM_0, &data[written], to_write);
+        if (actual_written <= 0) {
+            break;
+        }
+        written += actual_written;
+    }
+#endif
     return (written);
 }
 
@@ -198,6 +228,9 @@ void ConfigInterface::handle_config_response(ConfigInterface* instance, int mode
 }
 
 void ConfigInterface::process_command(const char* data, size_t length) {
+#ifdef DISPLAY_STATE        
+    ESP_LOGI(TAG, "ConfigInterface::process_command(\"%s\", %zu)", data, length);
+#endif
     app->reload_screensaver();
     for (size_t i = 0; i < SIZEOFARRAY(function_tab); i++) {
         if (strncmp(data, function_tab[i].key, strlen(function_tab[i].key)) == 0) {

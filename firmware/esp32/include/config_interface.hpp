@@ -21,8 +21,9 @@
 
 #pragma once
 
-#define RX_BUFFER_SIZE  (1024)
-#define TX_BUFFER_SIZE  (1024)
+#define CONFIG_INTERFACE_BAUDRATE (115200)
+#define RX_BUFFER_SIZE            (1024)
+#define TX_BUFFER_SIZE            (1024)
 
 class App;
 class ConfigInterface;
