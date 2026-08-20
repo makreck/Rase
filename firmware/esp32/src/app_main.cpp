@@ -63,6 +63,7 @@ AppState App::cleanup(void) {
 }
 
 AppState App::init_watchdog(void) {
+#ifdef ENABLE_WATCHDOG
     esp_task_wdt_config_t wdt = {
         .timeout_ms     = TASK_WATCHDOG_TIMEOUT,
         .idle_core_mask = 0x03,
@@ -71,6 +72,7 @@ AppState App::init_watchdog(void) {
     esp_task_wdt_deinit();
     esp_task_wdt_init(&wdt);
     esp_task_wdt_add(nullptr);
+#endif    
     return (AppState::OK);
 }
 
@@ -137,7 +139,11 @@ AppState App::trigger_watchdog(void) {
     if (m.exitApp) {
         return AppState::exit;
     }
+#ifdef ENABLE_WATCHDOG
     return ((esp_task_wdt_reset() == ESP_OK) ? AppState::OK : AppState::watchdog);
+#else
+    return (AppState::OK);
+#endif
 }
 
 AppState App::switch_driver_to(uint8_t i2c_addr) {
@@ -305,10 +311,16 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
 
         case AppEvent::button_ready: {
             m.flags.b.button_ready = 1;
+#ifdef DISPLAY_STATE
+            ESP_LOGE(TAG, "AppEvent::button_ready");
+#endif
         } break;
 
         case AppEvent::display_ready: {
             m.flags.b.display_ready = 1;
+#ifdef DISPLAY_STATE
+            ESP_LOGE(TAG, "AppEvent::display_ready");
+#endif
         } break;
 
         case AppEvent::wifi_enabled: {
