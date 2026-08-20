@@ -49,30 +49,6 @@ bool EspTool::force_reset_over_tty(int _fd) {
     return (true);
 }
 
-bool EspTool::find_interface(char* _ifac, size_t _length) {
-    char ifac[PATH_MAX]{ 0 };
-    int fd = -1;
-    int index = 0;
-    do {
-        snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyACM%d", index);
-        fd = EspTool::open_serial_port(ifac, B115200);
-        if (fd >= 0) break;
-        snprintf(ifac, sizeof (ifac) - 1, "/dev/ttyUSB%d", index);
-        fd = EspTool::open_serial_port(ifac, B115200);
-        if (fd >= 0) break;
-    } while (++index < 10);
-
-    if (fd >= 0) {
-        close(fd);
-        if (_ifac != nullptr) {
-            memset(_ifac, 0, _length);
-            strncpy(_ifac, ifac, _length - 1);
-        }
-    }
-
-    return (fd >= 0);
-}
-
 int EspTool::open_serial_port(const char* _ifac, speed_t _baudrate) {
     if (_ifac == nullptr) return (-1);
 
@@ -148,7 +124,7 @@ bool EspTool::open_interface(const char* _ifac, int& _fd) {
         close(_fd);
     }
 
-    _fd = EspTool::open_serial_port(_ifac, B115200);
+    _fd = EspTool::open_serial_port(_ifac, DEFAULT_BAUDRATE);
 
     if (_fd < 0) {
         return (false);
@@ -323,7 +299,7 @@ bool EspTool::find_tty_devices(std::vector<DevConfig*>* _device_list, pthread_mu
         snprintf(ifac[1], sizeof (ifac[1]) - 1, "/dev/ttyUSB%d", tty);
 
         for (int i = 0; i < 2; i++) {
-            int fd = EspTool::open_serial_port(ifac[i], B115200);
+            int fd = EspTool::open_serial_port(ifac[i], DEFAULT_BAUDRATE);
             if (fd >= 0) {
                 close(fd);
                 DevConfig* device = new DevConfig();

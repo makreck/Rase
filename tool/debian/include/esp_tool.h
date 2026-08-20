@@ -96,7 +96,6 @@ class EspTool {
         static void* _cmd_exec_thread(void* _object);
 
     public:
-        static bool find_interface(char* _ifac, size_t _length);
         static bool find_tty_devices(std::vector<DevConfig*>* _device_list, pthread_mutex_t* _device_list_mutex);
         static int  open_serial_port(const char* _ifac, speed_t _baudrate = B115200);
         static bool force_reset_over_tty(int _fd);
