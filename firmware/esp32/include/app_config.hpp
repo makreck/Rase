@@ -26,6 +26,9 @@
 //#define ESP32_S3_ZERO
 //#define ESP32_S3_WROOM_1
 //#define ESP32_S3_ALKS_MINI
+//#define ESP32_S2_MINI
+//#define ESP32_WROVER_DEV
+//#define ESP32_WROOM_DEV
 
 #ifdef ESP32_S2_MINI
     #define CHIP_TYPE "Wemos Lolin ESP32 S2 Mini"
