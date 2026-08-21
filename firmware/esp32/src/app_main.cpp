@@ -249,7 +249,7 @@ AppState App::handle_reboot_request(void) {
         m.cfg->perform_factory_reset();
         vTaskDelay(pdMS_TO_TICKS(250));
 
-        cleanup();
+        // cleanup();
         esp_restart();
 
         return (AppState::failed);
