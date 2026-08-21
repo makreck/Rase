@@ -36,11 +36,18 @@ void DisplayI2C::init(i2c_port_t lcdPort, gpio_num_t pinSDA, gpio_num_t pinSCL) 
 }
 
 void DisplayI2C::cleanup(void) {
+    if (controller_list != nullptr) {
+        free(controller_list);
+        controller_list = nullptr;
+    }
+
     i2c_driver_delete(port);
+
     if (mutex != nullptr) {
         vSemaphoreDelete(mutex);
         mutex = nullptr;
     }
+
     esp_event_post(APP_EVENT, (int32_t)AppEvent::display_off, nullptr, 0, pdMS_TO_TICKS(1));
 }
 
@@ -148,7 +155,9 @@ esp_err_t DisplayI2C::update(void) {
 }
 
 esp_err_t DisplayI2C::off(void) {
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "DisplayI2C::off()");
+#endif
     DisplayHandle handle = control;
     for (int i = 0; (i < displayCount) && (handle != nullptr); i++) {
         handle->off();
@@ -157,7 +166,9 @@ esp_err_t DisplayI2C::off(void) {
 }
 
 esp_err_t DisplayI2C::on(void) {
+#ifdef DISPLAY_STATE
     ESP_LOGI(TAG, "DisplayI2C::on()");
+#endif    
     DisplayHandle handle = control;
     for (int i = 0; (i < displayCount) && (handle != nullptr); i++) {
         handle->on();
@@ -240,4 +251,34 @@ bool DisplayI2C::has_DisplayOfType(DisplayType type) {
         handle = handle->next;
     }
     return (false);
+}
+
+const char* DisplayI2C::get_type_info(void) {
+    if (controller_list != nullptr) {
+        return (controller_list);
+    }
+
+    size_t length = 0;
+    DisplayHandle handle = control;
+    for (int i = 0; (i < displayCount) && (handle != nullptr); i++) {
+        const char* controller = handle->get_controller();
+        length += strlen(controller);
+    }
+
+    if (length) {
+        length += (displayCount * 4);
+        controller_list = (char*)malloc(length);
+        if (controller_list != nullptr) {
+            memset(controller_list, 0, length);
+            for (int i = 0; (i < displayCount) && (handle != nullptr); i++) {
+                const char* controller = handle->get_controller();
+                if (i != 0) {
+                    strcat(controller_list, ", ");
+                }
+                strcat(controller_list, controller);
+            }
+        }
+    }
+
+    return (controller_list);
 }

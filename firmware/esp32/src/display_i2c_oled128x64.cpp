@@ -63,6 +63,9 @@
 #define SSD_PAR_ADRMODE_VERT            (0x01) // Page addressing mode: vertical
 #define SSD_PAR_ADRMODE_PAGE            (0x10) // Page addressing mode: pages
 #define SSD_PAR_ADRMODE_INV             (0x11) // Page addressing mode: invalid
+#define SSD_PAR_COLUMN_START            (0x00) // Start column is 0
+#define SSD_PAR_COLUMN_END_SSD1306      (0x7F) // Last column on SSD1306 is 127
+#define SSD_PAR_COLUMN_END_SSD1106      (0x83) // Last column on SSD1106 is 131
 
 
 const char DisplayOLED128x64::ssd1306_init_sequence[] = {
@@ -93,6 +96,10 @@ const char DisplayOLED128x64::ssd1306_init_sequence[] = {
 
     SSD_CMD_SET_DISPLAY_OFFSET,        // set display offset
 	SSD_PAR_DISPLAY_OFFSET,            // no offset
+
+    // SSD_CMD_SET_COLUMN_RANGE,          // set column range, SSD1306 = 0 ... 127, SSD1106 = 0 ... 131
+    // SSD_PAR_COLUMN_START,              // First column is always 0
+    // SSD_PAR_COLUMN_END_SSD1306,        // Last column on SSD1306 is 127
 
     SSD_CMD_SET_DISPLAY_CLOCK,         // set display clock divide ratio/oscillator frequency
 	SSD_PAR_CLOCK_DIVIDE_RATIO,        // clock divide ratio
@@ -151,17 +158,16 @@ esp_err_t DisplayOLED128x64::update(void) {
 
     for (uint8_t y = 0; y < 8; y++) {
         send_command(SSD_CMD_SET_PAGE_START_ADDRESS + y);
-        send_command(0x00); // low nibble (0), for SSD1306 = 0, for SSD1106 = 2
-        send_command(0x10); // high nibble (1) = 1 x 16 pixels start offset
+        send_command(scan_start[0]);
+        send_command(scan_start[1]);
 
         for (uint8_t x = 0; x < 128; x++) {
             send_data(displayBuffer.s[i++]);
         }
 
-        // For using a SSD1106 controller, we must fill the 4 pixels on the right hand side to avoid random pixels.
-        // for (uint8_t x = 128; x < 132; x++) {
-        //     send_data(0x00);
-        // }
+        for (uint8_t x = 128; x < pixels_x; x++) {
+            send_data(0x00);
+        }
     }
 
 #ifdef DISPLAY_STATE
@@ -359,3 +365,69 @@ esp_err_t DisplayOLED128x64::on(void) {
     return (ESP_OK);
 }
 
+esp_err_t DisplayOLED128x64::detect_controller(void) {
+    send_command(SSD_CMD_DISPLAY_OFF);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    
+    uint8_t out = 0x00;
+    uint8_t in = 0x00;
+    i2c_master_write_read_device(port, slave_address, &out, 1, &in, 1, pdMS_TO_TICKS(LCD_IO_TIMEOUT_MS));
+
+    controller = (OLEDController)(in & 0x0f);
+
+    switch (controller) {
+        case OLEDController::SSD1306_0_96_inch_128x64: {
+            controller_type = "0.96'' SSD1306 128 x 64";
+            pixels_x = 128;
+            pixels_y = 64;
+            scan_start[0] = 0x00;
+            scan_start[1] = 0x10;
+        } break;
+
+        case OLEDController::SSD1306_0_91_inch_128x64_yb: {
+            controller_type = "0.91'' SSD1306 128 x 64 (yellow/blue)";
+            pixels_x = 128;
+            pixels_y = 64;
+            scan_start[0] = 0x00;
+            scan_start[1] = 0x10;
+        } break;
+
+        case OLEDController::SSD1306_0_91_inch_128x64: {
+            controller_type = "0.91'' SSD1306 128 x 64 (white/yellow/blue)";
+            pixels_x = 128;
+            pixels_y = 64;
+            scan_start[0] = 0x00;
+            scan_start[1] = 0x10;
+        } break;
+
+        case OLEDController::SH1106_1_3_inch_132x64_white: {
+            controller_type = "1.3'' SH1106 132 x 64 (white)";
+            pixels_x = 132;
+            pixels_y = 64;
+            scan_start[0] = 0x02;
+            scan_start[1] = 0x10;
+        } break;
+
+        case OLEDController::SH1106_1_3_inch_132x64_blue: {
+            controller_type = "1.3'' SH1106 132 x 64 (blue)";
+            pixels_x = 132;
+            pixels_y = 64;
+            scan_start[0] = 0x02;
+            scan_start[1] = 0x10;
+        } break;
+
+        default: {
+            controller_type = "unsupported";
+        } break;
+    }
+
+    ESP_LOGI(TAG,
+        "DisplayOLED128x64::detect_controller() = 0x%-2.2X: \"%s\" %d x %d pixels ",
+        (unsigned int)in, controller_type, (int)pixels_x, (int)pixels_y);
+
+    return (ESP_OK);
+}
+
+const char* DisplayOLED128x64::get_controller(void) {
+    return (controller_type);
+}

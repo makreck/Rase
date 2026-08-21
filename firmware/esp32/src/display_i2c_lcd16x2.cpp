@@ -183,3 +183,7 @@ esp_err_t DisplayLCD16x2::off(void) {
 esp_err_t DisplayLCD16x2::on(void) {
     return (ESP_OK);
 }
+
+const char* DisplayLCD16x2::get_controller(void) {
+    return (controller_type);
+}
