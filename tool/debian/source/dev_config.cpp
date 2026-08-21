@@ -178,6 +178,7 @@ bool DevConfig::parse_id_json(char* _id_json) {
         { "flash-chip-size",      id.flash_chip_size,      sizeof (id.flash_chip_size)      },
         { "spi-ram",              id.spi_ram,              sizeof (id.spi_ram)              },
         { "heap-size-kb",         id.heap_size,            sizeof (id.heap_size)            },
+        { "display",              id.display,              sizeof (id.display)              },
         { "rssi",                 id.rssi,                 sizeof (id.rssi)                 },
         { "tx_power",             id.tx_power,             sizeof (id.tx_power)             },
         { "system_time",          id.system_time,          sizeof (id.system_time)          },

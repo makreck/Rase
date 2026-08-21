@@ -90,7 +90,8 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Sensor head type",
         "Head serial no.",
         "System time",
-
+        "Display type",
+        
         "Program device",
         "Reset device",
         "Initialize device (TTY only)",

@@ -125,6 +125,7 @@ class DevConfig {
             char flash_chip_size[16]{ 0 };
             char spi_ram[16]{ 0 };
             char heap_size[16]{ 0 };
+            char display[128]{ 0 };
             char rssi[16]{ 0 };
             char tx_power[16]{ 0 };
             char system_time[32]{ 0 };

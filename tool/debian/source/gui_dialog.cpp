@@ -97,8 +97,10 @@ GtkWidget* App::create_dialog(void) {
     m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_STATION_MAC, APP_WINDOW_INFO_WIDTH, 0, 9, m.device.id.wifi_station_mac,     sizeof (m.device.id.wifi_station_mac),     nullptr));
     m.gtk.items.push_back(add_text_field(grid_id, IDS_WIFI_AP_MAC,      APP_WINDOW_INFO_WIDTH, 2, 9, m.device.id.wifi_ap_mac,          sizeof (m.device.id.wifi_ap_mac),          nullptr));
     
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 10, m.device.id.bluetooth_mac,        sizeof (m.device.id.bluetooth_mac),        nullptr));
-    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 10, m.device.id.system_time,          sizeof (m.device.id.system_time),          nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_BLUETOOTH_MAC,    APP_WINDOW_INFO_WIDTH, 0, 10, m.device.id.bluetooth_mac,       sizeof (m.device.id.bluetooth_mac),        nullptr));
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_TIME_DATE,        APP_WINDOW_INFO_WIDTH, 2, 10, m.device.id.system_time,         sizeof (m.device.id.system_time),          nullptr));
+
+    m.gtk.items.push_back(add_text_field(grid_id, IDS_DISPLAY_TYPE,     APP_WINDOW_INFO_WIDTH, 0, 11, m.device.id.display,             sizeof (m.device.id.display),              nullptr));
 
     return (m.gtk.dialog);
 }
