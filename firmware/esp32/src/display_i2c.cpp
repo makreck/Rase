@@ -55,8 +55,8 @@ void DisplayI2C::portSetup(void) {
     iic_setup.master.clk_speed = LCD_IIC_FREQ_HZ;
     iic_setup.clk_flags = I2C_SCLK_SRC_FLAG_FOR_NOMAL;
     i2c_param_config(port, &iic_setup);
-    i2c_set_start_timing(port, 3, 3);
-    i2c_set_stop_timing(port, 3, 3);
+    i2c_set_start_timing(port, 5, 5);
+    i2c_set_stop_timing(port, 5, 5);
     i2c_driver_install(port, iic_setup.mode, 0, 0, 0);
 }
 

@@ -36,7 +36,8 @@
 
 #define OLED_128X64_A0      (0x3C)
 #define LCD_IO_TIMEOUT_MS   (40)
-#define LCD_IIC_FREQ_HZ     (1000000) // (400000)
+#define LCD_IIC_FREQ_HZ     (1000000)
+// #define LCD_IIC_FREQ_HZ     (400000)
 
 enum class DisplayType : uint8_t {
     undefined = 0,
@@ -105,7 +106,7 @@ class DisplayLCD16x2 : public DisplayInstance {
 
 class DisplayOLED128x64 : public DisplayInstance {
     private:
-        static constexpr const char* CLASS_ID = "DisplayOLED128x64";
+        static const char ssd1306_init_sequence[];
 
         uint8_t i2c_buffer[4]{ 0 };
         union {

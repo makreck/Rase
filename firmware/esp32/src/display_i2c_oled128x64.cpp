@@ -23,93 +23,93 @@
 
 // #define DISPLAY_STATE
 
-#define SSD1306_CMD_SET_COLUMN_LOW          (0x00)
-#define SSD1306_CMD_SET_COLUMN_HIGH         (0x10)
-#define SSD1306_CMD_SET_MEMORY_ADDR_MODE    (0x20)
-#define SSD1306_CMD_SET_COLUMN_RANGE        (0x21)
-#define SSD1306_CMD_SET_PAGE_RANGE          (0x22)
-#define SSD1306_CMD_SET_START_LINE          (0x40)
-#define SSD1306_CMD_SET_DISPLAY_CLOCK_EN    (0x80)
-#define SSD1306_CMD_SET_CONTRAST            (0x81)
-#define SSD1306_CMD_SET_DC_DC_ENABLE        (0x8d)
-#define SSD1306_CMD_SET_SEGMENT_REMAP       (0xa1) // 0 ... 127
-#define SSD1306_CMD_OUTPUT_FOLLOWS_RAM      (0xa4)
-#define SSD1306_CMD_OUTPUT_IGNORES_RAM      (0xa5)
-#define SSD1306_CMD_NORMAL_DISPLAY          (0xa6)
-#define SSD1306_CMD_INVERT_DISPLAY          (0xa7)
-#define SSD1306_CMD_SET_MULTIPLEX           (0xa8)
-#define SSD1306_CMD_DISPLAY_OFF             (0xae)
-#define SSD1306_CMD_DISPLAY_ON              (0xaf)
-#define SSD1306_CMD_SET_PAGE_START_ADDRESS  (0xb0) // 0xb0 ... 0xb7
-#define SSD1306_CMD_SET_COM_SCAN_DEC        (0xc0)
-#define SSD1306_CMD_SET_COM_SCAN_INC        (0xc8)
-#define SSD1306_CMD_SET_DISPLAY_OFFSET      (0xd3)
-#define SSD1306_CMD_SET_DISPLAY_CLOCK       (0xd5)
-#define SSD1306_CMD_SET_PRECHARGE_PERIOD    (0xd9)
-#define SSD1306_CMD_SET_COM_PIN_CONFIG      (0xda)
-#define SSD1306_CMD_SET_VCOM_DESELECT       (0xdb)
-#define SSD1306_CMD_SET_DIVIDE_RATIO        (0xf0)
+#define SSD_CMD_SET_COLUMN_LOW          (0x00)
+#define SSD_CMD_SET_COLUMN_HIGH         (0x10)
+#define SSD_CMD_SET_MEMORY_ADDR_MODE    (0x20)
+#define SSD_CMD_SET_COLUMN_RANGE        (0x21)
+#define SSD_CMD_SET_PAGE_RANGE          (0x22)
+#define SSD_CMD_SET_START_LINE          (0x40)
+#define SSD_CMD_SET_DISPLAY_CLOCK_EN    (0x80)
+#define SSD_CMD_SET_CONTRAST            (0x81)
+#define SSD_CMD_SET_DC_DC_ENABLE        (0x8d)
+#define SSD_CMD_SET_SEGMENT_REMAP       (0xa1) // 0 ... 127
+#define SSD_CMD_OUTPUT_FOLLOWS_RAM      (0xa4)
+#define SSD_CMD_OUTPUT_IGNORES_RAM      (0xa5)
+#define SSD_CMD_NORMAL_DISPLAY          (0xa6)
+#define SSD_CMD_INVERT_DISPLAY          (0xa7)
+#define SSD_CMD_SET_MULTIPLEX           (0xa8)
+#define SSD_CMD_DISPLAY_OFF             (0xae)
+#define SSD_CMD_DISPLAY_ON              (0xaf)
+#define SSD_CMD_SET_PAGE_START_ADDRESS  (0xb0) // 0xb0 ... 0xb7
+#define SSD_CMD_SET_COM_SCAN_DEC        (0xc0)
+#define SSD_CMD_SET_COM_SCAN_INC        (0xc8)
+#define SSD_CMD_SET_DISPLAY_OFFSET      (0xd3)
+#define SSD_CMD_SET_DISPLAY_CLOCK       (0xd5)
+#define SSD_CMD_SET_PRECHARGE_PERIOD    (0xd9)
+#define SSD_CMD_SET_COM_PIN_CONFIG      (0xda)
+#define SSD_CMD_SET_VCOM_DESELECT       (0xdb)
+#define SSD_CMD_SET_DIVIDE_RATIO        (0xf0)
 
-#define SSD1306_PAR_SEQUENTIAL_COM_PIN      (0x12)
-#define SSD1306_PAR_CONTRAST_VALUE          (0xFF) // 0xCF vs. 0xDF vs. 0xFF
-#define SSD1306_PAR_MULTIPLEX_DUTY_CYCLE    (0x3F) // 1/64 duty cycle
-#define SSD1306_PAR_PRECHARGED_PERIOD_TIME  (0x22) // (0xF1)
-#define SSD1306_PAR_VCOMH_DESELECT_LEVEL    (0x20) // (0x40)
-#define SSD1306_PAR_DISPLAY_OFFSET          (0x00) // no offset
-#define SSD1306_PAR_DC_DC_ENABLE            (0x14) // DC-DC enable
-#define SSD1306_PAR_DC_DC_DISABLE           (0x10) // DC-DC disable
-#define SSD1306_PAR_CLOCK_DIVIDE_RATIO      (0xF0) // Display clock divide ratio
-#define SSD1306_PAR_ADRMODE_HORZ            (0x00) // Page addressing mode: horizontal
-#define SSD1306_PAR_ADRMODE_VERT            (0x01) // Page addressing mode: vertical
-#define SSD1306_PAR_ADRMODE_PAGE            (0x10) // Page addressing mode: pages
-#define SSD1306_PAR_ADRMODE_INV             (0x11) // Page addressing mode: invalid
+#define SSD_PAR_SEQUENTIAL_COM_PIN      (0x12)
+#define SSD_PAR_CONTRAST_VALUE          (0xFF) // 0xCF vs. 0xDF vs. 0xFF
+#define SSD_PAR_MULTIPLEX_DUTY_CYCLE    (0x3F) // 1/64 duty cycle
+#define SSD_PAR_PRECHARGED_PERIOD_TIME  (0x22) // (0xF1)
+#define SSD_PAR_VCOMH_DESELECT_LEVEL    (0x20) // (0x40)
+#define SSD_PAR_DISPLAY_OFFSET          (0x00) // no offset
+#define SSD_PAR_DC_DC_ENABLE            (0x14) // DC-DC enable
+#define SSD_PAR_DC_DC_DISABLE           (0x10) // DC-DC disable
+#define SSD_PAR_CLOCK_DIVIDE_RATIO      (0xF0) // Display clock divide ratio
+#define SSD_PAR_ADRMODE_HORZ            (0x00) // Page addressing mode: horizontal
+#define SSD_PAR_ADRMODE_VERT            (0x01) // Page addressing mode: vertical
+#define SSD_PAR_ADRMODE_PAGE            (0x10) // Page addressing mode: pages
+#define SSD_PAR_ADRMODE_INV             (0x11) // Page addressing mode: invalid
 
 
-static const char ssd1306_init_sequence[] = {
-    SSD1306_CMD_DISPLAY_OFF,               // display off
+const char DisplayOLED128x64::ssd1306_init_sequence[] = {
+    SSD_CMD_DISPLAY_OFF,               // display off
 
-    SSD1306_CMD_SET_MEMORY_ADDR_MODE,      // set memory addressing mode	
-	SSD1306_PAR_ADRMODE_PAGE,              // 0x00 = horizontal addressing mode, 0x01 = vertical addressing mode, 0x10 = page addressing mode (reset), 0x11 = invalid
+    SSD_CMD_SET_MEMORY_ADDR_MODE,      // set memory addressing mode	
+	SSD_PAR_ADRMODE_PAGE,              // 0x00 = horizontal addressing mode, 0x01 = vertical addressing mode, 0x10 = page addressing mode (reset), 0x11 = invalid
 
-	SSD1306_CMD_SET_PAGE_START_ADDRESS,    // set page start address for page addressing mode, +0 to +7
+	SSD_CMD_SET_PAGE_START_ADDRESS,    // set page start address for page addressing mode, +0 to +7
 	
-    SSD1306_CMD_SET_COM_SCAN_INC,          // set COM output scan direction
+    SSD_CMD_SET_COM_SCAN_INC,          // set COM output scan direction
 	
-    SSD1306_CMD_SET_COLUMN_LOW,            // set low column address
-	SSD1306_CMD_SET_COLUMN_HIGH,           // set high column address
-	SSD1306_CMD_SET_START_LINE,            // set start line address
+    SSD_CMD_SET_COLUMN_LOW,            // set low column address
+	SSD_CMD_SET_COLUMN_HIGH,           // set high column address
+	SSD_CMD_SET_START_LINE,            // set start line address
 	
-    SSD1306_CMD_SET_CONTRAST,              // set contrast control register
-	SSD1306_PAR_CONTRAST_VALUE,            // contrast value 0x00 ... 0xFF	
+    SSD_CMD_SET_CONTRAST,              // set contrast control register
+	SSD_PAR_CONTRAST_VALUE,            // contrast value 0x00 ... 0xFF	
 
-    SSD1306_CMD_SET_SEGMENT_REMAP,         // set segment re-map 0 to 127
+    SSD_CMD_SET_SEGMENT_REMAP,         // set segment re-map 0 to 127
 
-    SSD1306_CMD_NORMAL_DISPLAY,            // set normal display
+    SSD_CMD_NORMAL_DISPLAY,            // set normal display
 
-    SSD1306_CMD_SET_MULTIPLEX,             // set multiplex ratio
-	SSD1306_PAR_MULTIPLEX_DUTY_CYCLE,      // multiplex ratio (duty cycle) 1 to 64
+    SSD_CMD_SET_MULTIPLEX,             // set multiplex ratio
+	SSD_PAR_MULTIPLEX_DUTY_CYCLE,      // multiplex ratio (duty cycle) 1 to 64
 
-    SSD1306_CMD_OUTPUT_FOLLOWS_RAM,        // 0xA4 = output follows RAM content, 0xa5 = output ignores RAM content
+    SSD_CMD_OUTPUT_FOLLOWS_RAM,        // 0xA4 = output follows RAM content, 0xa5 = output ignores RAM content
 
-    SSD1306_CMD_SET_DISPLAY_OFFSET,        // set display offset
-	SSD1306_PAR_DISPLAY_OFFSET,            // no offset
+    SSD_CMD_SET_DISPLAY_OFFSET,        // set display offset
+	SSD_PAR_DISPLAY_OFFSET,            // no offset
 
-    SSD1306_CMD_SET_DISPLAY_CLOCK,         // set display clock divide ratio/oscillator frequency
-	SSD1306_PAR_CLOCK_DIVIDE_RATIO,        // clock divide ratio
+    SSD_CMD_SET_DISPLAY_CLOCK,         // set display clock divide ratio/oscillator frequency
+	SSD_PAR_CLOCK_DIVIDE_RATIO,        // clock divide ratio
 
-	SSD1306_CMD_SET_PRECHARGE_PERIOD,      // set pre-charge period
-	SSD1306_PAR_PRECHARGED_PERIOD_TIME,    // period time
+	SSD_CMD_SET_PRECHARGE_PERIOD,      // set pre-charge period
+	SSD_PAR_PRECHARGED_PERIOD_TIME,    // period time
 
-	SSD1306_CMD_SET_COM_PIN_CONFIG,        // set com pins hardware configuration
-	SSD1306_PAR_SEQUENTIAL_COM_PIN,        //
+	SSD_CMD_SET_COM_PIN_CONFIG,        // set com pins hardware configuration
+	SSD_PAR_SEQUENTIAL_COM_PIN,        //
 	
-    SSD1306_CMD_SET_VCOM_DESELECT,         // set Vcom H
-	SSD1306_PAR_VCOMH_DESELECT_LEVEL,      // 0x20 = 0.77 x Vcc
+    SSD_CMD_SET_VCOM_DESELECT,         // set Vcom H
+	SSD_PAR_VCOMH_DESELECT_LEVEL,      // 0x20 = 0.77 x Vcc
 
-	SSD1306_CMD_SET_DC_DC_ENABLE,          // set DC-DC enable
-	SSD1306_PAR_DC_DC_ENABLE,              // DC-DC enable part #2 (enable = 0x14, disable = 0x10)
+	SSD_CMD_SET_DC_DC_ENABLE,          // set DC-DC enable
+	SSD_PAR_DC_DC_ENABLE,              // DC-DC enable part #2 (enable = 0x14, disable = 0x10)
 
-	SSD1306_CMD_DISPLAY_ON,                // turn on OLED panel 
+	SSD_CMD_DISPLAY_ON,                // turn on OLED panel 
 };
 
 esp_err_t DisplayOLED128x64::init(void) {
@@ -150,13 +150,18 @@ esp_err_t DisplayOLED128x64::update(void) {
     int i = 0;
 
     for (uint8_t y = 0; y < 8; y++) {
-        send_command(0xB0 + y);
-        send_command(0x00);
-        send_command(0x10);
+        send_command(SSD_CMD_SET_PAGE_START_ADDRESS + y);
+        send_command(0x00); // low nibble (0), for SSD1306 = 0, for SSD1106 = 2
+        send_command(0x10); // high nibble (1) = 1 x 16 pixels start offset
 
         for (uint8_t x = 0; x < 128; x++) {
             send_data(displayBuffer.s[i++]);
         }
+
+        // For using a SSD1106 controller, we must fill the 4 pixels on the right hand side to avoid random pixels.
+        // for (uint8_t x = 128; x < 132; x++) {
+        //     send_data(0x00);
+        // }
     }
 
 #ifdef DISPLAY_STATE
@@ -337,20 +342,20 @@ esp_err_t DisplayOLED128x64::set_rotation(int _degree) {
 
 esp_err_t DisplayOLED128x64::set_contrast(float value) {
     uint8_t data = (uint8_t)(MAX(0.0f, MIN(1.0f, value)) * 255.0f);
-    send_command(SSD1306_CMD_SET_CONTRAST);
+    send_command(SSD_CMD_SET_CONTRAST);
     send_command(data);
     return (ESP_OK);
 }
 
 esp_err_t DisplayOLED128x64::off(void) {
     ESP_LOGI(TAG, "DisplayOLED128x64::off()");
-    send_command(SSD1306_CMD_DISPLAY_OFF);
+    send_command(SSD_CMD_DISPLAY_OFF);
     return (ESP_OK);
 }
 
 esp_err_t DisplayOLED128x64::on(void) {
     ESP_LOGI(TAG, "DisplayOLED128x64::on()");
-    send_command(SSD1306_CMD_DISPLAY_ON);
+    send_command(SSD_CMD_DISPLAY_ON);
     return (ESP_OK);
 }
 
