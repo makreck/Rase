@@ -48,6 +48,8 @@ const char* Tools::device_id_json =
     "\t\"flash-chip-size\": \"%.1f MB\",\n"
     "\t\"spi-ram\": \"%s\",\n"
     "\t\"heap-size-kb\": \"%s\",\n"
+    
+    "\t\"display\": \"%s\",\n"
 
     "\t\"rssi\": \"%s\",\n"
     "\t\"tx_power\": \"%s\",\n"
@@ -91,7 +93,7 @@ char* Tools::get_reboot_json(void) {
     return (json_string);
 }
 
-char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
+char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver, DisplayI2C* _display) {
     char device_serial_number[22]{0};
     char firmware_version[16]{0};
     char iso_firmware_date[16]{0};
@@ -106,7 +108,7 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     char head[16]{ 0 };
     char head_serial[16]{ 0 };
     char system_time_string[32]{ 0 };
-    
+
     if (_ip_addr != nullptr) {
         strncpy(ip_addr, _ip_addr, sizeof (ip_addr) - 1);
     } else {
@@ -119,6 +121,11 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     } else {
         strncpy(head, "autoscan", sizeof (head));
         strncpy(head_serial, "0x00000000", sizeof (head_serial));
+    }
+
+    const char* display_type = "unknown";
+    if (_display != nullptr) {
+        display_type = _display->get_type_info();
     }
 
     Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
@@ -159,14 +166,14 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver) {
     size_t length = snprintf(nullptr, 0, device_id_json, device_serial_number,
         firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr, 
         partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size,
-        rssi_string, tx_power_string, system_time_string);
+        display_type, rssi_string, tx_power_string, system_time_string);
 
     char* json_string = (char*)malloc(length + 1);
 
     snprintf(json_string, length + 1, device_id_json, device_serial_number,
         firmware_version, iso_firmware_date, head, head_serial, wifi_sta_mac, wifi_ap_mac, bt_mac, ip_addr,
         partition->label, part_size_mb, (unsigned int)partition->flash_chip->chip_id, chip_size_mb, spi_ram, heap_size,
-        rssi_string, tx_power_string, system_time_string);
+        display_type, rssi_string, tx_power_string, system_time_string);
 
     return (json_string);
 }

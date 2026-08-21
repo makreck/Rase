@@ -22,6 +22,7 @@
 #pragma once
 
 class SensorDriver;
+class DisplayI2C;
 
 class Tools {
     private:
@@ -32,7 +33,7 @@ class Tools {
 
     public:
         static char* get_reboot_json(void);
-        static char* get_device_id_json(const char* _ip_addr, SensorDriver* _driver);
+        static char* get_device_id_json(const char* _ip_addr, SensorDriver* _driver, DisplayI2C* _display);
         static size_t get_device_serial_number(char* buffer, size_t size);
         static AppState get_timestamp(char* buffer, size_t size, char div_char = 'T');
         static void timedate(tm& timeinfo);
