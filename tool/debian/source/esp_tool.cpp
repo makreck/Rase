@@ -338,30 +338,6 @@ void* EspTool::_scanner_thread(void* _object) {
     return (nullptr);
 }
 
-const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
-    if (_chip_type == nullptr) {
-        return (nullptr);
-    }
-
-    const char* firmware_file = nullptr;
-    if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32S3_DEVKIT_1) != nullptr) {
-        firmware_file = "./firmware_images/image_esp32-s3-devkitc-1.bin";
-    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_SEEED_STUDIO_XIAO_ESP32S3) != nullptr) {
-        return firmware_file = "./firmware_images/image_seeed_xiao_esp32s3.bin";
-    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI) != nullptr) {
-        firmware_file = "./firmware_images/image_waveshare_esp32s3_mini.bin";
-    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI) != nullptr) {
-        firmware_file = "./firmware_images/image_alks_esp32s3_mini.bin";
-    }
-
-    // ****
-    printf("---> Firmware matching for chip type \"%s\" is \"%s\"\n",
-        _chip_type, (firmware_file != nullptr) ? firmware_file : "---");
-
-    return (firmware_file);
-}
-
-
 pthread_t EspTool::update_all_devices(std::vector<DevConfig*>& _device_list, OTALoaderCB _callback, void* _user_param) {
     pthread_t thread_handle = 0;
     pthread_create(&thread_handle, nullptr, EspTool::_ota_control_thread, new MultiCmdParms(&_device_list, _callback, _user_param));
@@ -450,4 +426,37 @@ printf("Response:\n\"\"\"\n%s\n\"\"\"\n", response); // ****
     return (nullptr);
 }
 
-// char* response = EspTool::transact_command(m.ifac, TTY_KEY_API_INITIALIZE);
+
+const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
+    if (_chip_type == nullptr) {
+        return (nullptr);
+    }
+
+    const char* firmware_file = nullptr;
+    if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32S3_DEVKIT_1) != nullptr) {
+        firmware_file = "./firmware_images/image_esp32-s3-devkitc-1.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_SEEED_STUDIO_XIAO_ESP32S3) != nullptr) {
+        return firmware_file = "./firmware_images/image_seeed_xiao_esp32s3.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI) != nullptr) {
+        firmware_file = "./firmware_images/image_waveshare_esp32s3_mini.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI) != nullptr) {
+        firmware_file = "./firmware_images/image_alks_esp32s3_mini.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WEMOS_LOLIN_ESP32S2_MINI) != nullptr) {
+        firmware_file = "./firmware_images/image_esp32s2_generic.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32_WROVER) != nullptr) {
+        firmware_file = "./firmware_images/image_esp32dev.bin";
+
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32_WROOM) != nullptr) {
+        firmware_file = "./firmware_images/image_upesy_wroom.bin";
+    }
+
+    // ****
+    printf("---> Firmware matching for chip type \"%s\" is \"%s\"\n", _chip_type, (firmware_file != nullptr) ? firmware_file : "---");
+
+    return (firmware_file);
+}

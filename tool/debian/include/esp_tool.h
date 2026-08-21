@@ -29,7 +29,20 @@
 #define FIRMWARE_CHIP_KEY_SEEED_STUDIO_XIAO_ESP32S3     "Seeed Studio XIAO ESP32-S3"
 #define FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI        "Waveshare ESP32-S3 mini"
 #define FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI    "diymore ESP32-S3"
+#define FIRMWARE_CHIP_KEY_WEMOS_LOLIN_ESP32S2_MINI      "Wemos Lolin ESP32 S2 Mini"
+#define FIRMWARE_CHIP_KEY_ESP32_WROVER                  "ESP32 Wroover"
+#define FIRMWARE_CHIP_KEY_ESP32_WROOM                   "ESP32 Wroom"
 
+/*
+ESP32_S3_WROOM_1        "ESP32-S3 Wroom"
+SEEED_XIAO_S3           "Seeed Studio XIAO ESP32-S3"
+ESP32_S3_ZERO           "Waveshare ESP32-S3 mini"
+ESP32_S3_ALKS_MINI      "diymore ESP32-S3"
+ESP32_S2_MINI           "Wemos Lolin ESP32 S2 Mini"
+
+ESP32_WROVER_DEV        "ESP32 Wroover"
+ESP32_WROOM_DEV         "ESP32 Wroom"
+*/
 
 typedef bool (*OTALoaderCB)(void* _user_param, int _id, float _progress, const char* _topic, const char* _message);
 
