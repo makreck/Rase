@@ -176,7 +176,7 @@ void ConfigInterface::handle_id_response(ConfigInterface* instance, int mode, co
         }
     }
 
-    char* device_id_json = Tools::get_device_id_json(ip_addr, driver);
+    char* device_id_json = Tools::get_device_id_json(ip_addr, driver, app->get_display());
     send(device_id_json, strlen(device_id_json));
     free(device_id_json);
 }
