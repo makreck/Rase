@@ -45,6 +45,14 @@ enum class DisplayType : uint8_t {
     OLED128x64 = 2,
 };
 
+enum class OLEDController : uint8_t {
+    SSD1306_0_96_inch_128x64     = 0x03,
+    SSD1306_0_91_inch_128x64_yb  = 0x04,
+    SSD1306_0_91_inch_128x64     = 0x05,
+    SH1106_1_3_inch_132x64_blue  = 0x06,
+    SH1106_1_3_inch_132x64_white = 0x08,
+};
+
 class DisplayInstance {
     public:
         DisplayInstance* next = nullptr;
@@ -74,6 +82,7 @@ class DisplayInstance {
         virtual esp_err_t set_contrast(float value) = 0;
         virtual esp_err_t off(void) = 0;
         virtual esp_err_t on(void) = 0;
+        virtual const char* get_controller(void) = 0;
 };
 
 class DisplayLCD16x2 : public DisplayInstance {
@@ -82,6 +91,8 @@ class DisplayLCD16x2 : public DisplayInstance {
             char s[32];
             char a[2][16];
         } displayBuffer;
+
+        const char* controller_type = "Standard LCD 16x2";
 
     public:
         DisplayLCD16x2(i2c_port_t _given_port, DisplayType _given_type, uint8_t _given_address, uint8_t _given_rotation_mask) : DisplayInstance(_given_port, _given_type, _given_address, _given_rotation_mask) {
@@ -102,11 +113,18 @@ class DisplayLCD16x2 : public DisplayInstance {
         esp_err_t set_contrast(float value) override;
         esp_err_t off(void) override;
         esp_err_t on(void) override;
+        const char* get_controller(void) override;
 };
 
 class DisplayOLED128x64 : public DisplayInstance {
     private:
         static const char ssd1306_init_sequence[];
+
+        OLEDController controller = OLEDController::SSD1306_0_91_inch_128x64;
+        const char* controller_type = "unsupported";
+        uint8_t pixels_x = 128;
+        uint8_t pixels_y = 64;
+        uint8_t scan_start[2]{ 0x00, 0x10 };
 
         uint8_t i2c_buffer[4]{ 0 };
         union {
@@ -114,6 +132,7 @@ class DisplayOLED128x64 : public DisplayInstance {
             uint8_t a[8][128];
         } displayBuffer;
 
+        esp_err_t detect_controller(void);
         uint32_t font_byte_16_to_32_bit(uint16_t fontWord);
         uint8_t check_bit_swap(uint8_t fontData);
         uint16_t check_bit_swap(uint16_t fontData);
@@ -123,6 +142,7 @@ class DisplayOLED128x64 : public DisplayInstance {
 
     public:
         DisplayOLED128x64(i2c_port_t _given_port, DisplayType _given_type, uint8_t _given_address, uint8_t _given_rotation_mask) : DisplayInstance(_given_port, _given_type, _given_address, _given_rotation_mask) {
+            detect_controller();
         }
 
         esp_err_t send_command(uint8_t cmd);
@@ -144,6 +164,7 @@ class DisplayOLED128x64 : public DisplayInstance {
         esp_err_t set_contrast(float value) override;
         esp_err_t off(void) override;
         esp_err_t on(void) override;
+        const char* get_controller(void) override;
 };
 typedef DisplayInstance* DisplayHandle;
 
@@ -158,6 +179,8 @@ class DisplayI2C {
         int displayCount = 0;
         DisplayInstance* control = nullptr;
         QueueHandle_t mutex = nullptr;
+
+        char* controller_list = nullptr;
         
     public:
 
@@ -174,6 +197,7 @@ class DisplayI2C {
         void portSetup(void);
         bool isAvailable(void) { return (displayCount > 0); }
         bool has_DisplayOfType(DisplayType type);
+        const char* get_type_info(void);
 
         esp_err_t detect_display_type(void);
         DisplayHandle create_display(DisplayType type, uint8_t i2Caddr, uint8_t rotationMask);
