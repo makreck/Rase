@@ -123,9 +123,14 @@ char* Tools::get_device_id_json(const char* _ip_addr, SensorDriver* _driver, Dis
         strncpy(head_serial, "0x00000000", sizeof (head_serial));
     }
 
-    const char* display_type = "unknown";
+    const char* display_type;
     if (_display != nullptr) {
         display_type = _display->get_type_info();
+        if (display_type == nullptr) {
+            display_type = "No display";
+        }
+    } else {
+        display_type = "unknown";
     }
 
     Tools::get_device_serial_number(device_serial_number, sizeof (device_serial_number));
