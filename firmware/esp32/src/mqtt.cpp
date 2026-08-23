@@ -25,6 +25,9 @@
 
 void Mqtt::init(const char* _broker_url, const char* _username, const char* _password) {
     if (_broker_url != nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "");
+#endif        
         snprintf(m.broker_uri, sizeof (m.broker_uri), "mqtt://%s", _broker_url);
 
         if (_username != nullptr) {
@@ -55,6 +58,9 @@ void Mqtt::init(const char* _broker_url, const char* _username, const char* _pas
 }
 
 void Mqtt::cleanup(void) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "");
+#endif        
     if (m.task_handle != nullptr) {
         vTaskDelete(m.task_handle);
         m.task_handle = nullptr;
@@ -71,6 +77,9 @@ void Mqtt::start(SensorDriver* _sensor) {
     m.sensor = _sensor;
 
     if (m.client == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "Mqtt::start()");
+#endif        
         m.client = esp_mqtt_client_init(&m.mqtt_cfg);
         if (m.client != nullptr) {
             esp_mqtt_client_register_event(m.client, MQTT_EVENT_ANY, Mqtt::_mqtt_event_handler, this);
@@ -80,8 +89,14 @@ void Mqtt::start(SensorDriver* _sensor) {
     }
 
     if (m.task_handle == nullptr) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "Mqtt::start(): Start MQTT client.");
+#endif        
         esp_err_t ret = esp_mqtt_client_start(m.client);
         if (ret == ESP_OK) {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "Mqtt::start(): Start MQTT client task.");
+#endif        
             xTaskCreate(Mqtt::_mqtt_task, "MQTTClientTask", TASK_DEFAULT_STACKSIZE, this, TASK_DEFAULT_PRIORITY - 1, &m.task_handle);
         }
     }
@@ -108,6 +123,9 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
 
     switch (event_id) {
         case MQTT_EVENT_CONNECTED: {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "mqtt_event_handler(): Connected.");
+#endif        
             m.retry_count = 0;
             clear_msg_pending();
         }
@@ -118,44 +136,44 @@ void Mqtt::mqtt_event_handler(esp_event_base_t _base, int32_t _event_id, void* _
             if (m.retry_count < MQTT_RETRY_MAX) {
                 esp_mqtt_client_reconnect(client);
 #ifdef DISPLAY_STATE
-                ESP_LOGI(TAG, "Retrying to connect to the MQTT broker");
+                ESP_LOGI(TAG, "mqtt_event_handler(): Retrying to connect to the MQTT broker");
 #endif                
             } else {
-                ESP_LOGE(TAG, "Maximum retry attempts reached");
+                ESP_LOGE(TAG, "mqtt_event_handler(): Maximum retry attempts reached");
             }
         } break;
 
         case MQTT_EVENT_SUBSCRIBED: {
 #ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");
+            ESP_LOGI(TAG, "mqtt_event_handler(): MQTT_EVENT_SUBSCRIBED");
 #endif                
         } break;
 
         case MQTT_EVENT_UNSUBSCRIBED: {
 #ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED");
+            ESP_LOGI(TAG, "mqtt_event_handler(): MQTT_EVENT_UNSUBSCRIBED");
 #endif                
         } break;
 
         case MQTT_EVENT_PUBLISHED: {
             if (pop_msg_id(event->msg_id)) {
 #ifdef DISPLAY_STATE
-                ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED message ID = %d ", event->msg_id);
+                ESP_LOGI(TAG, "mqtt_event_handler(): MQTT_EVENT_PUBLISHED message ID = %d ", event->msg_id);
 #endif
             } else {
-                ESP_LOGE(TAG, "MQTT_EVENT_PUBLISHED. Error message ID unknown, message ID = %d ", event->msg_id);
+                ESP_LOGE(TAG, "mqtt_event_handler(): MQTT_EVENT_PUBLISHED. Error message ID unknown, message ID = %d ", event->msg_id);
             }
         } break;
 
         case MQTT_EVENT_DATA: {
 #ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+            ESP_LOGI(TAG, "mqtt_event_handler(): MQTT_EVENT_DATA");
 #endif
         } break;
 
         case MQTT_EVENT_ERROR: {
 #ifdef DISPLAY_STATE
-            ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+            ESP_LOGI(TAG, "mqtt_event_handler(): MQTT_EVENT_ERROR");
 #endif
         } break;
 
@@ -187,15 +205,18 @@ void Mqtt::perform_publishing(void) {
                 if (Mqtt::make_topic(topic, sizeof (topic), device_serial_number, props[i].key) > 0) {
                     float value = 0.0f;
                     if (reading->get_modified_value(props[i].key, value)) {
+#ifdef DISPLAY_STATE
+                        ESP_LOGI(TAG, "perform_publishing(): Modified value, key=\"%s\", value=%.1f ", props[i].key, value);
+#endif
                         char message[64]{ 0 };
                         SensorProperty::format_value(&props[i], value, message, sizeof (message));
                         int msg_id = esp_mqtt_client_publish(m.client, topic, message, 0, 1, 0);
                         if (push_msg_id(msg_id)) {
 #ifdef DISPLAY_STATE
-                            ESP_LOGI(TAG, "Sending topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+                            ESP_LOGI(TAG, "perform_publishing(): Sending topic \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
 #endif
                         } else {
-                            ESP_LOGE(TAG, "Error sending topic (too many messages pending), topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
+                            ESP_LOGE(TAG, "perform_publishing(): Error sending topic (too many messages pending), topic: \"%s\" message: \"%s\", message ID = %d ", topic, message, msg_id);
                         }
                     }
                 }
@@ -242,6 +263,9 @@ void Mqtt::_mqtt_task(void* pvParameters) {
 void Mqtt::mqtt_task(void) {
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(5000));
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "mqtt_task(): Loop.");
+#endif
         if (get_msg_pending() == 0) {
             perform_publishing();
         }

@@ -121,10 +121,20 @@ AppState App::init_webserver(void) {
 
 AppState App::init_mqtt(void) {
     if (m.cfg->get_mqtt_enable()) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "init_mqtt(): MQTT is enabled.");
+#endif
         const char* broker = m.cfg->get_mqtt_broker();
         if (strlen(broker) > 0) {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "init_mqtt(): Start connection: Broker=\"%s\".", m.cfg->get_mqtt_broker());
+#endif
             m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
         }
+#ifdef DISPLAY_STATE
+    } else {
+        ESP_LOGI(TAG, "init_mqtt(): MQTT not enabled.");
+#endif
     }
     return ((m.mqtt != nullptr) ? AppState::OK : AppState::failed);
 }
@@ -382,20 +392,38 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
         } break;
 
         case AppEvent::mqtt_configure: {
+#ifdef DISPLAY_STATE
+            ESP_LOGI(TAG, "AppEvent::mqtt_configure");
+#endif
             if ((m.flags.b.wifi_connected == 0) || (m.flags.b.driver_ready == 0)) {
+#ifdef DISPLAY_STATE
+                ESP_LOGI(TAG, "AppEvent::mqtt_configure: WiFi not ready, MQTT is shut down.");
+#endif
                 SAFE_DELETE(m.mqtt);
                 break;
             }
 
             if (m.cfg->get_mqtt_enable()) {
+#ifdef DISPLAY_STATE
+                ESP_LOGI(TAG, "AppEvent::mqtt_configure: MQTT is enabled.");
+#endif
                 if (m.mqtt == nullptr) {
+#ifdef DISPLAY_STATE
+                    ESP_LOGI(TAG, "AppEvent::mqtt_configure: Create new MQTT manager.");
+#endif
                     const char* broker = m.cfg->get_mqtt_broker();
                     if (strlen(broker) > 0) {
                         m.mqtt = new Mqtt(m.cfg->get_mqtt_broker(), m.cfg->get_mqtt_username(), m.cfg->get_mqtt_password());
-                        m.mqtt->start(m.driver);
                     }
                 }
+#ifdef DISPLAY_STATE
+                ESP_LOGI(TAG, "AppEvent::mqtt_configure: MQTT startup.");
+#endif
+                m.mqtt->start(m.driver);
             } else {
+#ifdef DISPLAY_STATE
+                ESP_LOGI(TAG, "AppEvent::mqtt_configure: MQTT is disabled.");
+#endif
                 if (m.mqtt != nullptr) {
                     SAFE_DELETE(m.mqtt);
                 }
