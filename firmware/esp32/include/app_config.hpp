@@ -30,29 +30,8 @@
 //#define ESP32_WROVER_DEV
 //#define ESP32_WROOM_DEV
 
-#ifdef ESP32_S2_MINI
-    #define CHIP_TYPE "Wemos Lolin ESP32 S2 Mini"
-    #define ESP32_S2S3
-    // #define ENABLE_JTAG_CONFIG_INTERFACE
-    // #define ENABLE_WATCHDOG
-
-    //#define _HAS_BOARD_LED
-    //#define _HAS_RGB_LED
-    //#define _HAS_NEOPIXEL_LED
-    //#define _BOARD_LED_INVERTED
-
-    #define _ENABLE_LCD
-    #define _ENABLE_BUTTON
-    //#define _ENABLE_SD_CARD
-    //#define _ENABLE_USB_CDC
-    //#define _ENABLE_COM1
-    //#define _ENABLE_COM2
-    //#define _ENABLE_WIFI
-    //#define _ENABLE_BLUETOOTH
-#endif
-
 #ifdef ESP32_S3_ALKS_MINI
-    #define CHIP_TYPE "diymore ESP32-S3"
+    #define CHIP_TYPE "ESP32-S3 Super Mini"
     #define ESP32_S2S3
     #define ENABLE_JTAG_CONFIG_INTERFACE
     #define ENABLE_WATCHDOG
@@ -175,5 +154,26 @@
     //#define _ENABLE_COM1
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
+    //#define _ENABLE_BLUETOOTH
+#endif
+
+#ifdef ESP32_S2_MINI
+    #define CHIP_TYPE "Wemos Lolin ESP32 S2 Mini"
+    #define ESP32_S2S3
+    // #define ENABLE_JTAG_CONFIG_INTERFACE
+    // #define ENABLE_WATCHDOG
+
+    //#define _HAS_BOARD_LED
+    //#define _HAS_RGB_LED
+    //#define _HAS_NEOPIXEL_LED
+    //#define _BOARD_LED_INVERTED
+
+    #define _ENABLE_LCD
+    #define _ENABLE_BUTTON
+    //#define _ENABLE_SD_CARD
+    //#define _ENABLE_USB_CDC
+    //#define _ENABLE_COM1
+    //#define _ENABLE_COM2
+    //#define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
 #endif
