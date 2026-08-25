@@ -442,8 +442,8 @@ const char* EspTool::find_matching_firmware_image(const char* _chip_type) {
     } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WAVESHARE_ESP32S3_MINI) != nullptr) {
         firmware_file = "./firmware_images/image_waveshare_esp32s3_mini.bin";
 
-    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_DIYMORE_ESP32S3_SUPER_MINI) != nullptr) {
-        firmware_file = "./firmware_images/image_alks_esp32s3_mini.bin";
+    } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_ESP32S3_SUPER_MINI) != nullptr) {
+        firmware_file = "./firmware_images/image_esp32s3_super_mini.bin";
 
     } else if (strstr(_chip_type, FIRMWARE_CHIP_KEY_WEMOS_LOLIN_ESP32S2_MINI) != nullptr) {
         firmware_file = "./firmware_images/image_esp32s2_generic.bin";
