@@ -21,16 +21,48 @@
 
 #include "app.hpp"
 
-// #define DISPLAY_STATE
+#define DISPLAY_STATE
 
 void DisplayI2C::init(i2c_port_t lcdPort, gpio_num_t pinSDA, gpio_num_t pinSCL) {
     port = lcdPort;
-    sda = pinSDA;
-    scl = pinSCL;
+    sda  = pinSDA;
+    scl  = pinSCL;
+    vcc  = DISPLAY_VCC;
+    gnd  = DISPLAY_GND;
+
+    gpio_config_t config;
+    memset(&config, 0, sizeof (config));
+    config.intr_type    = GPIO_INTR_DISABLE;
+
+    if (vcc != GPIO_NUM_NC) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "DisplayI2C::init() -> init GPIO%d as VCC ", vcc);
+#endif
+        config.pin_bit_mask = vcc;
+        config.mode         = GPIO_MODE_OUTPUT;
+        config.pull_up_en   = GPIO_PULLUP_ENABLE;
+        config.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        gpio_config(&config);
+        gpio_set_level(vcc, 1);  // VCC on
+    }
+
+    if (gnd != GPIO_NUM_NC) {
+#ifdef DISPLAY_STATE
+        ESP_LOGI(TAG, "DisplayI2C::init() -> init GPIO%d as GND ", gnd);
+#endif
+        config.pin_bit_mask = gnd;
+        config.mode         = GPIO_MODE_INPUT;
+        config.pull_up_en   = GPIO_PULLUP_DISABLE;
+        config.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        gpio_config(&config);
+        gpio_set_level(gnd, 0);
+    }
+
     if ((pinSDA != GPIO_NUM_NC) && (pinSCL != GPIO_NUM_NC)) {
         portSetup();
         detect_display_type();
     }
+
     mutex = xSemaphoreCreateMutex();
     esp_event_post(APP_EVENT, (int32_t)AppEvent::display_ready, nullptr, 0, pdMS_TO_TICKS(10));
 }

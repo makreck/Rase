@@ -175,6 +175,8 @@ class DisplayI2C {
         i2c_port_t port = DISPLAY_I2C;
         gpio_num_t sda  = DISPLAY_I2C_SDA;
         gpio_num_t scl  = DISPLAY_I2C_SCL;
+        gpio_num_t vcc  = DISPLAY_VCC;
+        gpio_num_t gnd  = DISPLAY_GND;
 
         int displayCount = 0;
         DisplayInstance* control = nullptr;

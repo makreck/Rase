@@ -54,6 +54,8 @@
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_12)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_13)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_4)
 #define SENSOR_ADC1_1           (GPIO_NUM_5)
@@ -92,6 +94,8 @@
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_8)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_9)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_1)
 #define SENSOR_ADC1_1           (GPIO_NUM_2)
@@ -133,6 +137,8 @@
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_16)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_15)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_4)
 #define SENSOR_ADC1_1           (GPIO_NUM_5)
@@ -171,6 +177,8 @@
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_2)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_1)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_NC)
 #define SENSOR_ADC1_1           (GPIO_NUM_NC)
@@ -202,8 +210,11 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_21)
 #define SENSOR_PORT_SCL         (GPIO_NUM_22)
+
 #define DISPLAY_I2C_SDA         (GPIO_NUM_32)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_33)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define LED_DEVBOARD_PIN        (GPIO_NUM_2)
 #define RGBLED_PIN_R            (GPIO_NUM_NC)
@@ -236,21 +247,26 @@
 #define COM1_RXD                (BOOTLOADER_RXD_UART0)
 #define COM1_TXD                (BOOTLOADER_TXD_UART0)
 
-#define COM2_RXD                (GPIO_NUM_18)
-#define COM2_TXD                (GPIO_NUM_19)
+#define COM2_RXD                (GPIO_NUM_NC)
+#define COM2_TXD                (GPIO_NUM_NC)
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_21)
 #define SENSOR_PORT_SCL         (GPIO_NUM_22)
-#define DISPLAY_I2C_SDA         (GPIO_NUM_32)
-#define DISPLAY_I2C_SCL         (GPIO_NUM_33)
+#define SENSOR_PORT_VCC         (GPIO_NUM_25)
+#define SENSOR_PORT_GND         (GPIO_NUM_27)
 
-#define SENSOR_DAC_0            (GPIO_NUM_25)
-#define SENSOR_DAC_1            (GPIO_NUM_26)
+#define DISPLAY_I2C_SDA         (GPIO_NUM_19)
+#define DISPLAY_I2C_SCL         (GPIO_NUM_23)
+#define DISPLAY_GND             (GPIO_NUM_5)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+
+#define SENSOR_DAC_0            (GPIO_NUM_NC)
+#define SENSOR_DAC_1            (GPIO_NUM_NC)
 
 #define LED_DEVBOARD_PIN        (GPIO_NUM_2)
-#define RGBLED_PIN_R            (GPIO_NUM_5)
-#define RGBLED_PIN_G            (GPIO_NUM_23)
-#define RGBLED_PIN_B            (GPIO_NUM_27)
+#define RGBLED_PIN_R            (GPIO_NUM_26)
+#define RGBLED_PIN_G            (GPIO_NUM_27)
+#define RGBLED_PIN_B            (GPIO_NUM_14)
 #define LED_NEOPIXEL            (GPIO_NUM_13)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_34)
@@ -293,6 +309,8 @@
 
 #define DISPLAY_I2C_SCL         (GPIO_NUM_16)
 #define DISPLAY_I2C_SDA         (GPIO_NUM_18)
+#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_GND             (GPIO_NUM_NC)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_NC)
 #define SENSOR_ADC1_1           (GPIO_NUM_NC)
