@@ -24,6 +24,7 @@
 // #define DISPLAY_STATE
 
 AppState App::init(void) {
+    init_power();
     init_memory();
     init_watchdog();
     init_event_loop();
@@ -35,6 +36,20 @@ AppState App::init(void) {
     init_driver();
     init_webserver();
     init_mqtt();
+
+    return (AppState::OK);
+}
+
+AppState App::init_power(void) {
+    esp_pm_config_t pm_config = {
+        .max_freq_mhz = 240,
+        .min_freq_mhz = 80,
+        .light_sleep_enable = true,
+    };
+    esp_pm_configure(&pm_config);
+
+    esp_sleep_enable_timer_wakeup(50000);
+    esp_light_sleep_start();
 
     return (AppState::OK);
 }

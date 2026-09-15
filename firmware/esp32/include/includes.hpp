@@ -101,6 +101,8 @@
 #include <esp_attr.h>
 #include <esp_flash.h>
 #include <esp_sntp.h>
+#include "esp_pm.h"
+#include "esp_sleep.h"
 
 #include <lwip/err.h>
 #include <lwip/sockets.h>
