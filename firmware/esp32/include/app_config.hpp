@@ -172,7 +172,7 @@
     #define _ENABLE_BUTTON
     //#define _ENABLE_SD_CARD
     //#define _ENABLE_USB_CDC
-    //#define _ENABLE_COM1
+    #define _ENABLE_COM1
     //#define _ENABLE_COM2
     //#define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
