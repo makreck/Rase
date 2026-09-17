@@ -23,7 +23,7 @@
 
 //#define DISPLAY_STATE
 
-esp_err_t LEDController::init(void) {
+esp_err_t LEDController::init(ColorOrder _color_order) {
     ledc_fade_func_install(0);
 
 #ifdef _HAS_BOARD_LED
@@ -35,7 +35,7 @@ esp_err_t LEDController::init(void) {
 #endif
 
 #ifdef _HAS_NEOPIXEL_LED
-    ws2812 = new WS2812(LED_NEOPIXEL, 1, NEOPIXEL_RMT_CHANNEL);
+    ws2812 = new WS2812(LED_NEOPIXEL, 1, NEOPIXEL_RMT_CHANNEL, _color_order);
 #endif
 
 	set_LED(0.0f);

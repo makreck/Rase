@@ -42,6 +42,14 @@
 #define NEOPIXEL_RMT_CHANNEL    (RMT_CHANNEL_0)
 #define NEOPIXEL_WS2812_CLK_DIV (8)
 
+// BGR: ESP32_S3_ZERO
+// BRG: ESP32_S3_WROOM_1, ESP32_WROOM_DEV, ESP32_WROVER_DEV, ESP32_S3_SUPER_MINI (Type B)
+// RGB: ESP32_S3_SUPER_MINI (Type A), others
+enum class ColorOrder {
+    RGB = 0,
+    BRG = 1,
+    BGR = 2,
+};
 
 class BoardLED {
     private:
@@ -118,25 +126,26 @@ class NeoPixelItem : public rmt_item32_t {
 
 class WS2812 {
     private:
-        size_t         pixelCount = 1;
-        size_t         itemCount  = 25;
-        rmt_channel_t  channel    = NEOPIXEL_RMT_CHANNEL;
-        Color*         pixels     = nullptr;
-        NeoPixelItem*  items      = nullptr;
-        bool           modified   = true;
+        size_t         pixelCount  = 1;
+        size_t         itemCount   = 25;
+        rmt_channel_t  channel     = NEOPIXEL_RMT_CHANNEL;
+        ColorOrder     color_order = ColorOrder::RGB;
+        Color*         pixels      = nullptr;
+        NeoPixelItem*  items       = nullptr;
+        bool           modified    = true;
 
     public:
-        WS2812(gpio_num_t gpioNum = LED_NEOPIXEL, int pixelCount = 1, rmt_channel_t channel = NEOPIXEL_RMT_CHANNEL) {
-            init(gpioNum, pixelCount, channel);
+        WS2812(gpio_num_t gpioNum = LED_NEOPIXEL, int pixelCount = 1, rmt_channel_t channel = NEOPIXEL_RMT_CHANNEL, ColorOrder color_order = ColorOrder::RGB) {
+            init(gpioNum, pixelCount, channel, color_order);
         }
 
         ~WS2812() {
             cleanup();
         }
 
-        static void translate(Color& nativeColor, Color color, float intensity);
+        static void translate(Color& nativeColor, Color color, float intensity, ColorOrder color_order = ColorOrder::RGB);
 
-        void init(gpio_num_t gpioNum, int pixelCount, rmt_channel_t channel);
+        void init(gpio_num_t gpioNum, int pixelCount, rmt_channel_t channel, ColorOrder color_order);
         void cleanup(void);
 
         void set(Color color, float led_intensity = 1.0f, int index = -1);
@@ -178,15 +187,15 @@ class LEDController {
         void sequenceTask(LEDSequenceParms* parms);
         
     public:
-        LEDController() {
-            init();
+        LEDController(ColorOrder _color_order = ColorOrder::RGB) {
+            init(_color_order);
         }
 
         ~LEDController() {
             cleanup();
         }
 
-        esp_err_t init(void);
+        esp_err_t init(ColorOrder _color_order);
         esp_err_t cleanup(void);
 
         static esp_err_t config_LED_controller_timer(ledc_timer_t led_timer_num);

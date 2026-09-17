@@ -23,20 +23,21 @@
 
 //#define DISPLAY_STATE
 
-void WS2812::init(gpio_num_t gpioNum, int givenPixelCount, rmt_channel_t givenChannel) {
-	pixelCount = givenPixelCount;
-	channel    = givenChannel;
-	itemCount  = pixelCount * 24 + 1;
-	items      = (NeoPixelItem*)malloc(sizeof (NeoPixelItem) * itemCount);
-	pixels     = (Color*)malloc(sizeof (Color) * pixelCount);
+void WS2812::init(gpio_num_t _gpio_num, int _pixel_count, rmt_channel_t _channel, ColorOrder _color_order) {
+	pixelCount  = _pixel_count;
+	channel     = _channel;
+	color_order = _color_order;
+	itemCount   = pixelCount * 24 + 1;
+	items       = (NeoPixelItem*)malloc(sizeof (NeoPixelItem) * itemCount);
+	pixels      = (Color*)malloc(sizeof (Color) * pixelCount);
 
 	clear();
 
 	rmt_config_t config;
 	memset(&config, 0, sizeof (config));
 	config.rmt_mode = RMT_MODE_TX;
-	config.channel = channel;
-	config.gpio_num = gpioNum;
+	config.channel = _channel;
+	config.gpio_num = _gpio_num;
 	config.mem_block_num = RMT_CHANNEL_MAX - channel;
 	config.clk_div = NEOPIXEL_WS2812_CLK_DIV;
 	config.tx_config.loop_en = false;
@@ -52,24 +53,24 @@ void WS2812::cleanup(void) {
 	free(pixels);
 }
 
-void WS2812::translate(Color& nativeColor, Color color, float intensity) {
+void WS2812::translate(Color& nativeColor, Color color, float intensity, ColorOrder color_order) {
 	if ((intensity <= 0.0f) || (color.A == 0) || (color.c == 0)) {
 		nativeColor.clear();
 	} else {
 		float f = MAX(0.01f, MIN(1.0f, intensity));
-#if defined ESP32_S3_ZERO
-		nativeColor.R = (uint8_t)(color.B * f);
-		nativeColor.G = (uint8_t)(color.G * f);
-		nativeColor.B = (uint8_t)(color.R * f);
-#elif defined ESP32_S3_WROOM_1 || defined ESP32_WROOM_DEV || defined ESP32_WROVER_DEV
-		nativeColor.R = (uint8_t)(color.B * f);
-		nativeColor.G = (uint8_t)(color.R * f);
-		nativeColor.B = (uint8_t)(color.G * f);
-#else
-		nativeColor.R = (uint8_t)(color.R * f);
-		nativeColor.G = (uint8_t)(color.G * f);
-		nativeColor.B = (uint8_t)(color.B * f);
-#endif
+		if (color_order == ColorOrder::BGR) {			// BGR: ESP32_S3_ZERO
+			nativeColor.R = (uint8_t)(color.B * f);
+			nativeColor.G = (uint8_t)(color.G * f);
+			nativeColor.B = (uint8_t)(color.R * f);
+		} else if (color_order == ColorOrder::BRG) {	// BRG: ESP32_S3_WROOM_1, ESP32_WROOM_DEV, ESP32_WROVER_DEV, ESP32_S3_SUPER_MINI
+			nativeColor.R = (uint8_t)(color.B * f);
+			nativeColor.G = (uint8_t)(color.R * f);
+			nativeColor.B = (uint8_t)(color.G * f);
+		} else {										// RGB: All others
+			nativeColor.R = (uint8_t)(color.R * f);
+			nativeColor.G = (uint8_t)(color.G * f);
+			nativeColor.B = (uint8_t)(color.B * f);
+		}
 	}
 }
 
@@ -99,7 +100,7 @@ size_t WS2812::get_count(void) {
 
 void WS2812::set(Color color, float intensity, int index) {
 	Color nativeColor;
-	WS2812::translate(nativeColor, color, intensity);
+	WS2812::translate(nativeColor, color, intensity, color_order);
 	if (index < 0) {
 		set_all(nativeColor);
 	} else {
@@ -129,3 +130,5 @@ void WS2812::apply(void) {
 		rmt_write_items(channel, items, itemCount, true);
 	}
 }
+
+

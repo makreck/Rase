@@ -25,7 +25,7 @@
 
 AppState App::init_LEDs(void) {
 #if defined _ENABLE_BOARD_LED || defined _HAS_NEOPIXEL_LED || defined _HAS_BOARD_LED
-    m.led = new LEDController();
+    m.led = new LEDController(ColorOrder::RGB);
     AppState state = ((m.led != nullptr) ? AppState::OK : AppState::failed);
     return (state);
 #else
