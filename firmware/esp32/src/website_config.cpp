@@ -328,6 +328,10 @@ const char *WebServer::config_website_resp_str = R"(
             }
         }
 
+
+
+
+
         .form-group {
             margin-bottom: 15px;
             padding: 8px;
@@ -505,6 +509,14 @@ const char *WebServer::config_website_resp_str = R"(
                         <option value="25%">25%</option>
                         <option value="10%">10%</option>
                         <option value="1%">1%</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="led_color_order">LED Color Order</label>
+                    <select id="led_color_order" name="led_color_order">
+                        <option value="RGB">R - G - B</option>
+                        <option value="BRG">B - R - G</option>
+                        <option value="BGR">B - G - R</option>
                     </select>
                 </div>
             </div>
