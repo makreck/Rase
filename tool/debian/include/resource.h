@@ -33,8 +33,8 @@
 #define APP_WINDOW_NAME             "Radio Sensor Config Tool"
 #define APP_WINDOW_MIN_WIDTH        (320)
 #define APP_WINDOW_MIN_HEIGHT       (200)
-#define APP_WINDOW_DEF_WIDTH        (754)
-#define APP_WINDOW_DEF_HEIGHT       (940)
+#define APP_WINDOW_DEF_WIDTH        (760)
+#define APP_WINDOW_DEF_HEIGHT       (916)
 #define APP_WINDOW_MAX_WIDTH        (8192)
 #define APP_WINDOW_MAX_HEIGHT       (8192)
 #define APP_WINDOW_TITLEBAR_HEIGHT  (24)
@@ -47,7 +47,7 @@
 
 #define IDS_NO_TEXT                 ("\0")
 
-#define IDS_MAIN_COUNT              (124)
+#define IDS_MAIN_COUNT              (128)
 extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 
 #define IDS_FILE                    (0)
@@ -179,6 +179,10 @@ extern const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT];
 #define IDS_LED_INTENSITY_25        (121)
 #define IDS_LED_INTENSITY_10        (122)
 #define IDS_LED_INTENSITY_1         (123)
+#define IDS_TITLE_LED_COLOR_ORDER   (124)
+#define IDS_LED_COLOR_ORDER_RGB     (125)
+#define IDS_LED_COLOR_ORDER_BRG     (126)
+#define IDS_LED_COLOR_ORDER_BGR     (127)
 
 #define SVG_STROKE_COLOR            "#010203"
 

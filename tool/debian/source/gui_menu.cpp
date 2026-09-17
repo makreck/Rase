@@ -74,6 +74,12 @@ MenuTree menu_tree[] = {
     {    4, IDS_LED_INTENSITY_25},
     {    4, IDS_LED_INTENSITY_10},
     {    4, IDS_LED_INTENSITY_1},
+    {   3, IDS_TITLE_LED_COLOR_ORDER},
+    {    4, IDS_TITLE_LED_COLOR_ORDER},
+    {    4, IDS_MAIN},
+    {    4, IDS_LED_COLOR_ORDER_RGB},
+    {    4, IDS_LED_COLOR_ORDER_BRG},
+    {    4, IDS_LED_COLOR_ORDER_BGR},
     {   3, IDS_MQTT_CLIENT},
     {   3, IDS_CONFIG_INTERFACE},
     {   3, IDS_SENSOR_SELECT},
@@ -250,6 +256,12 @@ void App::on_menu(CallbackParameter* p) {
             app_menu_led_intensity(item_id);
         } break;
 
+        case IDS_LED_COLOR_ORDER_RGB:
+        case IDS_LED_COLOR_ORDER_BRG:
+        case IDS_LED_COLOR_ORDER_BGR: {
+            app_menu_led_color_order(item_id);
+        } break;
+
         default: {
         } break;
     }
@@ -316,6 +328,10 @@ void App::app_menu_display_layout(int _item_id) {
 
 void App::app_menu_led_intensity(int _item_id) {
     app_menu_handle_str_tab(_item_id, IDS_LED_INTENSITY_100, IDS_LED_INTENSITY, APPSTRING(IDS_LIST_LED_INTENSITY), JSON_KEY_LED_INTENSITY);
+}
+
+void App::app_menu_led_color_order(int _item_id) {
+    app_menu_handle_str_tab(_item_id, IDS_LED_COLOR_ORDER_RGB, IDS_LED_COLOR_ORDER, APPSTRING(IDS_LIST_LED_COLOR_ORDER), JSON_KEY_LED_COLOR_ORDER);
 }
 
 void App::app_menu_enable_disable(int _dlg_item_id, const char* _key) {

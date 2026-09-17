@@ -162,6 +162,10 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "5 Low 25%",
         "6 Very low 10%",
         "7 Min. 1%",
+        "LED RGB Order",
+        "2 R - G - B",
+        "3 B - R - G",
+        "4 B - G - R",
     }
 };
 

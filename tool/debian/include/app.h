@@ -171,6 +171,7 @@ class App {
         void app_menu_display_layout(int _item_id);
         void app_menu_display_contrast(int _item_id);
         void app_menu_led_intensity(int _item_id);
+        void app_menu_led_color_order(int _item_id);
 
         void get_options(void);
         void find_interfaces(void);

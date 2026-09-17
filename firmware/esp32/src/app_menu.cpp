@@ -104,7 +104,7 @@ const size_t menu_led_size = SIZEOFARRAY(menu_led);
 static const float LED_Intensity_List[] = { 1.0f, 0.75f, 0.5f, 0.25f, 0.10f, 0.01f, };
 
 const MenuItem menu_led_color_order[] {
-    IDM_TITLE,               "LED intensity",
+    IDM_TITLE,               "LED RGB Order",
     IDM_MAIN,                "1 Main menu",
     IDM_LED_COLOR_ORDER_RGB, "1 R - G - B",
     IDM_LED_COLOR_ORDER_BRG, "2 B - R - G",
