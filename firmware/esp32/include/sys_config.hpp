@@ -37,6 +37,14 @@
 #define LED_INTENSITY_OFF            (0.00f)
 #define LED_DEFAULT_INTENSITY        (LED_INTENSITY_VERY_LOW)
 
+#if defined ESP32_S3_ZERO
+    #define LED_DEFAULT_COLOR_ORDER (ColorOrder::BGR)
+#elif defined ESP32_S3_WROOM_1 || defined ESP32_WROOM_DEV || defined ESP32_WROVER_DEV || defined ESP32_S3_SUPER_MINI
+    #define LED_DEFAULT_COLOR_ORDER (ColorOrder::BRG)
+#else
+    #define LED_DEFAULT_COLOR_ORDER (ColorOrder::RGB)
+#endif
+
 #define DISPLAY_CONTRAST_DEFAULT     (0.80f)
 
 #define DEFAULT_IFC_ENABLE           (true)
@@ -82,7 +90,8 @@ class SysConfigData {
                 uint8_t sensor_type;
                 uint8_t display_layout;
                 uint8_t display_param;
-                uint8_t reserved1[3];
+                uint8_t color_order;
+                uint8_t reserved1[2];
                 union {
                     uint8_t flags;
                     struct {
@@ -157,6 +166,7 @@ class SysConfig {
         AppState set_mqtt_enable(bool enable);
         AppState set_sensor_type(SensorType _type);
         AppState set_LED_intensity(float _intensity);
+        AppState set_LED_color_order(ColorOrder _color_order);
 
         static AppState set_wifi_ssid_str(SysConfig* _instance, const char* _ap_name);
         static AppState set_wifi_password_str(SysConfig* _instance, const char* _password);
@@ -174,6 +184,7 @@ class SysConfig {
         static AppState set_mqtt_enable_str(SysConfig* _instance, const char* _enable);
         static AppState set_sensor_type_str(SysConfig* _instance, const char* _type);
         static AppState set_LED_intensity_str(SysConfig* _instance, const char* _intensity);
+        static AppState set_LED_color_order_str(SysConfig* _instance, const char* _color_order);
         
         const char* get_ssid(void);
         const char* get_password(void);
@@ -182,9 +193,11 @@ class SysConfig {
         const char* get_mqtt_password(void);
         const char* get_display_timeout_str(void);
         const char* get_display_layout_str(void);
+        const char* get_color_order_str(void);
                 
         float get_display_timeout(void);
         float get_LED_intensity(void);
+        ColorOrder get_LED_color_order(void);
         float get_display_contrast(void);
         AppState import_json(const char* _json_string, size_t _length);
         char* get_json(bool _hide_passwords, bool _sensor_list);

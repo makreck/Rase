@@ -25,12 +25,12 @@
 //#define SEEED_XIAO_S3
 //#define ESP32_S3_ZERO
 //#define ESP32_S3_WROOM_1
-//#define ESP32_S3_ALKS_MINI
+//#define ESP32_S3_SUPER_MINI
 //#define ESP32_S2_MINI
 //#define ESP32_WROVER_DEV
 //#define ESP32_WROOM_DEV
 
-#ifdef ESP32_S3_ALKS_MINI
+#ifdef ESP32_S3_SUPER_MINI
     #define CHIP_TYPE "ESP32-S3 Super Mini"
     #define ESP32_S2S3
     #define ENABLE_JTAG_CONFIG_INTERFACE

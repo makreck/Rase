@@ -38,6 +38,7 @@
 #define JSON_KEY_DISPLAY_CONTRAST "display_contrast"
 #define JSON_KEY_SENSOR_TYPE      "sensor_type"
 #define JSON_KEY_LED_INTENSITY    "led_intensity"
+#define JSON_KEY_LED_COLOR_ORDER  "led_color_order"
 
 #define JSON_KEY_PASSWORD         "password"
 #define JSON_KEY_PWD_HIDDEN       "********"
@@ -66,6 +67,7 @@ const char* SysConfig::config_json_format =
     "\t\"" JSON_KEY_DISPLAY_CONTRAST "\": \"%.0f%%\",\n"
     "\t\"" JSON_KEY_SENSOR_TYPE "\": \"%s\",\n"
     "\t\"" JSON_KEY_LED_INTENSITY "\": \"%.0f%%\"\n"
+    "\t\"" JSON_KEY_LED_COLOR_ORDER "\": \"%s\"\n"
     "}\n";
 
 const JsonScan SysConfig::config_scan_table[] = {
@@ -83,6 +85,7 @@ const JsonScan SysConfig::config_scan_table[] = {
     { JSON_KEY_DISPLAY_CONTRAST, SysConfig::set_display_contrast_str  },
     { JSON_KEY_SENSOR_TYPE,      SysConfig::set_sensor_type_str       },
     { JSON_KEY_LED_INTENSITY,    SysConfig::set_LED_intensity_str     },
+    { JSON_KEY_LED_COLOR_ORDER,  SysConfig::set_LED_color_order_str   },
 };
 
 char* SysConfig::get_json(bool _hide_passwords, bool _sensor_list) {
@@ -118,7 +121,8 @@ char* SysConfig::get_json(bool _hide_passwords, bool _sensor_list) {
         get_display_timeout_str(),
         (float)get_display_contrast() * 100.0f,
         sensor_support,
-        (float)(get_LED_intensity() * 100.0f)
+        (float)(get_LED_intensity() * 100.0f),
+        get_color_order_str()
     );
 
     size_t size = length + 8;
@@ -141,7 +145,8 @@ char* SysConfig::get_json(bool _hide_passwords, bool _sensor_list) {
             get_display_timeout_str(),
             (float)get_display_contrast() * 100.0f,
             sensor_support,
-            (float)(get_LED_intensity() * 100.0f)
+            (float)(get_LED_intensity() * 100.0f),
+            get_color_order_str()
         );
     }
 
@@ -217,6 +222,7 @@ AppState SysConfig::load_defaults(void) {
     set_wifi_channel(WIFI_DEFAULT_CHANNEL);
     set_sensor_type(SENSOR_TYPE_DEFAULT);
     set_LED_intensity(LED_DEFAULT_INTENSITY);
+    set_LED_color_order(LED_DEFAULT_COLOR_ORDER);
     set_config_enable(DEFAULT_IFC_ENABLE);
     set_mqtt_enable(DEFAULT_MQTT_ENABLE);
 
@@ -428,6 +434,39 @@ AppState SysConfig::set_LED_intensity_str(SysConfig* _instance, const char* _int
 
 float SysConfig::get_LED_intensity(void) {
     return (cfg.led_intensity);
+}
+
+AppState SysConfig::set_LED_color_order(ColorOrder _color_order) {
+    if (cfg.color_order != (uint8_t)_color_order) {
+        cfg.color_order = (uint8_t)_color_order;
+        modified = true;
+    }
+    return (AppState::OK);
+}
+
+ColorOrder SysConfig::get_LED_color_order(void) {
+    return ((ColorOrder)cfg.color_order);
+}
+
+AppState SysConfig::set_LED_color_order_str(SysConfig* _instance, const char* _color_order) {
+    if (strstr(_color_order, "RGB") || strstr(_color_order, "rgb")) {
+        return (_instance->set_LED_color_order(ColorOrder::RGB));
+    } else if (strstr(_color_order, "BRG") || strstr(_color_order, "brg")) {
+        return (_instance->set_LED_color_order(ColorOrder::BRG));
+    } else if (strstr(_color_order, "BGR") || strstr(_color_order, "bgr")) {
+        return (_instance->set_LED_color_order(ColorOrder::BGR));
+    }
+    return (AppState::invalid_arg);
+}
+
+const char* SysConfig::get_color_order_str(void) {
+    if ((ColorOrder)cfg.color_order == ColorOrder::BRG) {
+        return ("BRG");
+    }
+    if ((ColorOrder)cfg.color_order == ColorOrder::BGR) {
+        return ("BGR");
+    }
+    return ("RGB");
 }
 
 bool SysConfig::get_config_enable(void) {
