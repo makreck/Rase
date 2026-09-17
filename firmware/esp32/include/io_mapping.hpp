@@ -22,7 +22,7 @@
 #pragma once
 
 
-#ifdef ESP32_S3_ALKS_MINI
+#ifdef ESP32_S3_SUPER_MINI
 
 #define ESP32_BOOT_BUTTON       (GPIO_NUM_18)
 #define ESP32_ALT_BUTTON1       (GPIO_NUM_8)
@@ -232,7 +232,7 @@
 #ifdef ESP32_WROVER_DEV
 
 #define ESP32_BOOT_BUTTON       (GPIO_NUM_0)
-#define ESP32_ALT_BUTTON1       (GPIO_NUM_NC)
+#define ESP32_ALT_BUTTON1       (GPIO_NUM_4)
 #define ESP32_ALT_BUTTON2       (GPIO_NUM_NC)
 #define BOOTLOADER_TXD_UART0    (GPIO_NUM_1)
 #define BOOTLOADER_RXD_UART0    (GPIO_NUM_3)
@@ -299,7 +299,7 @@
 #define SENSOR_PORT_SCL         (GPIO_NUM_11)
 
 #define SENSOR_DAC_0            (GPIO_NUM_NC)
-#define SENSOR_DAC_1            (GPIO_NUM_NC)
+#define SENSOR_DA8 _1            (GPIO_NUM_NC)
 
 #define LED_DEVBOARD_PIN        (GPIO_NUM_NC)
 #define RGBLED_PIN_R            (GPIO_NUM_NC)
