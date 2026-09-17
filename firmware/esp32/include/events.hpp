@@ -33,6 +33,8 @@ enum class AppEvent:uint32_t {
     display_config    = 102,
     display_lock      = 103,
     display_unlock    = 104,
+
+    led_config        = 150,
     
     wifi_enabled      = 200,
     wifi_connected    = 201,
@@ -46,7 +48,7 @@ enum class AppEvent:uint32_t {
     web_api_event     = 303,
     web_query_event   = 304,
     web_time_sync     = 305,
-    
+
     mqtt_configure    = 400,
 
     leds_online       = 500,
