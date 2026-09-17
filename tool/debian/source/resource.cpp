@@ -60,6 +60,7 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Layout",
         "Parameter",
         "LED Intensity",
+        "LED Color Order",
         "Sensor type",
         "Config interface enable",
         "Wifi configuration",
@@ -114,7 +115,8 @@ const char* app_strings_main[LANGMAX][IDS_MAIN_COUNT] {
         "Value page\nDetails page\nInfo page",
         "0°\n180°",
         "100%\n75%\n50%\n25%\n10%\n1%",
-
+        "RGB\nBRG\nBGR",
+        
         "Menu",
         "1 Main menu",
         "1 Exit",

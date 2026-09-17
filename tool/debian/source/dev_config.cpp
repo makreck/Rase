@@ -39,7 +39,8 @@ const char* DevConfig::config_json_cmd_format =
     "\t\"" JSON_KEY_DISPLAY_TIMEOUT "\": \"%s\",\n"
     "\t\"" JSON_KEY_DISPLAY_CONTRAST "\": \"%s\",\n"
     "\t\"" JSON_KEY_SENSOR_TYPE "\": \"%s\",\n"
-    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%s\"\n"
+    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%s\",\n"
+    "\t\"" JSON_KEY_LED_COLOR_ORDER "\": \"%s\"\n"
     "}\n";
 
 void DevConfig::clear(void) {
@@ -131,6 +132,7 @@ bool DevConfig::parse_config_json(char* _config_json) {
         { JSON_KEY_DISPLAY_CONTRAST, cfg.display_contrast,    sizeof (cfg.display_contrast)  },
         { JSON_KEY_SENSOR_TYPE,      cfg._sensor_type_list,   sizeof (cfg._sensor_type_list) },
         { JSON_KEY_LED_INTENSITY,    cfg.led_intensity,       sizeof (cfg.led_intensity)     },
+        { JSON_KEY_LED_COLOR_ORDER,  cfg.led_color_order,     sizeof (cfg.led_color_order)   },
     };
     DevConfig::import_data(_config_json, key_list, SIZEOFARRAY(key_list));
 
@@ -198,7 +200,7 @@ char* DevConfig::get_config_json(const char* _command, size_t* _length) {
         cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
         cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
         cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,
-        cfg.sensor_type, cfg.led_intensity);
+        cfg.sensor_type, cfg.led_intensity, cfg.led_color_order);
 
     size_t size = length + 8;
     char* json_string = (char*)malloc(size);
@@ -212,7 +214,7 @@ char* DevConfig::get_config_json(const char* _command, size_t* _length) {
         cfg.version, cfg.wifi_ssid, cfg.wifi_password, cfg.wifi_channel,
         cfg.mqtt_broker, cfg.mqtt_username, cfg.mqtt_password, cfg.mqtt_enable,
         cfg.display_layout, cfg.display_param, cfg.display_rotoation, cfg.display_timeout_s, cfg.display_contrast,
-        cfg.sensor_type, cfg.led_intensity);
+        cfg.sensor_type, cfg.led_intensity, cfg.led_color_order);
 
     if (_length != nullptr) {
         *_length = length;

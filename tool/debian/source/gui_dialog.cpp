@@ -53,7 +53,8 @@ GtkWidget* App::create_dialog(void) {
 
     GtkWidget* grid_misc = add_grid(APPSTRING(IDS_BOX_MISCELLANEOUS), box);
     m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_INTENSITY,    APP_WINDOW_SHORT_WIDTH, 0, 0, m.device.cfg.led_intensity,     sizeof (m.device.cfg.led_intensity),     APPSTRING(IDS_LIST_LED_INTENSITY)));
-    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 0, 1, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       m.device.cfg._sensor_type_list));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_LED_COLOR_ORDER,  APP_WINDOW_SHORT_WIDTH, 2, 0, m.device.cfg.led_color_order,   sizeof (m.device.cfg.led_color_order),   APPSTRING(IDS_LIST_LED_COLOR_ORDER)));
+    m.gtk.items.push_back(add_text_field(grid_misc, IDS_SENSOR_TYPE,      APP_WINDOW_SHORT_WIDTH, 4, 0, m.device.cfg.sensor_type,       sizeof (m.device.cfg.sensor_type),       m.device.cfg._sensor_type_list));
 
     DialogItem* item;
     item = get_item(IDS_WIFI_PASSWORD);

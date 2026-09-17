@@ -41,6 +41,7 @@
 #define JSON_KEY_DISPLAY_CONTRAST    "display_contrast"
 #define JSON_KEY_SENSOR_TYPE         "sensor_type"
 #define JSON_KEY_LED_INTENSITY       "led_intensity"
+#define JSON_KEY_LED_COLOR_ORDER     "led_color_order"
 
 #define WIFI_AP_NAME_MAX             (32)
 #define MQTT_BROKER_MAX              (64)
@@ -100,6 +101,7 @@ class DevConfig {
             char display_param[NUM_FIELD_LEN]{ 0 };
             
             char led_intensity[NUM_FIELD_LEN]{ 0 };
+            char led_color_order[NUM_FIELD_LEN]{ 0 };
             char sensor_type[NUM_FIELD_LEN]{ 0 };
 
             char _sensor_type_list[256]{ 0 };
