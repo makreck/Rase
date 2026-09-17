@@ -92,6 +92,12 @@ void LEDController::set_color(const color_t color, float intensity) {
 	}
 }
 
+void LEDController::set_color_order(ColorOrder _color_order) {
+	if (ws2812 != nullptr) {
+		ws2812->set_color_order(_color_order);
+	}
+}
+
 void LEDController::sequence(int count, int on_ms, int off_ms, float intensity) {
 	if (task_handle != nullptr) {
 		vTaskDelete(task_handle);

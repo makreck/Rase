@@ -94,6 +94,10 @@ void WS2812::clear(void) {
 	}
 }
 
+void WS2812::set_color_order(ColorOrder _color_order) {
+	color_order = _color_order;
+}
+
 size_t WS2812::get_count(void) {
 	return (pixelCount);
 }

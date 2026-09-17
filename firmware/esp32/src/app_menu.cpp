@@ -47,6 +47,7 @@ const MenuItem menu_config[] {
     IDM_MAIN,                "1 Main menu",
     IDM_DISPLAY,             "2 Display",
     IDM_LED_INTENSITY,       "3 LED intensity",
+    IDM_LED_COLOR_ORDER,     "4 LED RGB order",
     IDM_MQTT_CLIENT,         "4 MQTT client",
     IDM_CONFIG_INTERFACE,    "5 COM interface",
     IDM_SENSOR_SELECT,       "6 Sensor select",
@@ -101,6 +102,15 @@ const MenuItem menu_led[] {
 };
 const size_t menu_led_size = SIZEOFARRAY(menu_led); 
 static const float LED_Intensity_List[] = { 1.0f, 0.75f, 0.5f, 0.25f, 0.10f, 0.01f, };
+
+const MenuItem menu_led_color_order[] {
+    IDM_TITLE,               "LED intensity",
+    IDM_MAIN,                "1 Main menu",
+    IDM_LED_COLOR_ORDER_RGB, "1 R - G - B",
+    IDM_LED_COLOR_ORDER_BRG, "2 B - R - G",
+    IDM_LED_COLOR_ORDER_BGR, "3 B - G - R",
+};
+const size_t menu_led_color_order_size = SIZEOFARRAY(menu_led_color_order); 
 
 AppState App::print_Menu(void) {
     int menu_max = 0;
@@ -279,6 +289,10 @@ bool App::exit_Menu(void) {
                 set_Menu(menu_led, menu_led_size);
             } break;
 
+            case IDM_LED_COLOR_ORDER: {
+                set_Menu(menu_led_color_order, menu_led_color_order_size);
+            } break;
+
             case IDM_SENSOR_SELECT: {
                 select_driver();
             } break;
@@ -316,6 +330,27 @@ bool App::exit_Menu(void) {
             case IDM_LAYOUT_INFO_PAGE: {
                 m.cfg->set_display_layout(DisplayLayout::info);
                 esp_event_post(APP_EVENT, (int32_t)AppEvent::display_config, nullptr, 0, pdMS_TO_TICKS(1));
+            } return (true);
+
+            case IDM_LED_COLOR_ORDER_RGB: {
+                m.cfg->set_LED_color_order(ColorOrder::RGB);
+                if (m.led != nullptr) {
+                    m.led->set_color_order(m.cfg->get_LED_color_order());
+                }
+            } return (true);
+
+            case IDM_LED_COLOR_ORDER_BRG: {
+                m.cfg->set_LED_color_order(ColorOrder::BRG);
+                if (m.led != nullptr) {
+                    m.led->set_color_order(m.cfg->get_LED_color_order());
+                }
+            } return (true);
+
+            case IDM_LED_COLOR_ORDER_BGR: {
+                m.cfg->set_LED_color_order(ColorOrder::BGR);
+                if (m.led != nullptr) {
+                    m.led->set_color_order(m.cfg->get_LED_color_order());
+                }
             } return (true);
 
             default: {

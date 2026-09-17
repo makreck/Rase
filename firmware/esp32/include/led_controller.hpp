@@ -155,6 +155,7 @@ class WS2812 {
         void set_pixel(int index, Color pixel);
         void set_all(Color pixel);
         void clear();
+        void set_color_order(ColorOrder _color_order);
 
 };
 
@@ -201,6 +202,7 @@ class LEDController {
         static esp_err_t config_LED_controller_timer(ledc_timer_t led_timer_num);
         static esp_err_t led_channel_config(gpio_num_t gpio_num, ledc_channel_t controller_channel, ledc_timer_t timer_num);
 
+        void set_color_order(ColorOrder _color_order);
         void sequence(int count, int on_ms, int off_ms, float intensity = 1.0f);
         bool is_sequence_running(void);
         void set_LED(float intensity);
