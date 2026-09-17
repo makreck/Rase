@@ -121,6 +121,7 @@ class App {
                     uint32_t nvm_update_req   : 1;
                     uint32_t display_cfg_req  : 1;
                     uint32_t driver_cfg_req   : 1;
+                    uint32_t led_cfg_req      : 1;
 
                     uint32_t button_ready     : 1;
                     uint32_t display_ready    : 1;

@@ -66,7 +66,7 @@ const char* SysConfig::config_json_format =
     "\t\"" JSON_KEY_DISPLAY_TIMEOUT "\": \"%s\",\n"
     "\t\"" JSON_KEY_DISPLAY_CONTRAST "\": \"%.0f%%\",\n"
     "\t\"" JSON_KEY_SENSOR_TYPE "\": \"%s\",\n"
-    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%.0f%%\"\n"
+    "\t\"" JSON_KEY_LED_INTENSITY "\": \"%.0f%%\",\n"
     "\t\"" JSON_KEY_LED_COLOR_ORDER "\": \"%s\"\n"
     "}\n";
 
@@ -440,6 +440,7 @@ AppState SysConfig::set_LED_color_order(ColorOrder _color_order) {
     if (cfg.color_order != (uint8_t)_color_order) {
         cfg.color_order = (uint8_t)_color_order;
         modified = true;
+        esp_event_post(APP_EVENT, (int32_t)AppEvent::led_config, nullptr, 0, pdMS_TO_TICKS(1));
     }
     return (AppState::OK);
 }

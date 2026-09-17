@@ -226,6 +226,13 @@ AppState App::handle_config_changes(void) {
         request_sys_config_update();
     }
 
+    if (m.flags.b.led_cfg_req == 1) {
+        m.flags.b.led_cfg_req = 0;
+        if (m.led != nullptr) {
+            m.led->set_color_order(m.cfg->get_LED_color_order());
+        }
+    }
+
     return (AppState::OK);
 }
 
@@ -466,6 +473,10 @@ esp_err_t App::app_event_handler(esp_event_base_t event_base, AppEvent event_id,
 
         case AppEvent::display_config: {
             m.flags.b.display_cfg_req = 1;
+        } break;
+
+        case AppEvent::led_config: {
+            m.flags.b.led_cfg_req = 1;
         } break;
 
         case AppEvent::display_lock: {
