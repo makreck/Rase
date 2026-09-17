@@ -63,7 +63,11 @@
 #define TASK_EXTENDED_STACKSIZE (8192)
 #define TASK_WATCHDOG_TIMEOUT   (90000)
 
-#define APP_DRV_LIST_MAX (16)
+#define POWER_UP_DELAY_US       (100000)
+#define POWER_MCU_FREQ_MIN_MHZ  (80)
+#define POWER_MCU_FREQ_MAX_MHZ  (240)
+
+#define APP_DRV_LIST_MAX        (16)
 
 enum class DisplayPage {
     invalid      = 0,

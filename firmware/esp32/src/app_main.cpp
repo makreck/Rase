@@ -42,13 +42,13 @@ AppState App::init(void) {
 
 AppState App::init_power(void) {
     esp_pm_config_t pm_config = {
-        .max_freq_mhz = 240,
-        .min_freq_mhz = 80,
+        .max_freq_mhz = POWER_MCU_FREQ_MAX_MHZ,
+        .min_freq_mhz = POWER_MCU_FREQ_MIN_MHZ,
         .light_sleep_enable = true,
     };
     esp_pm_configure(&pm_config);
 
-    esp_sleep_enable_timer_wakeup(50000);
+    esp_sleep_enable_timer_wakeup(POWER_UP_DELAY_US);
     esp_light_sleep_start();
 
     return (AppState::OK);
