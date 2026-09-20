@@ -42,6 +42,8 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_10)
 #define SENSOR_PORT_SCL         (GPIO_NUM_11)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define SENSOR_DAC_0            (GPIO_NUM_3)
 #define SENSOR_DAC_1            (GPIO_NUM_9)
@@ -91,6 +93,8 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_5)
 #define SENSOR_PORT_SCL         (GPIO_NUM_44)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_8)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_9)
@@ -125,6 +129,8 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_21)
 #define SENSOR_PORT_SCL         (GPIO_NUM_47)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define SENSOR_DAC_0            (GPIO_NUM_1)
 #define SENSOR_DAC_1            (GPIO_NUM_2)
@@ -174,6 +180,8 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_4)
 #define SENSOR_PORT_SCL         (GPIO_NUM_3)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define DISPLAY_I2C_SDA         (GPIO_NUM_2)
 #define DISPLAY_I2C_SCL         (GPIO_NUM_1)
@@ -195,26 +203,28 @@
 #define BOOTLOADER_TXD_UART0    (GPIO_NUM_1)
 #define BOOTLOADER_RXD_UART0    (GPIO_NUM_3)
 
-#define SD_CARD_CLK_SCLK        (GPIO_NUM_6)
-#define SD_CARD_D0_MISO         (GPIO_NUM_7)
-#define SD_CARD_D1_IRQ          (GPIO_NUM_8)
-#define SD_CARD_D2_NC           (GPIO_NUM_9)
-#define SD_CARD_D3_CS           (GPIO_NUM_10)
-#define SD_CARD_CMD_MOSI        (GPIO_NUM_11)
+#define SD_CARD_CLK_SCLK        (GPIO_NUM_NC)
+#define SD_CARD_D0_MISO         (GPIO_NUM_NC)
+#define SD_CARD_D1_IRQ          (GPIO_NUM_NC)
+#define SD_CARD_D2_NC           (GPIO_NUM_NC)
+#define SD_CARD_D3_CS           (GPIO_NUM_NC)
+#define SD_CARD_CMD_MOSI        (GPIO_NUM_NC)
 
 #define COM1_RXD                (BOOTLOADER_RXD_UART0)
 #define COM1_TXD                (BOOTLOADER_TXD_UART0)
 
-#define COM2_RXD                (GPIO_NUM_18)
-#define COM2_TXD                (GPIO_NUM_19)
+#define COM2_RXD                (GPIO_NUM_NC)
+#define COM2_TXD                (GPIO_NUM_NC)
 
-#define SENSOR_PORT_SDA         (GPIO_NUM_21)
-#define SENSOR_PORT_SCL         (GPIO_NUM_22)
+#define SENSOR_PORT_SDA         (GPIO_NUM_12)
+#define SENSOR_PORT_SCL         (GPIO_NUM_14)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_13)
 
-#define DISPLAY_I2C_SDA         (GPIO_NUM_32)
-#define DISPLAY_I2C_SCL         (GPIO_NUM_33)
-#define DISPLAY_VCC             (GPIO_NUM_NC)
+#define DISPLAY_VCC             (GPIO_NUM_21)
 #define DISPLAY_GND             (GPIO_NUM_NC)
+#define DISPLAY_I2C_SCL         (GPIO_NUM_19)
+#define DISPLAY_I2C_SDA         (GPIO_NUM_18)
 
 #define LED_DEVBOARD_PIN        (GPIO_NUM_2)
 #define RGBLED_PIN_R            (GPIO_NUM_NC)
@@ -222,10 +232,10 @@
 #define RGBLED_PIN_B            (GPIO_NUM_NC)
 #define LED_NEOPIXEL            (GPIO_NUM_13)
 
-#define SENSOR_ADC1_0           (GPIO_NUM_34)
-#define SENSOR_ADC1_1           (GPIO_NUM_35)
-#define SENSOR_ADC1_2           (GPIO_NUM_36)
-#define SENSOR_ADC1_3           (GPIO_NUM_39)
+#define SENSOR_ADC1_0           (GPIO_NUM_NC)
+#define SENSOR_ADC1_1           (GPIO_NUM_NC)
+#define SENSOR_ADC1_2           (GPIO_NUM_NC)
+#define SENSOR_ADC1_3           (GPIO_NUM_NC)
 
 #endif
 
@@ -297,6 +307,8 @@
 
 #define SENSOR_PORT_SDA         (GPIO_NUM_10)
 #define SENSOR_PORT_SCL         (GPIO_NUM_11)
+#define SENSOR_PORT_GND         (GPIO_NUM_NC)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define SENSOR_DAC_0            (GPIO_NUM_NC)
 #define SENSOR_DA8 _1            (GPIO_NUM_NC)

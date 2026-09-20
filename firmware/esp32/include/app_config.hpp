@@ -49,6 +49,7 @@
     #define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif
 
 
@@ -71,6 +72,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S3_ZERO
@@ -92,6 +94,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S3_WROOM_1
@@ -113,6 +116,7 @@
     #define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_WROOM_DEV
@@ -134,6 +138,8 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
+
 #endif
 
 #ifdef ESP32_WROVER_DEV
@@ -155,6 +161,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S2_MINI
@@ -176,4 +183,5 @@
     //#define _ENABLE_COM2
     //#define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
+    #define ENABLE_I2C_SENSOR
 #endif

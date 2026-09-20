@@ -182,22 +182,24 @@ SensorDriver* SensorDriver::auto_scan(SensorType selected) {
         MULTI_ADDR_AHT10_AHT21,         // 0x38
     };
 
-    for (size_t i = 0; i < SIZEOFARRAY(busAddressList); i++) {
-        SwI2CBus i2c_bus;
-        uint8_t bus_addr = busAddressList[i];
-        if (bus_addr == INVALID_DEVICE_ADDRESS) continue;
+    if ((SENSOR_PORT_SDA != GPIO_NUM_NC) && (SENSOR_PORT_SCL != GPIO_NUM_NC)) {
+        for (size_t i = 0; i < SIZEOFARRAY(busAddressList); i++) {
+            SwI2CBus i2c_bus;
+            uint8_t bus_addr = busAddressList[i];
+            if (bus_addr == INVALID_DEVICE_ADDRESS) continue;
 #ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X...", (unsigned int)bus_addr);
+            ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X...", (unsigned int)bus_addr);
 #endif
-        if (i2c_bus.detect(busAddressList[i], I2C_MAX_RETRY) == ESP_OK) {
+            if (i2c_bus.detect(busAddressList[i], I2C_MAX_RETRY) == ESP_OK) {
 #ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, found", (unsigned int)bus_addr);        
+                ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, found", (unsigned int)bus_addr);        
 #endif
-            return (create_driver_by_address(bus_addr));
-        } else {
+                return (create_driver_by_address(bus_addr));
+            } else {
 #ifdef DISPLAY_STATE        
-    ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, not found", (unsigned int)bus_addr);        
+                ESP_LOGI(TAG, "Scan bus-address 0x%-2.2X, not found", (unsigned int)bus_addr);        
 #endif
+            }
         }
     }
     return (new SensorNull());

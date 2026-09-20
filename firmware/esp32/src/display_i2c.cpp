@@ -39,8 +39,8 @@ void DisplayI2C::init(i2c_port_t lcdPort, gpio_num_t pinSDA, gpio_num_t pinSCL) 
         ESP_LOGI(TAG, "DisplayI2C::init() -> init GPIO%d as VCC ", vcc);
 #endif
         config.pin_bit_mask = vcc;
-        config.mode         = GPIO_MODE_OUTPUT;
-        config.pull_up_en   = GPIO_PULLUP_ENABLE;
+        config.mode         = GPIO_MODE_INPUT;
+        config.pull_up_en   = GPIO_PULLUP_DISABLE;
         config.pull_down_en = GPIO_PULLDOWN_DISABLE;
         gpio_config(&config);
         gpio_set_level(vcc, 1);  // VCC on
