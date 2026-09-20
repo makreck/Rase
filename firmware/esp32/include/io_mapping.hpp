@@ -216,10 +216,10 @@
 #define COM2_RXD                (GPIO_NUM_NC)
 #define COM2_TXD                (GPIO_NUM_NC)
 
-#define SENSOR_PORT_SDA         (GPIO_NUM_12)
-#define SENSOR_PORT_SCL         (GPIO_NUM_14)
+#define SENSOR_PORT_SDA         (GPIO_NUM_2)
+#define SENSOR_PORT_SCL         (GPIO_NUM_4)
 #define SENSOR_PORT_GND         (GPIO_NUM_NC)
-#define SENSOR_PORT_VCC         (GPIO_NUM_13)
+#define SENSOR_PORT_VCC         (GPIO_NUM_NC)
 
 #define DISPLAY_VCC             (GPIO_NUM_21)
 #define DISPLAY_GND             (GPIO_NUM_NC)
@@ -230,7 +230,7 @@
 #define RGBLED_PIN_R            (GPIO_NUM_NC)
 #define RGBLED_PIN_G            (GPIO_NUM_NC)
 #define RGBLED_PIN_B            (GPIO_NUM_NC)
-#define LED_NEOPIXEL            (GPIO_NUM_13)
+#define LED_NEOPIXEL            (GPIO_NUM_12)
 
 #define SENSOR_ADC1_0           (GPIO_NUM_NC)
 #define SENSOR_ADC1_1           (GPIO_NUM_NC)

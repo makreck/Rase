@@ -127,7 +127,7 @@
     #define ENABLE_WATCHDOG
 
     //#define _HAS_RGB_LED
-    //#define _HAS_NEOPIXEL_LED
+    #define _HAS_NEOPIXEL_LED
     //#define _BOARD_LED_INVERTED
 
     #define _ENABLE_LCD
