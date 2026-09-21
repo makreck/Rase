@@ -22,6 +22,7 @@
 #include "app.hpp"
 
 esp_err_t SwI2CBus::enable(void) {
+    pwrInit();
     sclInit();
     sdaInit();
     stop();
@@ -29,6 +30,26 @@ esp_err_t SwI2CBus::enable(void) {
     return (ESP_OK);
 }
 
+void SwI2CBus::pwrInit(void) {
+    gpio_config_t config;
+    memset(&config, 0, sizeof (config));
+    config.intr_type    = GPIO_INTR_DISABLE;
+    config.mode         = GPIO_MODE_INPUT;
+    config.pull_up_en   = GPIO_PULLUP_DISABLE;
+    config.pull_down_en = GPIO_PULLDOWN_DISABLE;
+
+    if (vcc != GPIO_NUM_NC) {
+        config.pin_bit_mask = vcc;
+        gpio_config(&config);
+        gpio_reset_pin(vcc);
+    }
+
+    if (gnd != GPIO_NUM_NC) {
+        config.pin_bit_mask = gnd;
+        gpio_config(&config);
+        gpio_reset_pin(gnd);
+    }
+}
 
 void SwI2CBus::bitWait(void) {
     esp_rom_delay_us(5);    

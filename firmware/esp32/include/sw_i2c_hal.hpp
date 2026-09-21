@@ -33,6 +33,8 @@ class SwI2CBus {
     private:
         gpio_num_t sda  = SENSOR_PORT_SDA;
         gpio_num_t scl  = SENSOR_PORT_SCL;
+        gpio_num_t vcc  = GPIO_NUM_NC;
+        gpio_num_t gnd  = GPIO_NUM_NC;
 
         void sclInit()   { gpio_reset_pin(scl); gpio_set_pull_mode(scl, GPIO_PULLUP_ONLY); gpio_set_level(scl, 1); gpio_set_direction(scl, GPIO_MODE_OUTPUT); }
         void sclLow()    { gpio_set_level(scl, 0); }
@@ -53,11 +55,14 @@ class SwI2CBus {
         void millisecondWait(TickType_t ms);
         void bitWait(void);
         void longWait(void);
+        void pwrInit(void);
         
     public:
-        SwI2CBus(gpio_num_t _sda = SENSOR_PORT_SDA, gpio_num_t _scl = SENSOR_PORT_SCL) {
+        SwI2CBus(gpio_num_t _sda = SENSOR_PORT_SDA, gpio_num_t _scl = SENSOR_PORT_SCL, gpio_num_t _vcc  = GPIO_NUM_NC, gpio_num_t _gnd  = GPIO_NUM_NC) {
             sda = _sda;
             scl = _scl;
+            vcc = _vcc;
+            gnd = _gnd;
         }
 
         ~SwI2CBus() {
