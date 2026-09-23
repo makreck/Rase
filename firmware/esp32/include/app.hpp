@@ -51,6 +51,7 @@
 #include "channel_history.hpp"
 #include "sensor_node.hpp"
 #include "sensor_device.hpp"
+#include "sd_card.hpp"
 #include "web_server.hpp"
 #include "mqtt.hpp"
 #include "sys_config.hpp"
@@ -94,6 +95,7 @@ class App {
             Mqtt*            mqtt             = nullptr;
             SensorDriver*    driver           = nullptr;
             SensorDevice*    sensor           = nullptr;
+            SDCard*          sdc              = nullptr;
             ConfigInterface* cmd              = nullptr;
             
             SensorReading    reading;
@@ -158,6 +160,7 @@ class App {
         AppState init_webserver(void);
         AppState init_driver(void);
         AppState init_mqtt(void);
+        AppState init_sdcard(void);
 
         AppState print_net_Info(void);
         AppState print_measuring_info(uint8_t mode = 0);

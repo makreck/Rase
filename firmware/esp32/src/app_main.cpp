@@ -32,6 +32,7 @@ AppState App::init(void) {
     init_LEDs();
     init_display();
     init_buttons();
+    init_sdcard();
     init_wifi();
     init_driver();
     init_webserver();
@@ -117,6 +118,13 @@ AppState App::init_buttons(void) {
 #else
     return (AppState::not_implemented);
 #endif    
+}
+
+AppState App::init_sdcard(void) {
+#ifdef _ENABLE_SD_CARD
+    m.sdc = new SDCard();
+#endif
+    return (AppState::OK);
 }
 
 AppState App::init_wifi(void) {

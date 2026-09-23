@@ -67,6 +67,9 @@
 #include <driver/usb_serial_jtag.h>
 #include <driver/ledc.h>
 
+#include "driver/sdmmc_host.h"
+#include "driver/sdmmc_types.h"
+
 // RMT is completely incompatible from one IDF version to another!
 // #include <driver/rmt_tx.h>
 // #include <driver/rmt_encoder.h>
@@ -103,6 +106,8 @@
 #include <esp_sntp.h>
 #include "esp_pm.h"
 #include "esp_sleep.h"
+#include "esp_vfs_fat.h"
+#include "sdmmc_cmd.h"
 
 #include <lwip/err.h>
 #include <lwip/sockets.h>
