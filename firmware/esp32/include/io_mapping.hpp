@@ -24,7 +24,7 @@
 
 #ifdef ESP32_S3_WROOM_1
 
-#define ESP32_BOOT_BUTTON       (GPIO_NUM_NC)
+#define ESP32_BOOT_BUTTON       (GPIO_NUM_0)
 #define ESP32_ALT_BUTTON1       (GPIO_NUM_14)
 #define ESP32_ALT_BUTTON2       (GPIO_NUM_NC)
 
