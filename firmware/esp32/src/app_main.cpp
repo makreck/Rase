@@ -156,7 +156,7 @@ AppState App::init_mqtt(void) {
 
 AppState App::init_driver(void) {
     m.sensor = new SensorDevice("ESP32-S3");
-#ifdef ENABLE_I2C_SENSOR
+#ifdef _ENABLE_I2C_SENSOR
     m.driver = SensorDriver::auto_scan(m.cfg->get_sensor_type());
 #endif    
     return (((m.sensor != nullptr) && (m.driver != nullptr)) ? AppState::OK : AppState::failed);

@@ -49,7 +49,7 @@
     #define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 #endif
 
 
@@ -72,7 +72,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S3_ZERO
@@ -94,7 +94,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S3_WROOM_1
@@ -103,20 +103,23 @@
     #define ENABLE_JTAG_CONFIG_INTERFACE
     #define ENABLE_WATCHDOG
 
-    //#define _HAS_BOARD_LED
+    #define _HAS_BOARD_LED
     //#define _HAS_RGB_LED
     #define _HAS_NEOPIXEL_LED
     //#define _BOARD_LED_INVERTED
 
     #define _ENABLE_LCD
     #define _ENABLE_BUTTON
-    //#define _ENABLE_SD_CARD
+    #define _ENABLE_SD_CARD
     #define _ENABLE_USB_CDC
-    //#define _ENABLE_COM1
-    #define _ENABLE_COM2
+    #define _ENABLE_COM1
+    //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
+    #define _ENABLE_CAMERA
+    #define _ENABLE_SD_CARD
+    
 #endif
 
 #ifdef ESP32_WROOM_DEV
@@ -138,7 +141,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 
 #endif
 
@@ -161,7 +164,7 @@
     //#define _ENABLE_COM2
     #define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 #endif
 
 #ifdef ESP32_S2_MINI
@@ -183,5 +186,5 @@
     //#define _ENABLE_COM2
     //#define _ENABLE_WIFI
     //#define _ENABLE_BLUETOOTH
-    #define ENABLE_I2C_SENSOR
+    #define _ENABLE_I2C_SENSOR
 #endif
