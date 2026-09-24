@@ -30,6 +30,7 @@
 #include <limits.h>
 #include <math.h>
 #include <errno.h>
+#include <dirent.h>
 #include <math.h>
 #include <float.h>
 

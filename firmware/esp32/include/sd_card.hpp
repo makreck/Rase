@@ -24,13 +24,19 @@
 class SDCard {
     private:
         struct {
-            esp_vfs_fat_sdmmc_mount_config_t mount_config;
-            sdmmc_card_t*                    card        = nullptr;
+            struct {
+                sdmmc_slot_config_t slot_config;
+                sdmmc_host_t host;
+                esp_vfs_fat_sdmmc_mount_config_t mount_config;
+            } setup;
 
+            sdmmc_card_t *card = nullptr;
+            std::vector<char*> file_list;
         } m;
 
         void init(void);
         void cleanup(void);
+        void clear_file_list(void);
 
     public:
         SDCard() {
@@ -40,5 +46,8 @@ class SDCard {
         ~SDCard() {
             cleanup();
         }
+
+        std::vector<char*> list_files(void);
+        ssize_t get_file_size(const char* _filename);
 
 };
