@@ -28,10 +28,11 @@ AppState App::init(void) {
     init_memory();
     init_watchdog();
     init_event_loop();
+
+    init_buttons();
     init_config();
     init_LEDs();
     init_display();
-    init_buttons();
     init_sdcard();
     init_wifi();
     init_driver();
@@ -52,6 +53,8 @@ AppState App::init_power(void) {
     esp_sleep_enable_timer_wakeup(POWER_UP_DELAY_US);
     esp_light_sleep_start();
 
+    vTaskDelay(pdMS_TO_TICKS(POWER_UP_DELAY_MS));
+
     return (AppState::OK);
 }
 
@@ -63,14 +66,16 @@ AppState App::cleanup(void) {
         m.task_handle = nullptr;
     }
 
+    SAFE_DELETE(m.mqtt);
     SAFE_DELETE(m.webserver);
     SAFE_DELETE(m.driver);
     SAFE_DELETE(m.sensor);
     SAFE_DELETE(m.station);
+    SAFE_DELETE(m.sdc);
     SAFE_DELETE(m.display);
-    SAFE_DELETE(m.button);
     SAFE_DELETE(m.led);
     SAFE_DELETE(m.cfg);
+    SAFE_DELETE(m.button);
 
     esp_event_handler_unregister(APP_EVENT, ESP_EVENT_ANY_ID, &App::_app_event_handler);
     esp_task_wdt_deinit();
